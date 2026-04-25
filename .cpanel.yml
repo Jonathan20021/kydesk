@@ -1,0 +1,18 @@
+---
+deployment:
+  tasks:
+    # cPanel "Git Version Control" lee este archivo cuando hacés "Update from Remote" + "Deploy HEAD Commit"
+    # Ajustá DEPLOYPATH al directorio donde se sirve kydesk.kyrosrd.com
+    # (típicamente: /home/USUARIO_CPANEL/public_html  o  /home/USUARIO_CPANEL/kydesk.kyrosrd.com)
+    - export DEPLOYPATH=/home/$USER/public_html/
+    - /bin/cp -R app $DEPLOYPATH
+    - /bin/cp -R config $DEPLOYPATH
+    - /bin/cp -R database $DEPLOYPATH
+    - /bin/cp -R public $DEPLOYPATH
+    - /bin/cp index.php $DEPLOYPATH
+    - /bin/cp .htaccess $DEPLOYPATH
+    - /bin/chmod -R 755 $DEPLOYPATH/public/uploads
+    - /bin/chmod 644 $DEPLOYPATH/.htaccess
+    - /bin/chmod 600 $DEPLOYPATH/config/config.php
+    # Bloquear el script de migración después del deploy (extra seguridad además del .htaccess)
+    - /bin/chmod 600 $DEPLOYPATH/database/migrate_production.php 2>/dev/null || true

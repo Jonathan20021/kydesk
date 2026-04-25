@@ -1,0 +1,37 @@
+# Uploads (no incluir contenido de usuarios — solo el dir)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Cache / temp
+*.log
+*.tmp
+*.bak
+*.swp
+*.cache
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Sesiones / runtime PHP
+sessions/
+storage/
+
+# Dependencias
+vendor/
+node_modules/
+
+# Local env (si en el futuro usás .env)
+.env
+.env.local
+
+# Archivos de respaldo SQL pesados
+*.sql.gz
+*.sql.zip
+
+# Migración productiva (sólo para subir manual una vez, no por git)
+# Si usás GitHub para deploy, descomentá la línea siguiente:
+# database/migrate_production.php

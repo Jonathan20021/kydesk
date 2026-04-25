@@ -32,8 +32,8 @@ class Application
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-        $base = '/kyros-helpdesk';
-        if (strpos($uri, $base) === 0) $uri = substr($uri, strlen($base));
+        $base = $this->config['app']['base'] ?? '';
+        if ($base !== '' && strpos($uri, $base) === 0) $uri = substr($uri, strlen($base));
         if ($uri === '' || $uri === false) $uri = '/';
 
         if (random_int(1, 50) === 1) {

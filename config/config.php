@@ -1,14 +1,13 @@
 <?php
-return [
-    'app' => [
-        'name' => 'Kydesk Helpdesk',
-        'url'  => 'http://localhost/kyros-helpdesk',
-        'env'  => 'local',
-        'debug' => true,
-        'timezone' => 'America/Guatemala',
-        'locale' => 'es',
-    ],
-    'db' => [
+$env = getenv('KYDESK_ENV') ?: (
+    isset($_SERVER['HTTP_HOST']) && (
+        str_contains($_SERVER['HTTP_HOST'], 'kydesk.kyrosrd.com') ||
+        str_contains($_SERVER['HTTP_HOST'], 'kyrosrd.com')
+    ) ? 'production' : 'local'
+);
+
+$databases = [
+    'local' => [
         'host' => '127.0.0.1',
         'port' => 3306,
         'name' => 'kyros_helpdesk',
@@ -16,10 +15,41 @@ return [
         'pass' => '',
         'charset' => 'utf8mb4',
     ],
+    'production' => [
+        'host' => '129.121.81.172',
+        'port' => 3306,
+        'name' => 'neetjbte_kydesk',
+        'user' => 'neetjbte_kydesk',
+        'pass' => 'Kydesk.2026!',
+        'charset' => 'utf8mb4',
+    ],
+];
+
+$urls = [
+    'local'      => 'http://localhost/kyros-helpdesk',
+    'production' => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://kydesk.kyrosrd.com',
+];
+
+$basePaths = [
+    'local'      => '/kyros-helpdesk',
+    'production' => '',
+];
+
+return [
+    'app' => [
+        'name' => 'Kydesk Helpdesk',
+        'url'  => $urls[$env] ?? $urls['production'],
+        'base' => $basePaths[$env] ?? '',
+        'env'  => $env,
+        'debug' => $env !== 'production',
+        'timezone' => 'America/Guatemala',
+        'locale' => 'es',
+    ],
+    'db' => $databases[$env] ?? $databases['production'],
     'session' => [
-        'name' => 'KYROS_SID',
+        'name' => 'KYDESK_SID',
         'lifetime' => 60 * 60 * 8,
-        'secure' => false,
+        'secure' => $env === 'production',
         'httponly' => true,
         'samesite' => 'Lax',
     ],

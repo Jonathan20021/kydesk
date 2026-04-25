@@ -1,5 +1,10 @@
 RewriteEngine On
-RewriteBase /kyros-helpdesk/
+
+# Forzar HTTPS solo en producción (kydesk.kyrosrd.com)
+RewriteCond %{HTTP_HOST} kyrosrd\.com$ [NC]
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
 # Bloquear acceso directo a directorios sensibles
 RewriteRule ^(app|config|database|vendor)/ - [F,L]
@@ -9,7 +14,7 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Todo el resto va al front-controller
+# Front-controller
 RewriteRule ^ index.php [QSA,L]
 
 # Seguridad
@@ -17,8 +22,14 @@ RewriteRule ^ index.php [QSA,L]
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
 <FilesMatch "\.(env|sql|md|json|lock)$">
     Require all denied
 </FilesMatch>
+
+# Bloquear el script de migración después del setup inicial
+<Files "migrate_production.php">
+    Require all denied
+</Files>

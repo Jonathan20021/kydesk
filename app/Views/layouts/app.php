@@ -8,8 +8,9 @@ $prefs = Prefs::get($user);
 $tenant = $app->tenant;
 $slug = $tenant?->slug ?? '';
 $current = $_SERVER['REQUEST_URI'] ?? '';
-$isActive = function (string $path) use ($current, $slug) {
-    $full = '/kyros-helpdesk/t/' . $slug . $path;
+$basePath = $app->config['app']['base'] ?? '';
+$isActive = function (string $path) use ($current, $slug, $basePath) {
+    $full = $basePath . '/t/' . $slug . $path;
     return strpos($current, $full) === 0;
 };
 $can = fn(string $p) => $auth->can($p);
