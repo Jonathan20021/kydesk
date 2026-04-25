@@ -88,7 +88,24 @@ document.addEventListener('DOMContentLoaded', kydeskRenderIcons);
 window.renderIcons = kydeskRenderIcons;
 </script>
 </head>
-<body x-data="{ sidebarOpen:false, sidebarCollapsed: (localStorage.getItem('kydesk_sidebar_collapsed')==='1'), userMenu:false, cmd:false, notifMenu:false, shortcuts:false, toggleSidebar(){ this.sidebarCollapsed=!this.sidebarCollapsed; try{localStorage.setItem('kydesk_sidebar_collapsed', this.sidebarCollapsed?'1':'0');}catch(e){} } }" :class="sidebarCollapsed && 'sidebar-collapsed'" @keydown.window.shift.question="shortcuts=true" @keydown.window.meta.k.prevent="cmd=true" @keydown.window.ctrl.k.prevent="cmd=true" @keydown.window.meta.b.prevent="toggleSidebar()" @keydown.window.ctrl.b.prevent="toggleSidebar()" data-theme="<?= $e($prefs['theme']) ?>" data-density="<?= $e($prefs['density']) ?>" data-sidebar="<?= $e($prefs['sidebar_mode']) ?>" data-wallpaper="<?= $e($prefs['wallpaper']) ?>" style="<?= Prefs::styleVars($prefs) ?>">
+<body
+    x-data="{
+        sidebarOpen: false,
+        sidebarCollapsed: false,
+        userMenu: false, cmd: false, notifMenu: false, shortcuts: false,
+        toggleSidebar(){
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            try { localStorage.setItem('kydesk_sidebar_collapsed', this.sidebarCollapsed ? '1' : '0'); } catch(e){}
+            document.body.classList.toggle('sidebar-collapsed', this.sidebarCollapsed);
+        }
+    }"
+    x-init="sidebarCollapsed = (localStorage.getItem('kydesk_sidebar_collapsed')==='1'); document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed)"
+    @keydown.window.shift.question="shortcuts=true"
+    @keydown.window.meta.k.prevent="cmd=true"
+    @keydown.window.ctrl.k.prevent="cmd=true"
+    @keydown.window.meta.b.prevent="toggleSidebar()"
+    @keydown.window.ctrl.b.prevent="toggleSidebar()"
+    data-theme="<?= $e($prefs['theme']) ?>" data-density="<?= $e($prefs['density']) ?>" data-sidebar="<?= $e($prefs['sidebar_mode']) ?>" data-wallpaper="<?= $e($prefs['wallpaper']) ?>" style="<?= Prefs::styleVars($prefs) ?>">
 
 <div class="app-shell">
     <div class="app-frame">
@@ -97,8 +114,9 @@ window.renderIcons = kydeskRenderIcons;
             <div class="brand">
                 <div class="brand-logo"><i class="lucide lucide-zap text-base"></i></div>
                 <div class="brand-name">Kydesk</div>
-                <button @click="toggleSidebar()" class="sidebar-toggle hidden lg:grid" data-tooltip="Colapsar menú (⌘B)" :data-tooltip="sidebarCollapsed ? 'Expandir menú (⌘B)' : 'Colapsar menú (⌘B)'">
-                    <i class="lucide" :class="sidebarCollapsed ? 'lucide-chevrons-right' : 'lucide-chevrons-left'"></i>
+                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="sidebarCollapsed ? 'Expandir menú (Ctrl+B)' : 'Colapsar menú (Ctrl+B)'" aria-label="Alternar menú">
+                    <i class="lucide lucide-chevrons-left" x-show="!sidebarCollapsed"></i>
+                    <i class="lucide lucide-chevrons-right" x-show="sidebarCollapsed" x-cloak></i>
                 </button>
             </div>
 

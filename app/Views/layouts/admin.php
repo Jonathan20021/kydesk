@@ -141,7 +141,20 @@ window.adminRenderIcons = adminRenderIcons;
 window.renderIcons = adminRenderIcons;
 </script>
 </head>
-<body x-data="{ sidebarOpen:false, sidebarCollapsed: (localStorage.getItem('kydesk_admin_sidebar_collapsed')==='1'), userMenu:false, toggleSidebar(){ this.sidebarCollapsed=!this.sidebarCollapsed; try{localStorage.setItem('kydesk_admin_sidebar_collapsed', this.sidebarCollapsed?'1':'0');}catch(e){} } }" :class="sidebarCollapsed && 'sidebar-collapsed'" @keydown.window.meta.b.prevent="toggleSidebar()" @keydown.window.ctrl.b.prevent="toggleSidebar()">
+<body
+    x-data="{
+        sidebarOpen: false,
+        sidebarCollapsed: false,
+        userMenu: false,
+        toggleSidebar(){
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            try { localStorage.setItem('kydesk_admin_sidebar_collapsed', this.sidebarCollapsed ? '1' : '0'); } catch(e){}
+            document.body.classList.toggle('sidebar-collapsed', this.sidebarCollapsed);
+        }
+    }"
+    x-init="sidebarCollapsed = (localStorage.getItem('kydesk_admin_sidebar_collapsed')==='1'); document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed)"
+    @keydown.window.meta.b.prevent="toggleSidebar()"
+    @keydown.window.ctrl.b.prevent="toggleSidebar()">
 
 <div class="app-shell">
     <div class="app-frame">
@@ -153,8 +166,9 @@ window.renderIcons = adminRenderIcons;
                     <div class="brand-name">Kydesk</div>
                     <div class="super-brand-meta">Super Admin</div>
                 </div>
-                <button @click="toggleSidebar()" class="sidebar-toggle hidden lg:grid" :data-tooltip="sidebarCollapsed ? 'Expandir menú (⌘B)' : 'Colapsar menú (⌘B)'">
-                    <i class="lucide" :class="sidebarCollapsed ? 'lucide-chevrons-right' : 'lucide-chevrons-left'"></i>
+                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="sidebarCollapsed ? 'Expandir menú (Ctrl+B)' : 'Colapsar menú (Ctrl+B)'" aria-label="Alternar menú">
+                    <i class="lucide lucide-chevrons-left" x-show="!sidebarCollapsed"></i>
+                    <i class="lucide lucide-chevrons-right" x-show="sidebarCollapsed" x-cloak></i>
                 </button>
             </div>
 
