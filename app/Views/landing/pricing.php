@@ -1,35 +1,167 @@
 <?php include APP_PATH . '/Views/partials/landing_nav.php'; ?>
 
-<section class="pt-32 pb-16">
-    <div class="max-w-[1240px] mx-auto px-6 text-center">
-        <div class="text-[11.5px] font-bold uppercase tracking-[0.14em] text-brand-600 mb-3">PRECIOS</div>
-        <h1 class="heading-xl" style="text-wrap:balance">Planes simples.<br><span class="text-ink-400">Sin sorpresas.</span></h1>
-        <p class="mt-6 text-[17px] max-w-lg mx-auto text-ink-500">Empieza gratis. Escala cuando crezcas.</p>
+<!-- HERO -->
+<section class="relative pt-36 pb-12 overflow-hidden">
+    <div class="aurora-bg">
+        <div class="aurora-blob b1"></div>
+        <div class="aurora-blob b2"></div>
+        <div class="aurora-blob b3"></div>
     </div>
-    <div class="max-w-[1240px] mx-auto px-6 mt-16 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <?php
-        $plans = [
-            ['Starter','$0','mes','Para empezar', [['3 usuarios',1],['100 tickets/mes',1],['Portal público',1],['Reportes avanzados',0],['Automatizaciones',0]], false],
-            ['Pro','$29','usuario/mes','En crecimiento', [['Usuarios ilimitados',1],['Tickets ilimitados',1],['Portal con marca',1],['Reportes avanzados',1],['SLAs personalizados',1],['Automatizaciones',1]], true],
-            ['Enterprise','A medida','','Organizaciones', [['Todo de Pro',1],['SSO SAML',1],['Auditoría avanzada',1],['SLA 99.99%',1],['Soporte 24/7',1]], false],
-        ];
-        foreach ($plans as [$n,$p,$per,$d,$feats,$hl]): ?>
-            <div class="card card-pad relative <?= $hl?'!bg-ink-900 !text-white !border-ink-900 shadow-2xl':'' ?>" style="<?= $hl?'transform:scale(1.03)':'' ?>">
-                <?php if ($hl): ?><div class="absolute top-6 right-6 px-2.5 h-5 rounded-full bg-brand-500/30 text-white text-[10px] font-bold flex items-center">POPULAR</div><?php endif; ?>
-                <div class="text-[13px] font-semibold <?= $hl?'text-brand-200':'text-brand-600' ?>"><?= $n ?></div>
-                <div class="mt-2.5 flex items-baseline gap-1">
-                    <span class="font-display font-extrabold text-[44px] tracking-[-0.035em] leading-none"><?= $p ?></span>
-                    <?php if ($per): ?><span class="text-[12.5px] <?= $hl?'text-brand-200':'text-ink-400' ?>">/ <?= $per ?></span><?php endif; ?>
+    <div class="grid-bg"></div>
+
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+        <div class="max-w-3xl mx-auto text-center">
+            <div class="inline-flex justify-center">
+                <div class="aura-pill">
+                    <span class="aura-pill-tag"><i class="lucide lucide-tag"></i> PRECIOS</span>
+                    <span class="text-ink-700 font-medium">14 días gratis · Sin tarjeta</span>
                 </div>
-                <p class="mt-1.5 text-[13px] <?= $hl?'text-brand-200':'text-ink-500' ?>"><?= $d ?></p>
-                <a href="<?= $url('/auth/register') ?>" class="block text-center h-11 rounded-full font-semibold text-[13.5px] mt-6 leading-[44px] transition <?= $hl?'bg-white text-ink-900 hover:bg-ink-100':'bg-brand-500 text-white hover:bg-brand-600' ?>"><?= $n==='Enterprise'?'Contactar':'Empezar' ?></a>
-                <ul class="mt-6 space-y-2.5 text-[13px]">
-                    <?php foreach ($feats as [$f,$yes]): ?>
-                        <li class="flex items-start gap-2 <?= !$yes?'opacity-40':'' ?>"><i class="lucide <?= $yes?'lucide-check text-emerald-500':'lucide-minus' ?>"></i> <?= $f ?></li>
-                    <?php endforeach; ?>
-                </ul>
             </div>
-        <?php endforeach; ?>
+            <h1 class="display-xl mt-8" style="text-wrap:balance;font-size:clamp(2.6rem,5vw + 1rem,5rem)">Planes simples.<br><span class="gradient-shift">Sin sorpresas.</span></h1>
+            <p class="mt-7 text-[18px] text-ink-500 max-w-xl mx-auto leading-relaxed">Empezá gratis. Escalá cuando crezcas. Cancelá cuando quieras.</p>
+
+            <div class="mt-8 inline-flex p-1 rounded-full" style="background:#f3f4f6;border:1px solid #ececef" x-data="{period:'monthly'}">
+                <button @click="period='monthly'" :class="period==='monthly' ? 'bg-white shadow-sm text-ink-900' : 'text-ink-500'" class="px-5 py-2 rounded-full text-[12.5px] font-semibold transition">Mensual</button>
+                <button @click="period='yearly'" :class="period==='yearly' ? 'bg-white shadow-sm text-ink-900' : 'text-ink-500'" class="px-5 py-2 rounded-full text-[12.5px] font-semibold transition inline-flex items-center gap-2">Anual <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="background:#d1fae5;color:#047857">-20%</span></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PRICING CARDS -->
+<section class="pb-24 relative">
+    <div class="max-w-[1240px] mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto items-stretch">
+            <?php
+            $plans = [
+                ['Starter', '$0', 'Para equipos que recién arrancan', 'starter', 'rocket', '#dbeafe', '#1d4ed8', false, [
+                    ['Hasta 3 técnicos', 1],
+                    ['100 tickets/mes', 1],
+                    ['Portal público', 1],
+                    ['Email + Portal (2 canales)', 1],
+                    ['Base de conocimiento (10)', 1],
+                    ['Reportes básicos', 1],
+                    ['Automatizaciones', 0],
+                    ['SLA + Escalamientos', 0],
+                    ['Auditoría', 0],
+                    ['SSO + SAML', 0],
+                ]],
+                ['Pro', '$29', 'Para equipos que escalan', 'pro', 'zap', '', '', true, [
+                    ['Técnicos ilimitados', 1],
+                    ['Tickets ilimitados', 1],
+                    ['5 canales (+ phone, chat, internal)', 1],
+                    ['Automatizaciones IA', 1],
+                    ['SLA + Escalamientos', 1],
+                    ['Auditoría 30 días', 1],
+                    ['API + Webhooks', 1],
+                    ['Reportes avanzados', 1],
+                    ['SLA garantizado 99.9%', 1],
+                    ['Soporte Email · Lun-Vie', 1],
+                ]],
+                ['Enterprise', 'A medida', 'Operación crítica · Compliance · Escala', 'enterprise', 'crown', '#fef3c7', '#b45309', false, [
+                    ['Todo de Pro', 1],
+                    ['SSO + SAML', 1],
+                    ['Marca personalizada (white-label)', 1],
+                    ['Auditoría indefinida', 1],
+                    ['Customer Success Manager', 1],
+                    ['Soporte 24/7 · Slack dedicado', 1],
+                    ['SLA garantizado 99.99%', 1],
+                    ['Residencia US · EU · LATAM', 1],
+                    ['SCIM provisioning', 1],
+                    ['Onboarding dedicado', 1],
+                ]],
+            ];
+            foreach ($plans as [$name, $price, $tagline, $key, $icon, $bg, $col, $featured, $feats]):
+            ?>
+                <div class="relative rounded-[28px] p-9 transition-all duration-300 hover:-translate-y-1.5 flex flex-col <?= $featured ? 'text-white' : 'bg-white border border-[#ececef] hover:shadow-[0_30px_60px_-20px_rgba(124,92,255,0.18)]' ?>" <?= $featured ? 'style="background:linear-gradient(180deg,#1a1825 0%,#16151b 100%);box-shadow:0 30px 60px -20px rgba(124,92,255,.45)"' : '' ?>>
+
+                    <?php if ($featured): ?>
+                        <span class="absolute inset-0 rounded-[28px] pointer-events-none" style="padding:1.5px;background:linear-gradient(135deg,#7c5cff,#d946ef);-webkit-mask:linear-gradient(white,white) content-box,linear-gradient(white,white);-webkit-mask-composite:xor;mask-composite:exclude"></span>
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10.5px] font-extrabold tracking-[0.16em] text-white whitespace-nowrap z-10" style="background:linear-gradient(135deg,#7c5cff,#d946ef);box-shadow:0 6px 16px -4px rgba(124,92,255,.55)">RECOMENDADO</span>
+                    <?php endif; ?>
+
+                    <div class="relative flex flex-col flex-1">
+                        <div class="w-14 h-14 rounded-2xl grid place-items-center" style="<?= $featured ? 'background:rgba(124,92,255,.22);color:#fff;box-shadow:0 8px 20px -6px rgba(124,92,255,.5)' : 'background:'.$bg.';color:'.$col.';box-shadow:0 8px 20px -6px '.$col.'40' ?>"><i class="lucide lucide-<?= $icon ?> text-[26px]"></i></div>
+
+                        <div class="mt-6">
+                            <div class="text-[11px] uppercase tracking-[0.18em] font-bold <?= $featured?'text-brand-300':'text-ink-400' ?>"><?= $e($name) ?></div>
+                            <div class="mt-3 flex items-baseline gap-1.5">
+                                <span class="font-display font-extrabold text-[48px] tracking-[-0.03em] leading-none <?= $featured?'gradient-shift':'' ?>"><?= $e($price) ?></span>
+                                <?php if ($name !== 'Enterprise'): ?><span class="text-[12.5px] <?= $featured?'text-white/55':'text-ink-400' ?>">/ <?= $name === 'Starter' ? 'mes' : 'usuario / mes' ?></span><?php endif; ?>
+                            </div>
+                            <p class="text-[13.5px] mt-2 <?= $featured?'text-white/65':'text-ink-500' ?>"><?= $e($tagline) ?></p>
+                        </div>
+
+                        <form method="POST" action="<?= $url('/demo/start/' . $key) ?>" class="mt-7">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                            <button class="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-[14px] transition" <?= $featured ? 'style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 12px 28px -8px rgba(124,92,255,.65)"' : 'style="background:#16151b;color:white"' ?> onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <i class="lucide lucide-play text-[14px]"></i> <?= $name === 'Enterprise' ? 'Probar demo' : 'Empezar ' . $name ?>
+                            </button>
+                        </form>
+                        <a href="<?= $url('/auth/register') ?>" class="block text-center text-[12px] mt-3 <?= $featured?'text-white/60':'text-ink-500' ?> hover:underline">o crear cuenta real →</a>
+
+                        <div class="mt-7 pt-6 space-y-2.5 flex-1 <?= $featured?'border-t border-white/10':'border-t border-[#ececef]' ?>">
+                            <?php foreach ($feats as [$f, $on]): ?>
+                                <div class="flex items-start gap-3 text-[13px]">
+                                    <span class="w-5 h-5 rounded-md grid place-items-center flex-shrink-0 mt-0.5" style="<?= $on ? ($featured?'background:rgba(124,92,255,.22);color:#c4b5fd':'background:#f3f0ff;color:#5a3aff') : ($featured?'background:rgba(255,255,255,.05);color:rgba(255,255,255,.25)':'background:#f3f4f6;color:#b8b8c4') ?>"><i class="lucide lucide-<?= $on ? 'check' : 'minus' ?> text-[11px]"></i></span>
+                                    <span class="<?= $on ? ($featured?'text-white/90':'text-ink-700') : ($featured?'text-white/35':'text-ink-400') ?>"><?= $e($f) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Comparativa breve -->
+        <div class="mt-14 max-w-3xl mx-auto rounded-[24px] p-6 flex items-start gap-5" style="background:linear-gradient(135deg,#f3f0ff 0%,#fafafb 100%);border:1px solid #cdbfff">
+            <div class="w-12 h-12 rounded-2xl grid place-items-center flex-shrink-0" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 8px 20px -6px rgba(124,92,255,.5)"><i class="lucide lucide-shield-check text-[20px]"></i></div>
+            <div class="flex-1">
+                <h3 class="font-display font-bold text-[16px] tracking-[-0.015em]">Garantía de 30 días</h3>
+                <p class="text-[13.5px] text-ink-500 mt-2 leading-relaxed">Si no te enamoraste de Kydesk en 30 días, te devolvemos el 100%. Sin preguntas. Estamos seguros porque sabemos que tu equipo no querrá volver atrás.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-20 border-t border-[#ececef]">
+    <div class="max-w-3xl mx-auto px-6">
+        <div class="text-center mb-12">
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3">PREGUNTAS DE PRECIOS</div>
+            <h2 class="display-xl" style="font-size:clamp(1.8rem,2.8vw + 1rem,2.4rem)">Todo lo que querés saber</h2>
+        </div>
+        <div x-data="{open:0}">
+            <?php $faqs = [
+                ['¿Qué pasa si supero los técnicos del plan Starter?','Te avisamos antes y podés sumarlos al siguiente ciclo. Sin sorpresas en la factura.'],
+                ['¿Puedo cambiar de plan en cualquier momento?','Sí. Cambiás de plan al instante. Si bajás, lo aplicamos al siguiente ciclo. Si subís, prorrateamos.'],
+                ['¿Qué incluye el SLA garantizado?','Pro: 99.9% uptime mensual. Enterprise: 99.99% con créditos de servicio si fallamos.'],
+                ['¿Cómo funciona la facturación anual?','Te ahorrás 20% pagando 12 meses por adelantado. Podés cancelar y obtener prorrateo del saldo.'],
+                ['¿El demo cuenta como suscripción?','No. Los demos son workspaces efímeros que se borran a las 24h. Para guardar tus datos creá una cuenta real.'],
+            ]; foreach ($faqs as $i => [$q,$a]): ?>
+                <div class="faq-item" :class="open===<?= $i ?> ? 'open' : ''" @click="open = open===<?= $i ?> ? -1 : <?= $i ?>">
+                    <div class="faq-q"><?= $e($q) ?><div class="faq-icon"><i class="lucide lucide-plus text-[16px]"></i></div></div>
+                    <div class="faq-a"><?= $e($a) ?></div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-20">
+    <div class="max-w-[1240px] mx-auto px-6">
+        <div class="hero-card text-center glow-purple" style="padding:72px 48px;border-radius:32px;">
+            <div class="hero-stars" style="top:24px;right:24px;transform:none;opacity:.45"><svg viewBox="0 0 280 200"><path d="M150 20 L155 50 L185 55 L155 60 L150 90 L145 60 L115 55 L145 50 Z" fill="white"/><path d="M70 80 L73 95 L88 98 L73 101 L70 116 L67 101 L52 98 L67 95 Z" fill="white"/></svg></div>
+            <div class="relative max-w-2xl mx-auto">
+                <h2 class="display-xl text-white" style="font-size:clamp(2rem,3.5vw + 1rem,3.4rem);text-wrap:balance">¿Listo para probar?</h2>
+                <p class="mt-5 text-[16px] text-white/85">Workspace pre-cargado · Sin tarjeta · Se borra en 24h</p>
+                <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="<?= $url('/demo') ?>" class="btn btn-lg" style="background:white;color:#16151b"><i class="lucide lucide-play"></i> Probar demo</a>
+                    <a href="<?= $url('/contact') ?>" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px)">Hablar con ventas</a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
