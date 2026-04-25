@@ -7,7 +7,7 @@
             <h1 class="heading-lg">Hablemos.</h1>
             <p class="mt-5 text-[15px] leading-relaxed text-ink-500">Te respondemos en menos de 24h.</p>
             <div class="mt-10 space-y-5 text-[13.5px]">
-                <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 grid place-items-center"><i class="lucide lucide-mail text-base"></i></div>hola@kydesk.io</div>
+                <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 grid place-items-center"><i class="lucide lucide-mail text-base"></i></div>hola@kyrosrd.com</div>
                 <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 grid place-items-center"><i class="lucide lucide-phone text-base"></i></div>+502 0000 0000</div>
                 <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-2xl bg-brand-50 text-brand-600 grid place-items-center"><i class="lucide lucide-map-pin text-base"></i></div>Ciudad de Guatemala</div>
             </div>

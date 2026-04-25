@@ -142,7 +142,12 @@ window.renderIcons = kydeskRenderIcons;
             </nav>
             <?php endif; ?>
 
-            <?php if ($tenant && (($tenant->data['is_demo'] ?? 0) == 1 || $planName === 'starter')): ?>
+            <?php if ($tenant && !empty($lockedAdmin)):
+                $lockedNames = array_map(fn($i) => $i[0], $lockedAdmin);
+                $lockedSummary = count($lockedNames) > 2
+                    ? implode(', ', array_slice($lockedNames, 0, 2)) . ' y ' . (count($lockedNames) - 2) . ' más'
+                    : implode(' y ', $lockedNames);
+            ?>
             <div class="mt-auto pt-3">
                 <div class="rounded-2xl p-4 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1a1825,#2a1f3d);box-shadow:0 8px 20px -8px rgba(124,92,255,.4)">
                     <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 0% 100%,rgba(124,92,255,.4),transparent 60%)"></div>
@@ -151,8 +156,22 @@ window.renderIcons = kydeskRenderIcons;
                             <i class="lucide lucide-sparkles text-[14px]" style="color:#c4b5fd"></i>
                             <span class="text-[10.5px] font-bold uppercase tracking-[0.14em]" style="color:#c4b5fd">Plan <?= $e($planLabel) ?></span>
                         </div>
-                        <div class="font-display font-bold text-[12.5px] leading-tight">Desbloquea automatizaciones, SLA y más.</div>
-                        <a href="<?= $url('/auth/register') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa">Ver planes <i class="lucide lucide-arrow-right text-[10px]"></i></a>
+                        <div class="font-display font-bold text-[12.5px] leading-tight">Desbloquea <?= $e(strtolower($lockedSummary)) ?>.</div>
+                        <a href="<?= $url('/pricing') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa">Ver planes <i class="lucide lucide-arrow-right text-[10px]"></i></a>
+                    </div>
+                </div>
+            </div>
+            <?php elseif ($tenant && (int)($tenant->data['is_demo'] ?? 0) === 1): ?>
+            <div class="mt-auto pt-3">
+                <div class="rounded-2xl p-4 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1a1825,#2a1f3d);box-shadow:0 8px 20px -8px rgba(124,92,255,.4)">
+                    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 100% 0%,rgba(34,197,94,.35),transparent 60%)"></div>
+                    <div class="relative">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="lucide lucide-check-circle-2 text-[14px]" style="color:#86efac"></i>
+                            <span class="text-[10.5px] font-bold uppercase tracking-[0.14em]" style="color:#86efac">Plan <?= $e($planLabel) ?></span>
+                        </div>
+                        <div class="font-display font-bold text-[12.5px] leading-tight">Tenés todas las funciones desbloqueadas.</div>
+                        <a href="<?= $url('/auth/register') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa">Quedárme con este plan <i class="lucide lucide-arrow-right text-[10px]"></i></a>
                     </div>
                 </div>
             </div>

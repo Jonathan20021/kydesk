@@ -70,7 +70,7 @@
                     <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
                     <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
                     <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
-                    <div class="flex-1 text-center text-[11px] font-mono text-ink-400 flex items-center justify-center gap-1.5"><i class="lucide lucide-lock text-[10px]"></i> app.kydesk.io / acme</div>
+                    <div class="flex-1 text-center text-[11px] font-mono text-ink-400 flex items-center justify-center gap-1.5"><i class="lucide lucide-lock text-[10px]"></i> kydesk.kyrosrd.com / acme</div>
                 </div>
                 <div class="rounded-[20px] overflow-hidden border border-[#ececef]" style="background:#f3f4f6">
                     <div class="grid grid-cols-12">

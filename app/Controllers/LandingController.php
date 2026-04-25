@@ -178,7 +178,7 @@ class LandingController extends Controller
             'hero_kpis' => [['Aislamiento', '100%'], ['Workspaces', 'Ilimitados'], ['SLA', '99.99%']],
             'description' => 'Si das soporte a varios clientes (MSP) o tienes múltiples marcas, Kydesk aísla cada workspace a nivel de datos. Cada uno tiene sus usuarios, tickets, categorías, SLAs y branding propio. Sin contaminación cruzada, sin riesgos de compliance.',
             'steps' => [
-                ['Workspace por cliente', 'Cada org tiene su slug propio: kydesk.io/t/acme y kydesk.io/t/globex.', 'building-2'],
+                ['Workspace por cliente', 'Cada org tiene su slug propio: kydesk.kyrosrd.com/t/acme y kydesk.kyrosrd.com/t/globex.', 'building-2'],
                 ['Datos aislados', 'Foreign keys con tenant_id en cada tabla. Imposible filtrar entre tenants.', 'shield'],
                 ['Branding por workspace', 'Color primario, logo y dominio custom por organización.', 'palette'],
             ],
