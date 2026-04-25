@@ -69,7 +69,8 @@ class Prefs
         $clean = [];
         foreach (self::DEFAULTS as $k => $default) {
             if (!array_key_exists($k, $prefs)) {
-                $clean[$k] = $default;
+                // Para flags booleanos (int 0/1) un checkbox no marcado no llega en POST → se guarda como 0.
+                $clean[$k] = (is_int($default) || is_bool($default)) ? 0 : $default;
                 continue;
             }
             $v = $prefs[$k];

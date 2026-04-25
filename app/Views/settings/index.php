@@ -1,8 +1,15 @@
 <?php
 $slug = $tenant->slug; $t = $tenant->data;
-$portalBase = ($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '') . $url('/portal/' . $slug);
-$portalNew = $portalBase . '/new';
-$portalKb = $portalBase . '/kb';
+$portalPath = '/portal/' . $slug;
+$base = $url($portalPath);
+if (!preg_match('#^https?://#i', $base)) {
+    $scheme = $_SERVER['REQUEST_SCHEME'] ?? (!empty($_SERVER['HTTPS']) ? 'https' : 'http');
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $base = $scheme . '://' . $host . $base;
+}
+$portalBase = $base;
+$portalNew  = $base . '/new';
+$portalKb   = $base . '/kb';
 ?>
 
 <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">

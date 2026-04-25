@@ -4,7 +4,21 @@ $priColor = ['urgent'=>'#ef4444','high'=>'#f59e0b','medium'=>'#7c5cff','low'=>'#
 $resolutionRate = ($stats['total'] ?? 0) > 0 ? round((($stats['resolved'] ?? 0) / $stats['total']) * 100) : 0;
 $avgFirstResp = $stats['avg_first_response'] ?? 2.4;
 $slaCompliance = $stats['sla_compliance'] ?? 92;
+$widgetsOn = ['show_hero','show_stats','show_tickets_grid','show_inbox','show_team','show_sla','show_todos'];
+$anyWidgetVisible = false;
+foreach ($widgetsOn as $wk) { if (!empty($prefs[$wk])) { $anyWidgetVisible = true; break; } }
 ?>
+
+<?php if (!$anyWidgetVisible): ?>
+<div class="card card-pad">
+    <div class="empty-state" style="padding:48px 24px">
+        <div class="empty-illust"><i class="lucide lucide-layout-dashboard text-[28px]"></i></div>
+        <div class="empty-state-title">Tu dashboard está vacío</div>
+        <p class="empty-state-text">Activaste al menos un widget desde Personalizar panel para ver datos aquí.</p>
+        <a href="<?= $url('/t/' . $slug . '/preferences') ?>" class="btn btn-primary btn-sm mt-4 inline-flex"><i class="lucide lucide-sliders-horizontal"></i> Personalizar panel</a>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php if ($prefs['show_hero']): ?>
 <!-- HERO CARD -->
@@ -62,11 +76,13 @@ $slaCompliance = $stats['sla_compliance'] ?? 92;
     ];
     foreach ($statCards as [$l,$ic,$v,$total,$bg,$col,$lineCol,$delta]):
         $points = [3,4,2,5,3,6,4,7,5,6];
-        $max = max($points);
+        $max = !empty($points) ? max($points) : 1;
+        if ($max <= 0) $max = 1;
         $sparkPath = '';
         $w = 60; $h = 28;
+        $denom = max(count($points) - 1, 1);
         foreach ($points as $i => $p) {
-            $x = round(($i / (count($points)-1)) * $w, 1);
+            $x = round(($i / $denom) * $w, 1);
             $y = round($h - ($p / $max) * $h, 1);
             $sparkPath .= ($i === 0 ? "M $x $y" : " L $x $y");
         }
@@ -228,8 +244,12 @@ $slaCompliance = $stats['sla_compliance'] ?? 92;
                     <span>Esta semana</span><span>Tickets / día</span>
                 </div>
                 <div class="bar-chart">
-                    <?php $values = array_values(array_slice(array_map(fn($s) => $s['created'], $series), -4)); $max = max(max($values), 1);
-                    foreach ($values as $i => $v): $h = round($v / $max * 100); ?>
+                    <?php
+                    $rawSeries = is_array($series ?? null) ? $series : [];
+                    $values = array_values(array_slice(array_map(fn($s) => (int)($s['created'] ?? 0), $rawSeries), -4));
+                    if (empty($values)) $values = [0,0,0,0];
+                    $max = max(max($values), 1);
+                    foreach ($values as $i => $v): $h = $max > 0 ? round($v / $max * 100) : 0; ?>
                         <div class="bar <?= $i!==2?'bar-soft':'' ?>" style="height: <?= max($h,8) ?>%" data-tooltip="<?= $v ?>"></div>
                     <?php endforeach; ?>
                 </div>
