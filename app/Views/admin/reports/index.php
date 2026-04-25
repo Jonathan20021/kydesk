@@ -20,19 +20,19 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     <div class="admin-card admin-card-pad">
         <h2 class="admin-h2 mb-4">Ingresos mensuales (12 meses)</h2>
-        <canvas id="rChart" height="120"></canvas>
+        <div class="admin-chart-wrap"><canvas id="rChart"></canvas></div>
     </div>
     <div class="admin-card admin-card-pad">
         <h2 class="admin-h2 mb-4">Nuevas empresas por mes</h2>
-        <canvas id="tChart" height="120"></canvas>
+        <div class="admin-chart-wrap"><canvas id="tChart"></canvas></div>
     </div>
     <div class="admin-card admin-card-pad">
         <h2 class="admin-h2 mb-4">Usuarios nuevos por mes</h2>
-        <canvas id="uChart" height="120"></canvas>
+        <div class="admin-chart-wrap"><canvas id="uChart"></canvas></div>
     </div>
     <div class="admin-card admin-card-pad">
         <h2 class="admin-h2 mb-4">Tickets por mes</h2>
-        <canvas id="tkChart" height="120"></canvas>
+        <div class="admin-chart-wrap"><canvas id="tkChart"></canvas></div>
     </div>
 </div>
 

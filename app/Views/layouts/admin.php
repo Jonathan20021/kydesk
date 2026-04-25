@@ -59,9 +59,11 @@ tailwind.config = { theme: { extend: {
 <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
 <style>
   :root { --bg:#fafafb; --border:#ececef; --bg-card:#fff; }
-  body { background:#fafafb; color:#16151b; font-family:Inter,sans-serif; }
-  .admin-shell { min-height:100vh; display:grid; grid-template-columns:264px 1fr; }
-  .admin-sidebar { background:linear-gradient(180deg,#0f0d18 0%,#1a1530 100%); color:#e9e8ef; padding:18px 14px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  *, *::before, *::after { box-sizing:border-box; }
+  html, body { margin:0; padding:0; }
+  body { background:#fafafb; color:#16151b; font-family:Inter,sans-serif; overflow-x:hidden; }
+  .admin-shell { min-height:100vh; display:grid; grid-template-columns:264px minmax(0, 1fr); width:100%; max-width:100vw; }
+  .admin-sidebar { background:linear-gradient(180deg,#0f0d18 0%,#1a1530 100%); color:#e9e8ef; padding:18px 14px; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; }
   .admin-brand { display:flex; align-items:center; gap:10px; padding:6px 6px 18px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:14px; }
   .admin-brand-logo { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#d946ef,#7c5cff); display:grid; place-items:center; color:white; font-weight:800; box-shadow:0 6px 14px -4px rgba(217,70,239,.5); }
   .admin-nav-section { margin-bottom:16px; }
@@ -70,14 +72,17 @@ tailwind.config = { theme: { extend: {
   .admin-nav-item:hover { background:rgba(255,255,255,.06); color:white; }
   .admin-nav-item.active { background:linear-gradient(135deg,rgba(217,70,239,.25),rgba(124,92,255,.25)); color:white; box-shadow:inset 0 0 0 1px rgba(217,70,239,.3); }
   .admin-nav-item i { font-size:16px; opacity:.85; }
-  .admin-main { padding:24px 28px; min-width:0; }
-  .admin-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; gap:14px; }
-  .admin-card { background:white; border:1px solid #ececef; border-radius:16px; box-shadow:0 1px 2px rgba(22,21,27,.04); }
-  .admin-card-pad { padding:20px; }
-  .admin-stat { background:white; border:1px solid #ececef; border-radius:16px; padding:18px 18px 16px; }
+  .admin-main { padding:24px 28px; min-width:0; max-width:100%; overflow-x:hidden; }
+  .admin-main > * { min-width:0; max-width:100%; }
+  .admin-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; gap:14px; flex-wrap:wrap; }
+  .admin-card { background:white; border:1px solid #ececef; border-radius:16px; box-shadow:0 1px 2px rgba(22,21,27,.04); min-width:0; max-width:100%; overflow-x:auto; overflow-y:hidden; }
+  .admin-card-pad { padding:20px; overflow-x:visible; }
+  .admin-table-wrap { overflow-x:auto; max-width:100%; }
+  .admin-chart-wrap { position:relative; height:240px; max-width:100%; width:100%; }
+  .admin-stat { background:white; border:1px solid #ececef; border-radius:16px; padding:18px 18px 16px; min-width:0; max-width:100%; overflow:hidden; }
   .admin-stat-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#8e8e9a; }
-  .admin-stat-value { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:28px; letter-spacing:-.02em; margin-top:6px; }
-  .admin-table { width:100%; border-collapse:collapse; }
+  .admin-stat-value { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:28px; letter-spacing:-.02em; margin-top:6px; word-break:break-word; line-height:1.1; }
+  .admin-table { width:100%; border-collapse:collapse; min-width:560px; }
   .admin-table th { text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:#6b6b78; padding:12px 16px; border-bottom:1px solid #ececef; background:#fafafb; }
   .admin-table td { padding:14px 16px; border-bottom:1px solid #f3f3f5; font-size:13px; }
   .admin-table tr:hover td { background:#fafafb; }
@@ -102,7 +107,7 @@ tailwind.config = { theme: { extend: {
   .admin-h2 { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:18px; letter-spacing:-.015em; }
   .admin-flash-success { background:#dcfce7; border:1px solid #86efac; color:#166534; padding:12px 16px; border-radius:12px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
   .admin-flash-error { background:#fef2f2; border:1px solid #fecaca; color:#991b1b; padding:12px 16px; border-radius:12px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
-  @media (max-width:900px) { .admin-shell { grid-template-columns:1fr; } .admin-sidebar { position:fixed; left:-280px; transition:left .25s; z-index:50; } .admin-sidebar.open { left:0; } }
+  @media (max-width:900px) { .admin-shell { grid-template-columns:minmax(0,1fr); } .admin-sidebar { position:fixed; left:-280px; transition:left .25s; z-index:50; width:264px; } .admin-sidebar.open { left:0; } .admin-main { padding:16px; } }
 </style>
 <script>
 function adminRenderIcons(){
@@ -145,7 +150,7 @@ window.adminRenderIcons = adminRenderIcons;
             </div>
         <?php endforeach; ?>
 
-        <div style="margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,.08); margin-top:24px">
+        <div style="margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,.08)">
             <div style="display:flex; align-items:center; gap:10px; padding:8px">
                 <div style="width:36px;height:36px;border-radius:10px;background:<?= Helpers::colorFor($admin['email']) ?>;color:white;display:grid;place-items:center;font-weight:700;font-size:13px"><?= Helpers::initials($admin['name']) ?></div>
                 <div style="min-width:0; flex:1">

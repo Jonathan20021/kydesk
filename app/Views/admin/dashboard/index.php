@@ -53,14 +53,14 @@
             <h2 class="admin-h2">Crecimiento de empresas</h2>
             <span class="text-[11.5px] text-ink-400">Últimos 6 meses</span>
         </div>
-        <canvas id="tenantsChart" height="120"></canvas>
+        <div class="admin-chart-wrap"><canvas id="tenantsChart"></canvas></div>
     </div>
     <div class="admin-card admin-card-pad">
         <div class="flex items-center justify-between mb-4">
             <h2 class="admin-h2">Ingresos mensuales</h2>
             <span class="text-[11.5px] text-ink-400">USD</span>
         </div>
-        <canvas id="revenueChart" height="120"></canvas>
+        <div class="admin-chart-wrap"><canvas id="revenueChart"></canvas></div>
     </div>
 </div>
 
@@ -71,6 +71,7 @@
             <h2 class="admin-h2">Empresas recientes</h2>
             <a href="<?= $url('/admin/tenants') ?>" class="text-[12px] font-semibold text-admin-700">Ver todas →</a>
         </div>
+        <div class="admin-table-wrap">
         <table class="admin-table">
             <thead><tr><th>Empresa</th><th>Plan</th><th>Usuarios</th><th>Estado</th></tr></thead>
             <tbody>
@@ -94,6 +95,7 @@
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="admin-card">
@@ -101,6 +103,7 @@
             <h2 class="admin-h2">Facturas recientes</h2>
             <a href="<?= $url('/admin/invoices') ?>" class="text-[12px] font-semibold text-admin-700">Ver todas →</a>
         </div>
+        <div class="admin-table-wrap">
         <table class="admin-table">
             <thead><tr><th>Número</th><th>Empresa</th><th>Total</th><th>Estado</th></tr></thead>
             <tbody>
@@ -123,6 +126,7 @@
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
