@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Helpers;
+use App\Core\License;
 
 class AuthController extends Controller
 {
@@ -77,11 +78,17 @@ class AuthController extends Controller
         try {
             $this->db->pdo()->beginTransaction();
 
+            $defaultPlan = License::defaultPlan();
+            // Mantenemos el ENUM legacy de 'plan' (free/pro/business/enterprise);
+            // la suscripción es la fuente de verdad para features.
+            $legacyPlan = in_array($defaultPlan['slug'] ?? '', ['free','pro','business','enterprise'], true)
+                ? $defaultPlan['slug']
+                : 'free';
             $tenantId = $this->db->insert('tenants', [
                 'name' => $orgName,
                 'slug' => $orgSlug,
                 'support_email' => $email,
-                'plan' => 'pro',
+                'plan' => $legacyPlan,
                 'is_active' => 1,
             ]);
 
@@ -142,10 +149,17 @@ class AuthController extends Controller
             // Lista de tareas por defecto
             $this->db->insert('todo_lists', ['tenant_id'=>$tenantId,'user_id'=>$userId,'name'=>'Bandeja','color'=>'#6366f1','icon'=>'inbox']);
 
+            // Inicia trial controlado por super admin
+            try { License::startTrialFor($tenantId, $defaultPlan); } catch (\Throwable $e) { /* tabla opcional */ }
+
             $this->db->pdo()->commit();
 
             $this->auth->login($userId);
-            $this->session->flash('success', '¡Organización creada con éxito!');
+            $trialDays = License::defaultTrialDays();
+            $msg = $trialDays > 0
+                ? "¡Organización creada! Tienes {$trialDays} días de prueba. Tu cuenta queda lista para que el equipo de Kydesk active tu licencia."
+                : '¡Organización creada con éxito! Contacta al equipo de Kydesk para activar tu licencia.';
+            $this->session->flash('success', $msg);
             $this->redirect('/t/' . $orgSlug . '/dashboard');
         } catch (\Throwable $e) {
             if ($this->db->pdo()->inTransaction()) $this->db->pdo()->rollBack();

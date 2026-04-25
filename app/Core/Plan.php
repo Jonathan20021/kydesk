@@ -20,7 +20,16 @@ class Plan
         if (!$tenant) return 'starter';
         $demoPlan = $tenant->data['demo_plan'] ?? null;
         if ($demoPlan && isset(self::FEATURES[$demoPlan])) return $demoPlan;
-        $plan = $tenant->data['plan'] ?? 'pro';
+
+        // La suscripción es la fuente de verdad. Si no es usable, degrada a starter.
+        try {
+            $status = License::status($tenant);
+            if (!$status['is_usable']) return 'starter';
+            $licPlan = $status['plan_slug'] ?? null;
+            if ($licPlan && isset(self::FEATURES[$licPlan])) return $licPlan;
+        } catch (\Throwable $e) { /* tabla suscripciones opcional */ }
+
+        $plan = $tenant->data['plan'] ?? 'starter';
         return isset(self::FEATURES[$plan]) ? $plan : 'starter';
     }
 

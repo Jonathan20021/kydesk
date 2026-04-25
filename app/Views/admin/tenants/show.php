@@ -33,29 +33,116 @@
         </div>
     </div>
 
-    <div class="admin-card admin-card-pad">
-        <div class="text-[11px] uppercase font-bold tracking-[0.14em] text-ink-400">Estado</div>
-        <?php if ($t['suspended_at']): ?>
-            <div class="admin-pill admin-pill-red mt-2">Suspendida</div>
-            <div class="text-[12.5px] mt-2"><?= $e($t['suspended_reason'] ?? '—') ?></div>
-            <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/activate') ?>" class="mt-3">
-                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                <button class="admin-btn admin-btn-primary" style="width:100%"><i class="lucide lucide-power"></i> Reactivar</button>
-            </form>
-        <?php else: ?>
-            <div class="admin-pill admin-pill-green mt-2">Activa</div>
-            <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/suspend') ?>" class="mt-3" onsubmit="return confirm('¿Suspender empresa?')">
-                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                <input name="reason" placeholder="Razón…" class="admin-input mb-2">
-                <button class="admin-btn admin-btn-soft" style="width:100%; color:#b91c1c"><i class="lucide lucide-pause-circle"></i> Suspender</button>
-            </form>
+    <div class="admin-card admin-card-pad" x-data="{licenseTab: 'activate'}">
+        <div class="text-[11px] uppercase font-bold tracking-[0.14em] text-ink-400">Licencia</div>
+        <?php
+        $licState = $license['state'] ?? 'none';
+        $licPillMap = [
+            'active'    => ['admin-pill-green', 'Activa', 'check-circle'],
+            'trial'     => ['admin-pill-purple', 'En prueba', 'rocket'],
+            'past_due'  => ['admin-pill-amber', 'Pago vencido', 'alert-triangle'],
+            'expired'   => ['admin-pill-red', 'Expirada', 'x-circle'],
+            'suspended' => ['admin-pill-red', 'Suspendida', 'pause-circle'],
+            'cancelled' => ['admin-pill-red', 'Cancelada', 'x-circle'],
+            'none'      => ['admin-pill-gray', 'Sin licencia', 'help-circle'],
+        ];
+        [$licClass, $licLabel, $licIcon] = $licPillMap[$licState] ?? $licPillMap['none'];
+        ?>
+        <div class="flex items-center gap-2 mt-2 flex-wrap">
+            <span class="admin-pill <?= $licClass ?>"><i class="lucide lucide-<?= $licIcon ?> text-[10px]"></i> <?= $licLabel ?></span>
+            <?php if (!empty($license['plan_name'])): ?>
+                <span class="admin-pill admin-pill-purple"><?= $e($license['plan_name']) ?></span>
+            <?php endif; ?>
+        </div>
+
+        <?php if ($license['is_trial'] && $license['trial_ends_at']): ?>
+            <div class="text-[11.5px] text-ink-500 mt-2">
+                Prueba expira: <span class="font-mono"><?= $e($license['trial_ends_at']) ?></span>
+                <?php if ($license['days_left'] !== null): ?>
+                    <span class="admin-pill admin-pill-<?= $license['days_left'] <= 3 ? 'amber' : 'gray' ?>" style="margin-left:4px"><?= max(0,(int)$license['days_left']) ?>d</span>
+                <?php endif; ?>
+            </div>
+        <?php elseif ($licState === 'active' && $license['period_end']): ?>
+            <div class="text-[11.5px] text-ink-500 mt-2">Próximo cobro: <span class="font-mono"><?= $e($license['period_end']) ?></span></div>
+        <?php elseif ($licState === 'expired' || $licState === 'cancelled'): ?>
+            <div class="text-[11.5px] text-ink-500 mt-2"><?= $e($license['message']) ?></div>
         <?php endif; ?>
 
-        <hr style="margin:14px 0; border:none; border-top:1px solid #ececef">
-        <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/delete') ?>" onsubmit="return confirm('ELIMINAR empresa y TODOS sus datos? Esta acción no es reversible.')">
-            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-            <button class="admin-btn admin-btn-danger" style="width:100%"><i class="lucide lucide-trash-2"></i> Eliminar empresa</button>
-        </form>
+        <div class="admin-tabs mt-4" style="font-size:11.5px">
+            <button type="button" @click="licenseTab='activate'" :class="licenseTab==='activate' && 'active'" class="admin-tab" style="padding:6px 10px"><i class="lucide lucide-shield-check text-[12px]"></i> Activar</button>
+            <button type="button" @click="licenseTab='trial'" :class="licenseTab==='trial' && 'active'" class="admin-tab" style="padding:6px 10px"><i class="lucide lucide-timer text-[12px]"></i> Prueba</button>
+            <button type="button" @click="licenseTab='danger'" :class="licenseTab==='danger' && 'active'" class="admin-tab" style="padding:6px 10px"><i class="lucide lucide-shield-off text-[12px]"></i> Riesgo</button>
+        </div>
+
+        <div x-show="licenseTab==='activate'" class="mt-3">
+            <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/license/activate') ?>" class="space-y-2">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <div>
+                    <label class="admin-label">Plan</label>
+                    <select name="plan_id" class="admin-select">
+                        <?php foreach ($plans as $p): $selected = $subscription && (int)$subscription['plan_id'] === (int)$p['id']; ?>
+                            <option value="<?= (int)$p['id'] ?>" <?= $selected?'selected':'' ?>><?= $e($p['name']) ?> — $<?= number_format($p['price_monthly'],0) ?>/mes</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="admin-label">Ciclo</label>
+                        <select name="cycle" class="admin-select">
+                            <option value="monthly">Mensual</option>
+                            <option value="yearly">Anual</option>
+                            <option value="lifetime">Lifetime</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="admin-label">Monto</label>
+                        <input name="amount" type="number" step="0.01" placeholder="auto" class="admin-input">
+                    </div>
+                </div>
+                <button class="admin-btn admin-btn-primary" style="width:100%"><i class="lucide lucide-shield-check"></i> Activar licencia</button>
+            </form>
+        </div>
+
+        <div x-show="licenseTab==='trial'" x-cloak class="mt-3">
+            <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/license/extend') ?>" class="space-y-2">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <label class="admin-label">Extender prueba (días)</label>
+                <div class="flex gap-2">
+                    <input name="days" type="number" min="1" value="14" class="admin-input">
+                    <button class="admin-btn admin-btn-soft"><i class="lucide lucide-plus"></i></button>
+                </div>
+                <div class="flex gap-1">
+                    <?php foreach ([7, 14, 30] as $d): ?>
+                        <button name="days" value="<?= $d ?>" class="admin-btn admin-btn-soft" style="flex:1; padding:6px 4px; font-size:11.5px">+<?= $d ?>d</button>
+                    <?php endforeach; ?>
+                </div>
+            </form>
+        </div>
+
+        <div x-show="licenseTab==='danger'" x-cloak class="mt-3 space-y-2">
+            <?php if ($t['suspended_at']): ?>
+                <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/activate') ?>">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <button class="admin-btn admin-btn-soft" style="width:100%"><i class="lucide lucide-power"></i> Reactivar empresa</button>
+                </form>
+            <?php else: ?>
+                <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/suspend') ?>" onsubmit="return confirm('¿Suspender empresa?')">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <input name="reason" placeholder="Razón…" class="admin-input">
+                    <button class="admin-btn admin-btn-soft" style="width:100%; color:#b91c1c; margin-top:6px"><i class="lucide lucide-pause-circle"></i> Suspender empresa</button>
+                </form>
+            <?php endif; ?>
+
+            <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/license/revoke') ?>" onsubmit="return confirm('Revocar la licencia bloqueará el acceso del cliente. ¿Continuar?')">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <button class="admin-btn admin-btn-danger" style="width:100%"><i class="lucide lucide-shield-off"></i> Revocar licencia</button>
+            </form>
+
+            <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/delete') ?>" onsubmit="return confirm('ELIMINAR empresa y TODOS sus datos. Esta acción no es reversible.')">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <button class="admin-btn admin-btn-danger" style="width:100%"><i class="lucide lucide-trash-2"></i> Eliminar empresa</button>
+            </form>
+        </div>
     </div>
 </div>
 

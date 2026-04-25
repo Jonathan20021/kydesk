@@ -88,6 +88,7 @@ class Application
         // Panel
         $r->get('/t/{slug}', ['App\Controllers\DashboardController', 'index']);
         $r->get('/t/{slug}/dashboard', ['App\Controllers\DashboardController', 'index']);
+        $r->get('/t/{slug}/locked', ['App\Controllers\LicenseController', 'locked']);
 
         // Tickets
         $r->get('/t/{slug}/tickets', ['App\Controllers\TicketController', 'index']);
@@ -215,6 +216,9 @@ class Application
         $r->post('/admin/tenants/{id}/activate', ['App\Controllers\Admin\TenantController', 'activate']);
         $r->post('/admin/tenants/{id}/delete', ['App\Controllers\Admin\TenantController', 'delete']);
         $r->post('/admin/tenants/{id}/impersonate', ['App\Controllers\Admin\TenantController', 'impersonate']);
+        $r->post('/admin/tenants/{id}/license/activate', ['App\Controllers\Admin\TenantController', 'licenseActivate']);
+        $r->post('/admin/tenants/{id}/license/extend', ['App\Controllers\Admin\TenantController', 'licenseExtendTrial']);
+        $r->post('/admin/tenants/{id}/license/revoke', ['App\Controllers\Admin\TenantController', 'licenseRevoke']);
 
         // Plans
         $r->get('/admin/plans', ['App\Controllers\Admin\PlanController', 'index']);

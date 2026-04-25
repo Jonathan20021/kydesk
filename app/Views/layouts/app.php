@@ -2,6 +2,7 @@
 use App\Core\Helpers;
 use App\Core\Plan;
 use App\Core\Prefs;
+use App\Core\License;
 try { Prefs::ensureSchema($app->db); } catch (\Throwable $e) {}
 $user = $auth->user();
 $prefs = Prefs::get($user);
@@ -47,6 +48,12 @@ $isDemo = (int)($tenant->data['is_demo'] ?? 0) === 1;
 $demoExpiresAt = $tenant->data['demo_expires_at'] ?? null;
 $demoPlan = $tenant->data['demo_plan'] ?? null;
 $demoCreds = $app->session->get('demo_credentials');
+
+$license = null;
+if (!$isDemo) {
+    try { $license = License::status($tenant); } catch (\Throwable $e) { $license = null; }
+}
+$showLicenseBanner = $license && $license['is_usable'] && in_array($license['state'], ['trial','past_due'], true);
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -282,6 +289,57 @@ window.renderIcons = kydeskRenderIcons;
                                 <span class="font-mono font-bold text-[14px] tabular-nums" style="color:#fde68a;text-shadow:0 0 12px rgba(253,224,71,.4)" x-text="label"></span>
                             </div>
                             <a href="<?= $url('/auth/register') ?>" class="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-xl font-semibold text-[12.5px] transition" style="background:white;color:#0f0d18;box-shadow:0 4px 12px -2px rgba(0,0,0,.3)" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">Quedármelo <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($showLicenseBanner):
+                $isTrial = $license['state'] === 'trial';
+                $daysLeft = $license['days_left'];
+                $hoursLeft = $license['hours_left'];
+                $endsAt = $license['trial_ends_at'] ?? $license['period_end'];
+                $accent = $isTrial ? ['#7c5cff', '#a78bfa', '#c4b5fd', 'rocket'] : ['#f59e0b', '#fbbf24', '#fde68a', 'alert-triangle'];
+            ?>
+                <div class="relative overflow-hidden rounded-2xl text-white" style="background:linear-gradient(120deg,#0f0d18 0%,#1a1530 50%,#2a1f3d 100%);box-shadow:0 16px 40px -12px rgba(124,92,255,.3),inset 0 1px 0 rgba(255,255,255,.08)">
+                    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 0% 50%,rgba(124,92,255,.35),transparent 55%),radial-gradient(circle at 100% 50%,rgba(217,70,239,.14),transparent 60%)"></div>
+                    <div class="relative flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 px-5 py-3.5">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:linear-gradient(135deg,<?= $accent[0] ?>,<?= $accent[1] ?>);box-shadow:0 6px 16px -4px <?= $accent[0] ?>aa">
+                                <i class="lucide lucide-<?= $accent[3] ?> text-[16px]"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-display font-extrabold text-[14px] tracking-[-0.015em]"><?= $isTrial ? 'Período de prueba activo' : 'Pago vencido' ?></span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-[0.12em]" style="background:rgba(124,92,255,.18);color:<?= $accent[2] ?>;border:1px solid rgba(124,92,255,.3)">Plan <?= $e($license['plan_name']) ?></span>
+                                </div>
+                                <div class="text-[11.5px] mt-0.5" style="color:rgba(255,255,255,.55)">
+                                    <?php if ($isTrial && $endsAt): ?>
+                                        Tu licencia será gestionada por el equipo de Kydesk · expira <?= $e($endsAt) ?>
+                                    <?php elseif (!$isTrial): ?>
+                                        Regulariza el pago para mantener acceso completo
+                                    <?php else: ?>
+                                        Tu organización está en evaluación
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 lg:ml-auto">
+                            <?php if ($daysLeft !== null && $daysLeft >= 0): ?>
+                                <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
+                                    <span class="relative inline-flex w-2 h-2"><span class="absolute inset-0 rounded-full" style="background:<?= $accent[1] ?>;animation:pulse-ring 2s ease-out infinite"></span><span class="relative inline-block w-2 h-2 rounded-full" style="background:<?= $accent[1] ?>"></span></span>
+                                    <span class="text-[10px] font-bold uppercase tracking-[0.14em]" style="color:rgba(255,255,255,.5)"><?= $isTrial ? 'Quedan' : 'Vence en' ?></span>
+                                    <span class="font-mono font-bold text-[14px] tabular-nums" style="color:<?= $accent[2] ?>;text-shadow:0 0 12px <?= $accent[1] ?>66">
+                                        <?php if ($daysLeft >= 1): ?>
+                                            <?= $daysLeft ?> día<?= $daysLeft === 1 ? '' : 's' ?>
+                                        <?php else: ?>
+                                            <?= max(0, (int)$hoursLeft) ?> h
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                            <a href="mailto:<?= $e(\App\Core\License::settingStr('saas_billing_email', 'soporte@kydesk.com')) ?>?subject=<?= rawurlencode('Activación de licencia · ' . $tenant->name) ?>" class="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-xl font-semibold text-[12.5px] transition" style="background:white;color:#0f0d18;box-shadow:0 4px 12px -2px rgba(0,0,0,.3)" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'"><i class="lucide lucide-shield-check text-[13px]"></i> Activar licencia</a>
                         </div>
                     </div>
                 </div>

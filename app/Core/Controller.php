@@ -72,7 +72,7 @@ abstract class Controller
         }
     }
 
-    protected function requireTenant(string $slug): \App\Core\Tenant
+    protected function requireTenant(string $slug, bool $allowLocked = false): \App\Core\Tenant
     {
         $this->requireAuth();
         $tenant = \App\Core\Tenant::resolve($slug);
@@ -87,6 +87,16 @@ abstract class Controller
             $this->redirect('/auth/login');
         }
         $this->app->tenant = $tenant;
+
+        if (!$allowLocked) {
+            try {
+                $lic = \App\Core\License::status($tenant);
+                if (!$lic['is_usable']) {
+                    $this->redirect('/t/' . $tenant->slug . '/locked');
+                }
+            } catch (\Throwable $e) { /* tabla suscripciones opcional */ }
+        }
+
         return $tenant;
     }
 

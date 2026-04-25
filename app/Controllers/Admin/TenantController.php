@@ -2,6 +2,8 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Helpers;
+use App\Core\License;
+use App\Core\Tenant as TenantModel;
 
 class TenantController extends AdminController
 {
@@ -236,6 +238,7 @@ class TenantController extends AdminController
             'paid'     => (float)$this->db->val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE tenant_id = ? AND status='completed'", [$id]),
         ];
         $plans = $this->db->all('SELECT * FROM plans WHERE is_active=1 ORDER BY sort_order ASC');
+        $license = License::status(new TenantModel($tenant));
 
         $this->render('admin/tenants/show', [
             'title' => $tenant['name'],
@@ -247,7 +250,82 @@ class TenantController extends AdminController
             'payments' => $payments,
             'stats' => $stats,
             'plans' => $plans,
+            'license' => $license,
         ]);
+    }
+
+    public function licenseActivate(array $params): void
+    {
+        $this->requireCan('subscriptions.edit');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $tenant = $this->db->one('SELECT * FROM tenants WHERE id = ?', [$id]);
+        if (!$tenant) $this->redirect('/admin/tenants');
+
+        $cycle = (string)$this->input('cycle', 'monthly');
+        $planId = (int)$this->input('plan_id', 0);
+        $amount = $this->input('amount');
+        $amount = $amount === null || $amount === '' ? null : (float)$amount;
+
+        $sub = $this->db->one('SELECT * FROM subscriptions WHERE tenant_id = ? ORDER BY id DESC LIMIT 1', [$id]);
+        $plan = $planId ? $this->db->one('SELECT * FROM plans WHERE id = ?', [$planId]) : null;
+        if (!$plan && $sub) $plan = $this->db->one('SELECT * FROM plans WHERE id = ?', [$sub['plan_id']]);
+        if (!$plan) $plan = License::defaultPlan();
+
+        if (!$sub) {
+            License::startTrialFor($id, $plan, 0);
+            $sub = $this->db->one('SELECT * FROM subscriptions WHERE tenant_id = ? ORDER BY id DESC LIMIT 1', [$id]);
+        } else if ($planId && $planId !== (int)$sub['plan_id']) {
+            $this->db->update('subscriptions', ['plan_id' => $planId], 'id = :id', ['id' => $sub['id']]);
+        }
+
+        License::activate((int)$sub['id'], $cycle, $amount);
+        $this->db->update('tenants', [
+            'plan'         => $plan['slug'] ?? $tenant['plan'],
+            'is_active'    => 1,
+            'suspended_at' => null,
+            'suspended_reason' => null,
+        ], 'id = :id', ['id' => $id]);
+
+        $this->superAuth->log('license.activate', 'tenant', $id, ['cycle' => $cycle, 'plan' => $plan['slug'] ?? null]);
+        $this->session->flash('success', 'Licencia activada para ' . $tenant['name'] . '.');
+        $this->redirect('/admin/tenants/' . $id);
+    }
+
+    public function licenseExtendTrial(array $params): void
+    {
+        $this->requireCan('subscriptions.edit');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $days = max(1, (int)$this->input('days', 14));
+        $tenant = $this->db->one('SELECT * FROM tenants WHERE id = ?', [$id]);
+        if (!$tenant) $this->redirect('/admin/tenants');
+
+        $sub = $this->db->one('SELECT * FROM subscriptions WHERE tenant_id = ? ORDER BY id DESC LIMIT 1', [$id]);
+        if (!$sub) {
+            License::startTrialFor($id, License::defaultPlan(), $days);
+        } else {
+            License::extendTrial((int)$sub['id'], $days);
+        }
+        $this->db->update('tenants', ['is_active' => 1, 'suspended_at' => null, 'suspended_reason' => null], 'id = :id', ['id' => $id]);
+
+        $this->superAuth->log('license.extend_trial', 'tenant', $id, ['days' => $days]);
+        $this->session->flash('success', "Prueba extendida {$days} días.");
+        $this->redirect('/admin/tenants/' . $id);
+    }
+
+    public function licenseRevoke(array $params): void
+    {
+        $this->requireCan('subscriptions.edit');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $sub = $this->db->one('SELECT * FROM subscriptions WHERE tenant_id = ? ORDER BY id DESC LIMIT 1', [$id]);
+        if ($sub) {
+            License::expire((int)$sub['id']);
+        }
+        $this->superAuth->log('license.revoke', 'tenant', $id);
+        $this->session->flash('success', 'Licencia revocada. La organización quedará bloqueada hasta su reactivación.');
+        $this->redirect('/admin/tenants/' . $id);
     }
 
     public function update(array $params): void
