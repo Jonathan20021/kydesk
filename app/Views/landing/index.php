@@ -363,43 +363,72 @@
             <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">Empezá <span class="gradient-shift">gratis</span>. Crecé sin sorpresas.</h2>
         </div>
 
-        <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto reveal-stagger" data-reveal>
-            <div class="price-card">
-                <div class="text-[11px] uppercase tracking-[0.16em] font-bold text-ink-400">STARTER</div>
-                <div class="mt-3"><span class="price-amount">$0</span><span class="text-ink-400 text-[14px] ml-2">/ mes</span></div>
-                <p class="text-[13px] text-ink-500 mt-3">Para equipos que recién arrancan.</p>
-                <a href="<?= $url('/auth/register') ?>" class="btn btn-outline btn-sm w-full mt-6 justify-center">Empezar gratis</a>
-                <div class="mt-6 pt-6 border-t border-[#ececef] space-y-1">
-                    <?php foreach (['Hasta 3 técnicos','100 tickets/mes','Email + Portal','Conocimiento público'] as $f): ?>
-                        <div class="price-feat"><span class="price-feat-check"><i class="lucide lucide-check text-[12px]"></i></span><?= $f ?></div>
-                    <?php endforeach; ?>
+        <?php
+        $homePlans = $plans ?? [];
+        $homeFeatureLabels = [
+            'tickets' => 'Tickets',
+            'kb' => 'Base de conocimiento',
+            'notes' => 'Notas',
+            'todos' => 'Tareas',
+            'companies' => 'Empresas',
+            'assets' => 'Activos',
+            'reports' => 'Reportes',
+            'users' => 'Usuarios',
+            'roles' => 'Roles',
+            'settings' => 'Ajustes',
+            'automations' => 'Automatizaciones IA',
+            'sla' => 'SLA + Escalamientos',
+            'audit' => 'Auditoría',
+            'sso' => 'SSO + SAML',
+            'custom_branding' => 'Marca personalizada',
+        ];
+        $homeCols = max(2, min(4, count($homePlans) ?: 3));
+        ?>
+        <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-<?= $homeCols ?> gap-5 max-w-6xl mx-auto reveal-stagger" data-reveal>
+            <?php foreach ($homePlans as $hp):
+                $isFeat = (int)$hp['is_featured'] === 1;
+                $isFree = (float)$hp['price_monthly'] === 0.0;
+                $features = json_decode($hp['features'] ?? '[]', true) ?: [];
+                $highlightFeatures = array_slice($features, 0, 6);
+                $feats = [];
+                if ((int)$hp['max_users'] >= 9999) $feats[] = 'Técnicos ilimitados';
+                else $feats[] = 'Hasta ' . (int)$hp['max_users'] . ' técnicos';
+                if ((int)$hp['max_tickets_month'] >= 99999) $feats[] = 'Tickets ilimitados';
+                else $feats[] = number_format($hp['max_tickets_month']) . ' tickets/mes';
+                foreach ($highlightFeatures as $hf) $feats[] = $homeFeatureLabels[$hf] ?? ucfirst($hf);
+                $feats = array_slice($feats, 0, 6);
+            ?>
+                <div class="price-card <?= $isFeat ? 'featured' : '' ?>">
+                    <?php if ($isFeat): ?>
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2"><span class="aura-pill-tag">RECOMENDADO</span></div>
+                    <?php endif; ?>
+                    <div class="text-[11px] uppercase tracking-[0.16em] font-bold <?= $isFeat ? 'text-brand-300 relative' : 'text-ink-400' ?>"><?= $e($hp['name']) ?></div>
+                    <div class="mt-3 <?= $isFeat ? 'relative' : '' ?>">
+                        <span class="price-amount <?= $isFeat ? 'gradient-shift' : '' ?>">$<?= number_format($hp['price_monthly'], 0) ?></span>
+                        <span class="<?= $isFeat ? 'text-white/60' : 'text-ink-400' ?> text-[14px] ml-2">/ mes</span>
+                    </div>
+                    <?php if (!empty($hp['description'])): ?>
+                        <p class="text-[13px] mt-3 <?= $isFeat ? 'text-white/70 relative' : 'text-ink-500' ?>"><?= $e($hp['description']) ?></p>
+                    <?php endif; ?>
+                    <?php if ($isFeat): ?>
+                        <a href="<?= $url('/auth/register') ?>" class="btn btn-lg w-full mt-6 justify-center relative" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 10px 24px -8px rgba(124,92,255,.6)"><?= (int)$hp['trial_days'] > 0 ? 'Probar ' . (int)$hp['trial_days'] . ' días gratis' : 'Empezar ' . $e($hp['name']) ?></a>
+                    <?php else: ?>
+                        <a href="<?= $url($isFree ? '/auth/register' : '/pricing') ?>" class="btn btn-outline btn-sm w-full mt-6 justify-center"><?= $isFree ? 'Empezar gratis' : 'Probar ' . $e($hp['name']) ?></a>
+                    <?php endif; ?>
+                    <div class="mt-6 pt-6 <?= $isFeat ? 'border-t border-white/10 relative' : 'border-t border-[#ececef]' ?> space-y-1">
+                        <?php foreach ($feats as $f): ?>
+                            <div class="price-feat <?= $isFeat ? 'text-white/85' : '' ?>"><span class="price-feat-check" <?= $isFeat ? 'style="background:rgba(124,92,255,.2);color:#a78bfa"' : '' ?>><i class="lucide lucide-check text-[12px]"></i></span><?= $e($f) ?></div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
+            <?php endforeach; ?>
+            <?php if (empty($homePlans)): ?>
+                <div class="md:col-span-3 text-center py-12 text-ink-400">No hay planes activos. Configurá planes desde el panel super admin.</div>
+            <?php endif; ?>
+        </div>
 
-            <div class="price-card featured">
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2"><span class="aura-pill-tag">RECOMENDADO</span></div>
-                <div class="text-[11px] uppercase tracking-[0.16em] font-bold text-brand-300 relative">PRO</div>
-                <div class="mt-3 relative"><span class="price-amount gradient-shift">$29</span><span class="text-white/60 text-[14px] ml-2">/ técnico / mes</span></div>
-                <p class="text-[13px] text-white/70 mt-3 relative">Para equipos que escalan en serio.</p>
-                <a href="<?= $url('/auth/register') ?>" class="btn btn-lg w-full mt-6 justify-center relative" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 10px 24px -8px rgba(124,92,255,.6)">Probar 14 días gratis</a>
-                <div class="mt-6 pt-6 border-t border-white/10 space-y-1 relative">
-                    <?php foreach (['Técnicos ilimitados','Tickets ilimitados','Todos los canales','SLA + Escalamientos','Automatizaciones IA','Reportes avanzados'] as $f): ?>
-                        <div class="price-feat text-white/85"><span class="price-feat-check" style="background:rgba(124,92,255,.2);color:#a78bfa"><i class="lucide lucide-check text-[12px]"></i></span><?= $f ?></div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <div class="price-card">
-                <div class="text-[11px] uppercase tracking-[0.16em] font-bold text-ink-400">ENTERPRISE</div>
-                <div class="mt-3"><span class="price-amount">A medida</span></div>
-                <p class="text-[13px] text-ink-500 mt-3">Soporte 24/7, SSO y más.</p>
-                <a href="<?= $url('/contact') ?>" class="btn btn-outline btn-sm w-full mt-6 justify-center">Hablar con ventas</a>
-                <div class="mt-6 pt-6 border-t border-[#ececef] space-y-1">
-                    <?php foreach (['SSO + SAML','SOC 2 Tipo II','SLA 99.99%','Customer Success','Onboarding dedicado'] as $f): ?>
-                        <div class="price-feat"><span class="price-feat-check"><i class="lucide lucide-check text-[12px]"></i></span><?= $f ?></div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
+        <div class="text-center mt-10">
+            <a href="<?= $url('/pricing') ?>" class="text-[13px] font-semibold text-brand-700 inline-flex items-center gap-1.5 hover:gap-2 transition-all">Ver detalle completo de planes <i class="lucide lucide-arrow-right text-[14px]"></i></a>
         </div>
     </div>
 </section>

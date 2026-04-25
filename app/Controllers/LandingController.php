@@ -226,12 +226,30 @@ class LandingController extends Controller
 
     public function index(): void
     {
-        $this->render('landing/index', ['title' => 'Kydesk Helpdesk — El helpdesk que tu equipo merece'], 'public');
+        $plans = [];
+        try {
+            $plans = $this->db->all(
+                "SELECT * FROM plans WHERE is_active = 1 AND is_public = 1 ORDER BY sort_order ASC, price_monthly ASC"
+            );
+        } catch (\Throwable $e) { /* tabla no existe en setups antiguos */ }
+        $this->render('landing/index', [
+            'title' => 'Kydesk Helpdesk — El helpdesk que tu equipo merece',
+            'plans' => $plans,
+        ], 'public');
     }
 
     public function pricing(): void
     {
-        $this->render('landing/pricing', ['title' => 'Planes y precios'], 'public');
+        $plans = [];
+        try {
+            $plans = $this->db->all(
+                "SELECT * FROM plans WHERE is_active = 1 AND is_public = 1 ORDER BY sort_order ASC, price_monthly ASC"
+            );
+        } catch (\Throwable $e) { /* tabla no existe en setups antiguos */ }
+        $this->render('landing/pricing', [
+            'title' => 'Planes y precios',
+            'plans' => $plans,
+        ], 'public');
     }
 
     public function features(): void

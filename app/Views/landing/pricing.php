@@ -20,58 +20,47 @@
             <h1 class="display-xl mt-8" style="text-wrap:balance;font-size:clamp(2.6rem,5vw + 1rem,5rem)">Planes simples.<br><span class="gradient-shift">Sin sorpresas.</span></h1>
             <p class="mt-7 text-[18px] text-ink-500 max-w-xl mx-auto leading-relaxed">Empezá gratis. Escalá cuando crezcas. Cancelá cuando quieras.</p>
 
-            <div class="mt-8 inline-flex p-1 rounded-full" style="background:#f3f4f6;border:1px solid #ececef" x-data="{period:'monthly'}">
-                <button @click="period='monthly'" :class="period==='monthly' ? 'bg-white shadow-sm text-ink-900' : 'text-ink-500'" class="px-5 py-2 rounded-full text-[12.5px] font-semibold transition">Mensual</button>
-                <button @click="period='yearly'" :class="period==='yearly' ? 'bg-white shadow-sm text-ink-900' : 'text-ink-500'" class="px-5 py-2 rounded-full text-[12.5px] font-semibold transition inline-flex items-center gap-2">Anual <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="background:#d1fae5;color:#047857">-20%</span></button>
-            </div>
         </div>
     </div>
 </section>
 
 <!-- PRICING CARDS -->
-<section class="pb-24 relative">
+<section class="pb-24 relative" x-data="{period:'monthly'}">
     <div class="max-w-[1240px] mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto items-stretch">
-            <?php
-            $plans = [
-                ['Starter', '$0', 'Para equipos que recién arrancan', 'starter', 'rocket', '#dbeafe', '#1d4ed8', false, [
-                    ['Hasta 3 técnicos', 1],
-                    ['100 tickets/mes', 1],
-                    ['Portal público', 1],
-                    ['Email + Portal (2 canales)', 1],
-                    ['Base de conocimiento (10)', 1],
-                    ['Reportes básicos', 1],
-                    ['Automatizaciones', 0],
-                    ['SLA + Escalamientos', 0],
-                    ['Auditoría', 0],
-                    ['SSO + SAML', 0],
-                ]],
-                ['Pro', '$29', 'Para equipos que escalan', 'pro', 'zap', '', '', true, [
-                    ['Técnicos ilimitados', 1],
-                    ['Tickets ilimitados', 1],
-                    ['5 canales (+ phone, chat, internal)', 1],
-                    ['Automatizaciones IA', 1],
-                    ['SLA + Escalamientos', 1],
-                    ['Auditoría 30 días', 1],
-                    ['API + Webhooks', 1],
-                    ['Reportes avanzados', 1],
-                    ['SLA garantizado 99.9%', 1],
-                    ['Soporte Email · Lun-Vie', 1],
-                ]],
-                ['Enterprise', 'A medida', 'Operación crítica · Compliance · Escala', 'enterprise', 'crown', '#fef3c7', '#b45309', false, [
-                    ['Todo de Pro', 1],
-                    ['SSO + SAML', 1],
-                    ['Marca personalizada (white-label)', 1],
-                    ['Auditoría indefinida', 1],
-                    ['Customer Success Manager', 1],
-                    ['Soporte 24/7 · Slack dedicado', 1],
-                    ['SLA garantizado 99.99%', 1],
-                    ['Residencia US · EU · LATAM', 1],
-                    ['SCIM provisioning', 1],
-                    ['Onboarding dedicado', 1],
-                ]],
-            ];
-            foreach ($plans as [$name, $price, $tagline, $key, $icon, $bg, $col, $featured, $feats]):
+        <div class="flex justify-center -mt-2 mb-10">
+            <div class="inline-flex p-1 rounded-full" style="background:#f3f4f6;border:1px solid #ececef">
+                <button @click="period='monthly'" :class="period==='monthly' ? 'bg-white shadow-sm text-ink-900' : 'text-ink-500'" class="px-5 py-2 rounded-full text-[12.5px] font-semibold transition">Mensual</button>
+                <button @click="period='yearly'" :class="period==='yearly' ? 'bg-white shadow-sm text-ink-900' : 'text-ink-500'" class="px-5 py-2 rounded-full text-[12.5px] font-semibold transition inline-flex items-center gap-2">Anual <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="background:#d1fae5;color:#047857">Ahorrá</span></button>
+            </div>
+        </div>
+        <?php
+        $featureLabels = [
+            'tickets' => 'Tickets',
+            'kb' => 'Base de conocimiento',
+            'notes' => 'Notas',
+            'todos' => 'Tareas',
+            'companies' => 'Empresas',
+            'assets' => 'Activos',
+            'reports' => 'Reportes',
+            'users' => 'Usuarios',
+            'roles' => 'Roles',
+            'settings' => 'Ajustes',
+            'automations' => 'Automatizaciones IA',
+            'sla' => 'SLA + Escalamientos',
+            'audit' => 'Auditoría',
+            'sso' => 'SSO + SAML',
+            'custom_branding' => 'Marca personalizada',
+        ];
+        $plansList = $plans ?? [];
+        $cols = max(2, min(4, count($plansList) ?: 3));
+        ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-<?= $cols ?> gap-5 max-w-6xl mx-auto items-stretch">
+            <?php foreach ($plansList as $plan):
+                $featured = (int)$plan['is_featured'] === 1;
+                $featuresArr = json_decode($plan['features'] ?? '[]', true) ?: [];
+                $color = $plan['color'] ?: '#7c5cff';
+                $icon = $plan['icon'] ?: 'rocket';
+                $hasFree = (float)$plan['price_monthly'] === 0.0;
             ?>
                 <div class="relative rounded-[28px] p-9 transition-all duration-300 hover:-translate-y-1.5 flex flex-col <?= $featured ? 'text-white' : 'bg-white border border-[#ececef] hover:shadow-[0_30px_60px_-20px_rgba(124,92,255,0.18)]' ?>" <?= $featured ? 'style="background:linear-gradient(180deg,#1a1825 0%,#16151b 100%);box-shadow:0 30px 60px -20px rgba(124,92,255,.45)"' : '' ?>>
 
@@ -81,36 +70,60 @@
                     <?php endif; ?>
 
                     <div class="relative flex flex-col flex-1">
-                        <div class="w-14 h-14 rounded-2xl grid place-items-center" style="<?= $featured ? 'background:rgba(124,92,255,.22);color:#fff;box-shadow:0 8px 20px -6px rgba(124,92,255,.5)' : 'background:'.$bg.';color:'.$col.';box-shadow:0 8px 20px -6px '.$col.'40' ?>"><i class="lucide lucide-<?= $icon ?> text-[26px]"></i></div>
+                        <div class="w-14 h-14 rounded-2xl grid place-items-center" style="<?= $featured ? 'background:rgba(124,92,255,.22);color:#fff;box-shadow:0 8px 20px -6px rgba(124,92,255,.5)' : 'background:'.$color.'22;color:'.$color.';box-shadow:0 8px 20px -6px '.$color.'40' ?>"><i class="lucide lucide-<?= $e($icon) ?> text-[26px]"></i></div>
 
                         <div class="mt-6">
-                            <div class="text-[11px] uppercase tracking-[0.18em] font-bold <?= $featured?'text-brand-300':'text-ink-400' ?>"><?= $e($name) ?></div>
+                            <div class="text-[11px] uppercase tracking-[0.18em] font-bold <?= $featured?'text-brand-300':'text-ink-400' ?>"><?= $e($plan['name']) ?></div>
                             <div class="mt-3 flex items-baseline gap-1.5">
-                                <span class="font-display font-extrabold text-[48px] tracking-[-0.03em] leading-none <?= $featured?'gradient-shift':'' ?>"><?= $e($price) ?></span>
-                                <?php if ($name !== 'Enterprise'): ?><span class="text-[12.5px] <?= $featured?'text-white/55':'text-ink-400' ?>">/ <?= $name === 'Starter' ? 'mes' : 'usuario / mes' ?></span><?php endif; ?>
+                                <span class="font-display font-extrabold text-[48px] tracking-[-0.03em] leading-none <?= $featured?'gradient-shift':'' ?>" x-text="period==='yearly' ? '$<?= number_format($plan['price_yearly'],0) ?>' : '$<?= number_format($plan['price_monthly'],0) ?>'">$<?= number_format($plan['price_monthly'], 0) ?></span>
+                                <span class="text-[12.5px] <?= $featured?'text-white/55':'text-ink-400' ?>" x-text="period==='yearly' ? '/ año' : '/ mes'">/ mes</span>
                             </div>
-                            <p class="text-[13.5px] mt-2 <?= $featured?'text-white/65':'text-ink-500' ?>"><?= $e($tagline) ?></p>
+                            <?php if (!empty($plan['description'])): ?>
+                                <p class="text-[13.5px] mt-2 <?= $featured?'text-white/65':'text-ink-500' ?>"><?= $e($plan['description']) ?></p>
+                            <?php endif; ?>
+                            <?php if ((int)$plan['trial_days'] > 0): ?>
+                                <div class="text-[11.5px] mt-1.5 <?= $featured?'text-brand-300':'text-brand-700' ?> font-semibold"><i class="lucide lucide-gift text-[12px]"></i> <?= (int)$plan['trial_days'] ?> días de prueba gratis</div>
+                            <?php endif; ?>
                         </div>
 
-                        <form method="POST" action="<?= $url('/demo/start/' . $key) ?>" class="mt-7">
+                        <form method="POST" action="<?= $url('/demo/start/' . $e($plan['slug'])) ?>" class="mt-7">
                             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                             <button class="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl font-semibold text-[14px] transition" <?= $featured ? 'style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 12px 28px -8px rgba(124,92,255,.65)"' : 'style="background:#16151b;color:white"' ?> onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                <i class="lucide lucide-play text-[14px]"></i> <?= $name === 'Enterprise' ? 'Probar demo' : 'Empezar ' . $name ?>
+                                <i class="lucide lucide-play text-[14px]"></i> <?= $hasFree ? 'Empezar gratis' : 'Probar ' . $e($plan['name']) ?>
                             </button>
                         </form>
                         <a href="<?= $url('/auth/register') ?>" class="block text-center text-[12px] mt-3 <?= $featured?'text-white/60':'text-ink-500' ?> hover:underline">o crear cuenta real →</a>
 
                         <div class="mt-7 pt-6 space-y-2.5 flex-1 <?= $featured?'border-t border-white/10':'border-t border-[#ececef]' ?>">
-                            <?php foreach ($feats as [$f, $on]): ?>
+                            <?php
+                            $limits = [];
+                            if ((int)$plan['max_users'] >= 9999) $limits[] = 'Usuarios ilimitados';
+                            else $limits[] = 'Hasta ' . (int)$plan['max_users'] . ' usuarios';
+                            if ((int)$plan['max_tickets_month'] >= 99999) $limits[] = 'Tickets ilimitados';
+                            else $limits[] = number_format($plan['max_tickets_month']) . ' tickets/mes';
+                            if ((int)$plan['max_kb_articles'] >= 999) $limits[] = 'Artículos KB ilimitados';
+                            else $limits[] = (int)$plan['max_kb_articles'] . ' artículos KB';
+                            foreach ($limits as $lim): ?>
                                 <div class="flex items-start gap-3 text-[13px]">
-                                    <span class="w-5 h-5 rounded-md grid place-items-center flex-shrink-0 mt-0.5" style="<?= $on ? ($featured?'background:rgba(124,92,255,.22);color:#c4b5fd':'background:#f3f0ff;color:#5a3aff') : ($featured?'background:rgba(255,255,255,.05);color:rgba(255,255,255,.25)':'background:#f3f4f6;color:#b8b8c4') ?>"><i class="lucide lucide-<?= $on ? 'check' : 'minus' ?> text-[11px]"></i></span>
-                                    <span class="<?= $on ? ($featured?'text-white/90':'text-ink-700') : ($featured?'text-white/35':'text-ink-400') ?>"><?= $e($f) ?></span>
+                                    <span class="w-5 h-5 rounded-md grid place-items-center flex-shrink-0 mt-0.5" style="<?= $featured?'background:rgba(124,92,255,.22);color:#c4b5fd':'background:#f3f0ff;color:#5a3aff' ?>"><i class="lucide lucide-check text-[11px]"></i></span>
+                                    <span class="<?= $featured?'text-white/90':'text-ink-700' ?>"><?= $e($lim) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php foreach ($featuresArr as $fkey):
+                                $lbl = $featureLabels[$fkey] ?? ucfirst($fkey);
+                            ?>
+                                <div class="flex items-start gap-3 text-[13px]">
+                                    <span class="w-5 h-5 rounded-md grid place-items-center flex-shrink-0 mt-0.5" style="<?= $featured?'background:rgba(124,92,255,.22);color:#c4b5fd':'background:#f3f0ff;color:#5a3aff' ?>"><i class="lucide lucide-check text-[11px]"></i></span>
+                                    <span class="<?= $featured?'text-white/90':'text-ink-700' ?>"><?= $e($lbl) ?></span>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
+            <?php if (empty($plansList)): ?>
+                <div class="md:col-span-3 text-center py-16 text-ink-400">No hay planes activos. Configura planes en el panel super admin.</div>
+            <?php endif; ?>
         </div>
 
         <!-- Comparativa breve -->
