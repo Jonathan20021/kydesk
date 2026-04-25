@@ -197,7 +197,8 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                             ['show_sla','SLA en riesgo','alarm-clock','Tickets que vencen pronto'],
                             ['show_todos','Mis pendientes','list-checks','Tareas activas'],
                         ];
-                        foreach ($widgets as [$k, $lbl, $ic, $desc]): ?>
+                        foreach ($widgets as [$k, $lbl, $ic, $desc]):
+                            $checked = !empty($p[$k]); ?>
                             <label class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-bg cursor-pointer transition">
                                 <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 grid place-items-center flex-shrink-0"><i class="lucide lucide-<?= $ic ?> text-[16px]"></i></div>
                                 <div class="flex-1 min-w-0">
@@ -205,7 +206,8 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                                     <div class="text-[11.5px] text-ink-400"><?= $desc ?></div>
                                 </div>
                                 <span class="kswitch">
-                                    <input type="checkbox" name="<?= $k ?>" value="1" x-model="state.<?= $k ?>" :true-value="1" :false-value="0">
+                                    <input type="hidden" name="<?= $k ?>" value="0">
+                                    <input type="checkbox" name="<?= $k ?>" value="1" <?= $checked?'checked':'' ?> x-model="state.<?= $k ?>" :true-value="1" :false-value="0">
                                     <span class="kswitch-track"></span>
                                 </span>
                             </label>
@@ -224,12 +226,20 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                     <label class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-bg cursor-pointer transition">
                         <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 grid place-items-center"><i class="lucide lucide-monitor text-[16px]"></i></div>
                         <div class="flex-1"><div class="font-display font-bold text-[13px]">Notificaciones de escritorio</div><div class="text-[11.5px] text-ink-400">Pop-ups del navegador para nuevos tickets</div></div>
-                        <span class="kswitch"><input type="checkbox" name="notify_desktop" value="1" x-model="state.notify_desktop" :true-value="1" :false-value="0"><span class="kswitch-track"></span></span>
+                        <span class="kswitch">
+                            <input type="hidden" name="notify_desktop" value="0">
+                            <input type="checkbox" name="notify_desktop" value="1" <?= !empty($p['notify_desktop'])?'checked':'' ?> x-model="state.notify_desktop" :true-value="1" :false-value="0">
+                            <span class="kswitch-track"></span>
+                        </span>
                     </label>
                     <label class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-bg cursor-pointer transition">
                         <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 grid place-items-center"><i class="lucide lucide-volume-2 text-[16px]"></i></div>
                         <div class="flex-1"><div class="font-display font-bold text-[13px]">Sonido al recibir ticket</div><div class="text-[11.5px] text-ink-400">Un beep discreto cuando entra un nuevo caso</div></div>
-                        <span class="kswitch"><input type="checkbox" name="notify_sound" value="1" x-model="state.notify_sound" :true-value="1" :false-value="0"><span class="kswitch-track"></span></span>
+                        <span class="kswitch">
+                            <input type="hidden" name="notify_sound" value="0">
+                            <input type="checkbox" name="notify_sound" value="1" <?= !empty($p['notify_sound'])?'checked':'' ?> x-model="state.notify_sound" :true-value="1" :false-value="0">
+                            <span class="kswitch-track"></span>
+                        </span>
                     </label>
                 </div>
                 <div class="card card-pad">
