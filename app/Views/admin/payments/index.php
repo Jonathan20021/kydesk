@@ -1,6 +1,6 @@
 <div class="grid grid-cols-3 gap-4 mb-6">
     <div class="admin-stat" style="border-top:3px solid #22c55e"><div class="admin-stat-label">Total recibido</div><div class="admin-stat-value">$<?= number_format($stats['total'],0) ?></div></div>
-    <div class="admin-stat" style="border-top:3px solid #d946ef"><div class="admin-stat-label">Este mes</div><div class="admin-stat-value">$<?= number_format($stats['this_month'],0) ?></div></div>
+    <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">Este mes</div><div class="admin-stat-value">$<?= number_format($stats['this_month'],0) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">Transacciones</div><div class="admin-stat-value"><?= number_format($stats['count']) ?></div></div>
 </div>
 

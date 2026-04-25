@@ -49,7 +49,7 @@
                 </label>
             <?php endforeach; ?>
         </div>
-        <style>.plan-radio:checked + .plan-card { border-color:#d946ef; background:#fdf4ff; box-shadow:0 4px 14px -4px rgba(217,70,239,.3) }</style>
+        <style>.plan-radio:checked + .plan-card { border-color:#7c5cff; background:#f3f0ff; box-shadow:0 4px 14px -4px rgba(124,92,255,.3) }</style>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>

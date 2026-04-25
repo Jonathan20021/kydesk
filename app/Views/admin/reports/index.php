@@ -1,5 +1,5 @@
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="admin-stat" style="border-top:3px solid #d946ef"><div class="admin-stat-label">MRR</div><div class="admin-stat-value">$<?= number_format($kpis['mrr'],0) ?></div></div>
+    <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">MRR</div><div class="admin-stat-value">$<?= number_format($kpis['mrr'],0) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">ARR proyectado</div><div class="admin-stat-value">$<?= number_format($kpis['arr'],0) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #22c55e"><div class="admin-stat-label">Ingresos totales</div><div class="admin-stat-value">$<?= number_format($kpis['revenue_total'],0) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #f59e0b"><div class="admin-stat-label">Por cobrar</div><div class="admin-stat-value">$<?= number_format($kpis['invoice_pending'],0) ?></div></div>
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new Chart(el, { type, data: { labels: set.map(d=>d.m), datasets: [{ label:'', data: set.map(d=>parseFloat(d.c)), backgroundColor: color+'CC', borderColor: color, tension:.35, fill: type==='line' }] }, options: opts });
     };
     make('rChart', data.r, '#7c5cff');
-    make('tChart', data.t, '#d946ef', 'line');
+    make('tChart', data.t, '#a78bfa', 'line');
     make('uChart', data.u, '#22c55e', 'line');
     make('tkChart', data.tk, '#f59e0b');
 });

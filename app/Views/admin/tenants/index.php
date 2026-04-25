@@ -9,7 +9,7 @@
         <div class="admin-stat-label">Suspendidas</div>
         <div class="admin-stat-value"><?= number_format($totalSuspended) ?></div>
     </div>
-    <div class="admin-stat" style="border-top:3px solid #d946ef">
+    <div class="admin-stat" style="border-top:3px solid #7c5cff">
         <div class="admin-stat-label">Demo</div>
         <div class="admin-stat-value"><?= number_format($totalDemo) ?></div>
     </div>

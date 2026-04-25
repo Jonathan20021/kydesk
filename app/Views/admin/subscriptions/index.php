@@ -2,7 +2,7 @@
     <div class="admin-stat" style="border-top:3px solid #22c55e"><div class="admin-stat-label">Activas</div><div class="admin-stat-value"><?= number_format($stats['active']) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #f59e0b"><div class="admin-stat-label">En trial</div><div class="admin-stat-value"><?= number_format($stats['trial']) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #ef4444"><div class="admin-stat-label">Canceladas</div><div class="admin-stat-value"><?= number_format($stats['cancelled']) ?></div></div>
-    <div class="admin-stat" style="border-top:3px solid #d946ef"><div class="admin-stat-label">MRR</div><div class="admin-stat-value">$<?= number_format($stats['mrr'],0) ?></div></div>
+    <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">MRR</div><div class="admin-stat-value">$<?= number_format($stats['mrr'],0) ?></div></div>
 </div>
 
 <form method="GET" class="admin-card admin-card-pad mb-4">

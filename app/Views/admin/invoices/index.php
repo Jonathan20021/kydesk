@@ -2,7 +2,7 @@
     <div class="admin-stat" style="border-top:3px solid #22c55e"><div class="admin-stat-label">Cobrado</div><div class="admin-stat-value">$<?= number_format($stats['paid'],0) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #f59e0b"><div class="admin-stat-label">Por cobrar</div><div class="admin-stat-value">$<?= number_format($stats['pending'],0) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #ef4444"><div class="admin-stat-label">Vencidas</div><div class="admin-stat-value"><?= number_format($stats['overdue']) ?></div></div>
-    <div class="admin-stat" style="border-top:3px solid #d946ef"><div class="admin-stat-label">Total</div><div class="admin-stat-value"><?= number_format($stats['total']) ?></div></div>
+    <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">Total</div><div class="admin-stat-value"><?= number_format($stats['total']) ?></div></div>
 </div>
 
 <div class="admin-card admin-card-pad mb-4">

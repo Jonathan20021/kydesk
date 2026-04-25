@@ -8,7 +8,11 @@
 <script>
 tailwind.config = { theme: { extend: {
     fontFamily: { sans:['Inter','sans-serif'], display:['Plus Jakarta Sans','sans-serif'], mono:['Geist Mono','monospace'] },
-    colors: { admin: {500:'#d946ef',600:'#c026d3',700:'#a21caf'}, ink: {900:'#16151b',500:'#6b6b78',400:'#8e8e9a'} }
+    colors: {
+        brand: { 50:'#f3f0ff',100:'#e7e0ff',200:'#cdbfff',300:'#a78bfa',400:'#8b6dff',500:'#7c5cff',600:'#6c47ff',700:'#5a3aff' },
+        admin: { 50:'#f3f0ff',100:'#e7e0ff',200:'#cdbfff',300:'#a78bfa',400:'#8b6dff',500:'#7c5cff',600:'#6c47ff',700:'#5a3aff' },
+        ink: { 900:'#16151b',700:'#2a2a33',500:'#6b6b78',400:'#8e8e9a',300:'#b8b8c4' }
+    }
 } } };
 </script>
 <link rel="stylesheet" href="<?= $asset('css/app.css') ?>">
@@ -25,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <style>
-  body { background:#0a0814; color:white; font-family:Inter,sans-serif; min-height:100vh; }
+  body { background:#0c0a1a; color:white; font-family:Inter,sans-serif; min-height:100vh; }
 </style>
 </head>
 <body>

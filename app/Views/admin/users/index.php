@@ -1,7 +1,7 @@
 <?php use App\Core\Helpers; ?>
 
 <div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="admin-stat" style="border-top:3px solid #d946ef"><div class="admin-stat-label">Total</div><div class="admin-stat-value"><?= number_format($stats['total']) ?></div></div>
+    <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">Total</div><div class="admin-stat-value"><?= number_format($stats['total']) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #22c55e"><div class="admin-stat-label">Activos</div><div class="admin-stat-value"><?= number_format($stats['active']) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">Técnicos</div><div class="admin-stat-value"><?= number_format($stats['technicians']) ?></div></div>
 </div>

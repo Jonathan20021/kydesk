@@ -59,9 +59,9 @@
     </div>
 </div>
 
-<!-- Tabs: simple -->
-<div x-data="{tab:'info'}" class="mb-4">
-    <div class="flex gap-1 mb-4 border-b border-[#ececef] overflow-x-auto">
+<!-- Tabs -->
+<div x-data="{tab:'info'}">
+    <div class="admin-tabs mb-4">
         <?php foreach ([
             'info'=>['Información','info'],
             'subscription'=>['Suscripción','repeat'],
@@ -69,7 +69,7 @@
             'invoices'=>['Facturas ('.count($invoices).')','file-text'],
             'payments'=>['Pagos ('.count($payments).')','wallet'],
         ] as $key => [$lbl,$ic]): ?>
-            <button @click="tab='<?= $key ?>'" :class="tab==='<?= $key ?>' && 'border-admin-500 text-admin-700'" class="px-4 py-2.5 text-[13px] font-semibold border-b-2 border-transparent hover:text-admin-700 transition flex items-center gap-1.5"><i class="lucide lucide-<?= $ic ?> text-[13px]"></i> <?= $e($lbl) ?></button>
+            <button type="button" @click="tab='<?= $key ?>'" :class="tab==='<?= $key ?>' && 'active'" class="admin-tab"><i class="lucide lucide-<?= $ic ?> text-[13px]"></i> <?= $e($lbl) ?></button>
         <?php endforeach; ?>
     </div>
 
