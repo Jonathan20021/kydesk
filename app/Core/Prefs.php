@@ -45,7 +45,12 @@ class Prefs
     {
         $row = $db->one("SHOW COLUMNS FROM users LIKE 'preferences'");
         if (!$row) {
-            $db->run("ALTER TABLE users ADD COLUMN preferences JSON NULL");
+            // Usamos LONGTEXT para máxima compatibilidad (MariaDB y MySQL<5.7 sin tipo JSON nativo).
+            try {
+                $db->run("ALTER TABLE users ADD COLUMN preferences LONGTEXT NULL");
+            } catch (\Throwable $e) {
+                $db->run("ALTER TABLE users ADD COLUMN preferences TEXT NULL");
+            }
         }
     }
 
@@ -60,7 +65,14 @@ class Prefs
         } elseif (is_array($raw)) {
             $stored = $raw;
         }
-        return array_merge(self::DEFAULTS, $stored);
+        $merged = array_merge(self::DEFAULTS, $stored);
+        // Normaliza tipos: las flags 0/1 deben ser int, no string ni bool, para que el dashboard las evalúe bien.
+        foreach (self::DEFAULTS as $k => $default) {
+            if (is_int($default) || is_bool($default)) {
+                $merged[$k] = (int)(bool)($merged[$k] ?? 0);
+            }
+        }
+        return $merged;
     }
 
     public static function save(Database $db, int $userId, array $prefs): void
@@ -88,7 +100,11 @@ class Prefs
         $clean['locale'] = in_array($clean['locale'], ['es','en','pt'], true) ? $clean['locale'] : 'es';
         $clean['date_format'] = in_array($clean['date_format'], ['dmy','mdy','ymd'], true) ? $clean['date_format'] : 'dmy';
 
-        $db->update('users', ['preferences' => json_encode($clean, JSON_UNESCAPED_UNICODE)], 'id = ?', [$userId]);
+        $json = json_encode($clean, JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            throw new \RuntimeException('No se pudo serializar las preferencias: ' . json_last_error_msg());
+        }
+        $db->update('users', ['preferences' => $json], 'id = ?', [$userId]);
     }
 
     protected static function sanitizeColor(string $color): string

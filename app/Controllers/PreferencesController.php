@@ -29,10 +29,11 @@ class PreferencesController extends Controller
 
         $incoming = [];
         foreach (Prefs::DEFAULTS as $k => $default) {
+            $raw = $this->input($k, null);
             if (is_int($default)) {
-                $incoming[$k] = (int)(bool)$this->input($k, 0);
+                $incoming[$k] = ($raw === null || $raw === '' || $raw === '0' || $raw === 0 || $raw === false) ? 0 : 1;
             } else {
-                $incoming[$k] = (string)$this->input($k, $default);
+                $incoming[$k] = $raw === null ? $default : (string)$raw;
             }
         }
         Prefs::save($this->db, $userId, $incoming);

@@ -11,9 +11,9 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
         <div class="flex items-center gap-2">
             <form method="POST" action="<?= $url('/t/' . $slug . '/preferences/reset') ?>" onsubmit="return confirm('¿Restaurar todo a los valores por defecto?')">
                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                <button class="btn btn-outline btn-sm"><i class="lucide lucide-rotate-ccw"></i> Restaurar</button>
+                <button type="submit" class="btn btn-outline btn-sm"><i class="lucide lucide-rotate-ccw"></i> Restaurar</button>
             </form>
-            <button form="prefs-form" class="btn btn-primary btn-sm"><i class="lucide lucide-save"></i> Guardar</button>
+            <button type="button" onclick="document.getElementById('prefs-form').submit()" class="btn btn-primary btn-sm"><i class="lucide lucide-save"></i> Guardar</button>
         </div>
     </div>
 
@@ -59,7 +59,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                                 <div class="w-10 h-10 rounded-xl grid place-items-center mb-1" style="background:<?= $v==='dark'?'#16151b':($v==='light'?'#f3f4f6':'linear-gradient(135deg,#16151b 50%,#f3f4f6 50%)') ?>;color:<?= $v==='dark'?'#f5f5f7':($v==='light'?'#16151b':'#7c5cff') ?>"><i class="lucide lucide-<?= $ic ?> text-[16px]"></i></div>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
                                 <div class="text-[11px] text-ink-400"><?= $v==='dark'?'Reduce fatiga visual':($v==='light'?'Por defecto':'Sigue al sistema') ?></div>
-                                <input type="radio" name="theme" value="<?= $v ?>" x-model="state.theme" class="hidden">
+                                <input type="radio" name="theme" value="<?= $v ?>" <?= ($p['theme']??'')===$v?'checked':'' ?> x-model="state.theme" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -100,7 +100,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                                 </div>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
                                 <div class="text-[11px] text-ink-400"><?= $desc ?></div>
-                                <input type="radio" name="density" value="<?= $v ?>" x-model="state.density" class="hidden">
+                                <input type="radio" name="density" value="<?= $v ?>" <?= ($p['density']??'')===$v?'checked':'' ?> x-model="state.density" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -123,7 +123,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                             <button type="button" @click="set('wallpaper','<?= $key ?>')" :class="state.wallpaper==='<?= $key ?>' ? 'choice-tile selected' : 'choice-tile'">
                                 <div class="rounded-lg h-12 mb-1" style="<?= $previews[$key] ?>"></div>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
-                                <input type="radio" name="wallpaper" value="<?= $key ?>" x-model="state.wallpaper" class="hidden">
+                                <input type="radio" name="wallpaper" value="<?= $key ?>" <?= ($p['wallpaper']??'')===$key?'checked':'' ?> x-model="state.wallpaper" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -143,7 +143,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                                 <i class="lucide lucide-<?= $ic ?> text-[20px] text-brand-600 mb-1"></i>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
                                 <div class="text-[11px] text-ink-400"><?= $desc ?></div>
-                                <input type="radio" name="sidebar_mode" value="<?= $v ?>" x-model="state.sidebar_mode" class="hidden">
+                                <input type="radio" name="sidebar_mode" value="<?= $v ?>" <?= ($p['sidebar_mode']??'')===$v?'checked':'' ?> x-model="state.sidebar_mode" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -172,7 +172,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                             <button type="button" @click="set('default_ticket_view','<?= $v ?>')" :class="state.default_ticket_view==='<?= $v ?>' ? 'choice-tile selected' : 'choice-tile'">
                                 <i class="lucide lucide-<?= $ic ?> text-[20px] text-brand-600 mb-1"></i>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
-                                <input type="radio" name="default_ticket_view" value="<?= $v ?>" x-model="state.default_ticket_view" class="hidden">
+                                <input type="radio" name="default_ticket_view" value="<?= $v ?>" <?= ($p['default_ticket_view']??'')===$v?'checked':'' ?> x-model="state.default_ticket_view" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -206,7 +206,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                                     <div class="text-[11.5px] text-ink-400"><?= $desc ?></div>
                                 </div>
                                 <span class="kswitch">
-                                    <input type="checkbox" name="<?= $k ?>" value="1" <?= $checked?'checked':'' ?> x-model="state.<?= $k ?>" :true-value="1" :false-value="0">
+                                    <input type="checkbox" name="<?= $k ?>" value="1" <?= $checked?'checked':'' ?>>
                                     <span class="kswitch-track"></span>
                                 </span>
                             </label>
@@ -226,7 +226,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                         <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 grid place-items-center"><i class="lucide lucide-monitor text-[16px]"></i></div>
                         <div class="flex-1"><div class="font-display font-bold text-[13px]">Notificaciones de escritorio</div><div class="text-[11.5px] text-ink-400">Pop-ups del navegador para nuevos tickets</div></div>
                         <span class="kswitch">
-                            <input type="checkbox" name="notify_desktop" value="1" <?= !empty($p['notify_desktop'])?'checked':'' ?> x-model="state.notify_desktop" :true-value="1" :false-value="0">
+                            <input type="checkbox" name="notify_desktop" value="1" <?= !empty($p['notify_desktop'])?'checked':'' ?>>
                             <span class="kswitch-track"></span>
                         </span>
                     </label>
@@ -234,7 +234,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                         <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 grid place-items-center"><i class="lucide lucide-volume-2 text-[16px]"></i></div>
                         <div class="flex-1"><div class="font-display font-bold text-[13px]">Sonido al recibir ticket</div><div class="text-[11.5px] text-ink-400">Un beep discreto cuando entra un nuevo caso</div></div>
                         <span class="kswitch">
-                            <input type="checkbox" name="notify_sound" value="1" <?= !empty($p['notify_sound'])?'checked':'' ?> x-model="state.notify_sound" :true-value="1" :false-value="0">
+                            <input type="checkbox" name="notify_sound" value="1" <?= !empty($p['notify_sound'])?'checked':'' ?>>
                             <span class="kswitch-track"></span>
                         </span>
                     </label>
@@ -249,7 +249,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                             <button type="button" @click="set('notify_email_digest','<?= $v ?>')" :class="state.notify_email_digest==='<?= $v ?>' ? 'choice-tile selected' : 'choice-tile'">
                                 <i class="lucide lucide-<?= $ic ?> text-[18px] text-brand-600 mb-1"></i>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
-                                <input type="radio" name="notify_email_digest" value="<?= $v ?>" x-model="state.notify_email_digest" class="hidden">
+                                <input type="radio" name="notify_email_digest" value="<?= $v ?>" <?= ($p['notify_email_digest']??'')===$v?'checked':'' ?> x-model="state.notify_email_digest" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -268,7 +268,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                             <button type="button" @click="set('locale','<?= $v ?>')" :class="state.locale==='<?= $v ?>' ? 'choice-tile selected' : 'choice-tile'">
                                 <div class="text-[28px] leading-none mb-1"><?= $flag ?></div>
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
-                                <input type="radio" name="locale" value="<?= $v ?>" x-model="state.locale" class="hidden">
+                                <input type="radio" name="locale" value="<?= $v ?>" <?= ($p['locale']??'')===$v?'checked':'' ?> x-model="state.locale" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -283,7 +283,7 @@ $initialState = json_encode($p, JSON_UNESCAPED_UNICODE);
                             <button type="button" @click="set('date_format','<?= $v ?>')" :class="state.date_format==='<?= $v ?>' ? 'choice-tile selected' : 'choice-tile'">
                                 <div class="font-display font-bold text-[13px]"><?= $lbl ?></div>
                                 <div class="text-[11px] font-mono text-ink-400 mt-0.5"><?= $ex ?></div>
-                                <input type="radio" name="date_format" value="<?= $v ?>" x-model="state.date_format" class="hidden">
+                                <input type="radio" name="date_format" value="<?= $v ?>" <?= ($p['date_format']??'')===$v?'checked':'' ?> x-model="state.date_format" class="hidden">
                             </button>
                         <?php endforeach; ?>
                     </div>
