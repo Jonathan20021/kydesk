@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', kydeskRenderIcons);
 window.renderIcons = kydeskRenderIcons;
 </script>
 </head>
-<body x-data="{ sidebarOpen:false, userMenu:false, cmd:false, notifMenu:false, shortcuts:false }" @keydown.window.shift.question="shortcuts=true" @keydown.window.meta.k.prevent="cmd=true" @keydown.window.ctrl.k.prevent="cmd=true" data-theme="<?= $e($prefs['theme']) ?>" data-density="<?= $e($prefs['density']) ?>" data-sidebar="<?= $e($prefs['sidebar_mode']) ?>" data-wallpaper="<?= $e($prefs['wallpaper']) ?>" style="<?= Prefs::styleVars($prefs) ?>">
+<body x-data="{ sidebarOpen:false, sidebarCollapsed: (localStorage.getItem('kydesk_sidebar_collapsed')==='1'), userMenu:false, cmd:false, notifMenu:false, shortcuts:false, toggleSidebar(){ this.sidebarCollapsed=!this.sidebarCollapsed; try{localStorage.setItem('kydesk_sidebar_collapsed', this.sidebarCollapsed?'1':'0');}catch(e){} } }" :class="sidebarCollapsed && 'sidebar-collapsed'" @keydown.window.shift.question="shortcuts=true" @keydown.window.meta.k.prevent="cmd=true" @keydown.window.ctrl.k.prevent="cmd=true" @keydown.window.meta.b.prevent="toggleSidebar()" @keydown.window.ctrl.b.prevent="toggleSidebar()" data-theme="<?= $e($prefs['theme']) ?>" data-density="<?= $e($prefs['density']) ?>" data-sidebar="<?= $e($prefs['sidebar_mode']) ?>" data-wallpaper="<?= $e($prefs['wallpaper']) ?>" style="<?= Prefs::styleVars($prefs) ?>">
 
 <div class="app-shell">
     <div class="app-frame">
@@ -97,6 +97,9 @@ window.renderIcons = kydeskRenderIcons;
             <div class="brand">
                 <div class="brand-logo"><i class="lucide lucide-zap text-base"></i></div>
                 <div class="brand-name">Kydesk</div>
+                <button @click="toggleSidebar()" class="sidebar-toggle hidden lg:grid" data-tooltip="Colapsar menú (⌘B)" :data-tooltip="sidebarCollapsed ? 'Expandir menú (⌘B)' : 'Colapsar menú (⌘B)'">
+                    <i class="lucide" :class="sidebarCollapsed ? 'lucide-chevrons-right' : 'lucide-chevrons-left'"></i>
+                </button>
             </div>
 
             <nav class="nav-section">
@@ -105,8 +108,8 @@ window.renderIcons = kydeskRenderIcons;
                     if ($perm && !$can($perm)) continue;
                     if ($feat && !$planHas($feat)) continue;
                     $active = $isActive($p); ?>
-                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>">
-                        <i class="lucide lucide-<?= $ic ?>"></i><span><?= $l ?></span>
+                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>" data-tooltip="<?= $e($l) ?>">
+                        <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label"><?= $l ?></span>
                         <?php if ($p === '/tickets' && $openTickets > 0): ?><span class="badge-mini"><?= $openTickets ?></span><?php endif; ?>
                     </a>
                 <?php endforeach; ?>
@@ -116,8 +119,8 @@ window.renderIcons = kydeskRenderIcons;
             <nav class="nav-section">
                 <div class="nav-heading">Gestión</div>
                 <?php foreach ($visMgmt as [$l,$ic,$p,$perm,$feat]): $active = $isActive($p); ?>
-                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>">
-                        <i class="lucide lucide-<?= $ic ?>"></i><span><?= $l ?></span>
+                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>" data-tooltip="<?= $e($l) ?>">
+                        <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label"><?= $l ?></span>
                     </a>
                 <?php endforeach; ?>
             </nav>
@@ -136,14 +139,14 @@ window.renderIcons = kydeskRenderIcons;
             <nav class="nav-section">
                 <div class="nav-heading">Admin</div>
                 <?php foreach ($visAdmin as [$l,$ic,$p,$perm,$feat]): $active = $isActive($p); ?>
-                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>">
-                        <i class="lucide lucide-<?= $ic ?>"></i><span><?= $l ?></span>
+                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>" data-tooltip="<?= $e($l) ?>">
+                        <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label"><?= $l ?></span>
                     </a>
                 <?php endforeach; ?>
                 <?php foreach ($lockedAdmin as [$l,$ic,$p,$perm,$feat]): ?>
-                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item" style="opacity:.5" title="Disponible en Pro">
-                        <i class="lucide lucide-<?= $ic ?>"></i><span class="flex-1"><?= $l ?></span>
-                        <i class="lucide lucide-lock text-[11px] text-ink-400"></i>
+                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item" style="opacity:.5" data-tooltip="<?= $e($l) ?> · Disponible en Pro">
+                        <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label flex-1"><?= $l ?></span>
+                        <i class="lucide lucide-lock text-[11px] text-ink-400 nav-lock"></i>
                     </a>
                 <?php endforeach; ?>
             </nav>
@@ -155,7 +158,7 @@ window.renderIcons = kydeskRenderIcons;
                     ? implode(', ', array_slice($lockedNames, 0, 2)) . ' y ' . (count($lockedNames) - 2) . ' más'
                     : implode(' y ', $lockedNames);
             ?>
-            <div class="mt-auto pt-3">
+            <div class="mt-auto pt-3 sidebar-bottom-card">
                 <div class="rounded-2xl p-4 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1a1825,#2a1f3d);box-shadow:0 8px 20px -8px rgba(124,92,255,.4)">
                     <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 0% 100%,rgba(124,92,255,.4),transparent 60%)"></div>
                     <div class="relative">
@@ -169,7 +172,7 @@ window.renderIcons = kydeskRenderIcons;
                 </div>
             </div>
             <?php elseif ($tenant && (int)($tenant->data['is_demo'] ?? 0) === 1): ?>
-            <div class="mt-auto pt-3">
+            <div class="mt-auto pt-3 sidebar-bottom-card">
                 <div class="rounded-2xl p-4 text-white relative overflow-hidden" style="background:linear-gradient(135deg,#1a1825,#2a1f3d);box-shadow:0 8px 20px -8px rgba(124,92,255,.4)">
                     <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 100% 0%,rgba(34,197,94,.35),transparent 60%)"></div>
                     <div class="relative">
@@ -190,7 +193,7 @@ window.renderIcons = kydeskRenderIcons;
 
         <div class="main">
             <div class="topbar">
-                <button @click="sidebarOpen=true" class="icon-btn lg:hidden">
+                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" data-tooltip="Menú (⌘B)">
                     <i class="lucide lucide-menu"></i>
                 </button>
                 <div class="search-pill">

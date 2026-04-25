@@ -120,6 +120,12 @@ tailwind.config = { theme: { extend: {
     .sidebar.open { left:0; }
     .main { padding:18px 16px; }
   }
+
+  /* Collapsed footers — only one is visible at a time */
+  .sidebar-collapsed-foot { display: none; flex-direction: column; gap: 4px; }
+  body.sidebar-collapsed .sidebar-collapsed-foot { display: flex; }
+  body.sidebar-collapsed .sidebar .super-brand-meta { display: none; }
+  body.sidebar-collapsed .sidebar .brand > div.nav-label { display: none; }
 </style>
 <script>
 function adminRenderIcons(){
@@ -135,7 +141,7 @@ window.adminRenderIcons = adminRenderIcons;
 window.renderIcons = adminRenderIcons;
 </script>
 </head>
-<body x-data="{ sidebarOpen:false, userMenu:false }">
+<body x-data="{ sidebarOpen:false, sidebarCollapsed: (localStorage.getItem('kydesk_admin_sidebar_collapsed')==='1'), userMenu:false, toggleSidebar(){ this.sidebarCollapsed=!this.sidebarCollapsed; try{localStorage.setItem('kydesk_admin_sidebar_collapsed', this.sidebarCollapsed?'1':'0');}catch(e){} } }" :class="sidebarCollapsed && 'sidebar-collapsed'" @keydown.window.meta.b.prevent="toggleSidebar()" @keydown.window.ctrl.b.prevent="toggleSidebar()">
 
 <div class="app-shell">
     <div class="app-frame">
@@ -143,10 +149,13 @@ window.renderIcons = adminRenderIcons;
         <aside class="sidebar" :class="sidebarOpen && 'open'">
             <div class="brand">
                 <div class="super-brand-logo">K</div>
-                <div style="min-width:0">
+                <div style="min-width:0" class="nav-label">
                     <div class="brand-name">Kydesk</div>
                     <div class="super-brand-meta">Super Admin</div>
                 </div>
+                <button @click="toggleSidebar()" class="sidebar-toggle hidden lg:grid" :data-tooltip="sidebarCollapsed ? 'Expandir menú (⌘B)' : 'Colapsar menú (⌘B)'">
+                    <i class="lucide" :class="sidebarCollapsed ? 'lucide-chevrons-right' : 'lucide-chevrons-left'"></i>
+                </button>
             </div>
 
             <?php foreach ($nav as $section => $items):
@@ -158,14 +167,14 @@ window.renderIcons = adminRenderIcons;
                     <?php foreach ($visible as [$l,$ic,$p,$perm]):
                         $active = $isActive($p);
                     ?>
-                        <a href="<?= $url('/admin' . $p) ?>" class="nav-item <?= $active?'active':'' ?>">
-                            <i class="lucide lucide-<?= $ic ?>"></i><span><?= $e($l) ?></span>
+                        <a href="<?= $url('/admin' . $p) ?>" class="nav-item <?= $active?'active':'' ?>" data-tooltip="<?= $e($l) ?>">
+                            <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label"><?= $e($l) ?></span>
                         </a>
                     <?php endforeach; ?>
                 </nav>
             <?php endforeach; ?>
 
-            <div class="mt-auto pt-3" style="border-top:1px solid var(--border);">
+            <div class="mt-auto pt-3 sidebar-bottom-card" style="border-top:1px solid var(--border);">
                 <div class="super-user-pill">
                     <div style="width:34px;height:34px;border-radius:10px;background:<?= Helpers::colorFor($admin['email']) ?>;color:white;display:grid;place-items:center;font-weight:700;font-size:12.5px"><?= Helpers::initials($admin['name']) ?></div>
                     <div style="min-width:0; flex:1">
@@ -181,13 +190,24 @@ window.renderIcons = adminRenderIcons;
                     </form>
                 </div>
             </div>
+
+            <!-- Compact bottom row when collapsed -->
+            <div class="sidebar-collapsed-foot mt-auto pt-3" style="border-top:1px solid var(--border);">
+                <a href="<?= $url('/admin/profile') ?>" class="nav-item" data-tooltip="<?= $e($admin['name']) ?> · <?= $e($admin['role']) ?>" style="justify-content:center; padding:10px 0">
+                    <div style="width:30px;height:30px;border-radius:9px;background:<?= Helpers::colorFor($admin['email']) ?>;color:white;display:grid;place-items:center;font-weight:700;font-size:11.5px"><?= Helpers::initials($admin['name']) ?></div>
+                </a>
+                <form method="POST" action="<?= $url('/admin/logout') ?>">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <button class="nav-item" data-tooltip="Cerrar sesión" style="width:100%; justify-content:center; padding:10px 0; color:#ef4444"><i class="lucide lucide-log-out"></i></button>
+                </form>
+            </div>
         </aside>
 
         <div x-show="sidebarOpen" @click="sidebarOpen=false" class="fixed inset-0 bg-black/30 z-40 lg:hidden" x-cloak></div>
 
         <div class="main">
             <div class="topbar">
-                <button @click="sidebarOpen=true" class="icon-btn lg:hidden">
+                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" data-tooltip="Menú (⌘B)">
                     <i class="lucide lucide-menu"></i>
                 </button>
                 <div class="flex-1 min-w-0">
