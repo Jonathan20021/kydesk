@@ -9,6 +9,7 @@ class Application
     public Database $db;
     public Session $session;
     public Auth $auth;
+    public SuperAuth $superAuth;
     public ?Tenant $tenant = null;
 
     public function __construct(array $config)
@@ -21,6 +22,7 @@ class Application
 
         $this->db = new Database($config['db']);
         $this->auth = new Auth($this->db, $this->session);
+        $this->superAuth = new SuperAuth($this->db, $this->session);
         $this->router = new Router();
 
         $this->registerRoutes();
@@ -182,5 +184,83 @@ class Application
         // Instalador
         $r->get('/install', ['App\Controllers\InstallController', 'index']);
         $r->post('/install', ['App\Controllers\InstallController', 'run']);
+
+        // ─────────────────── SUPER ADMIN PANEL ───────────────────
+        // Auth
+        $r->get('/admin', ['App\Controllers\Admin\AuthController', 'showLogin']);
+        $r->get('/admin/login', ['App\Controllers\Admin\AuthController', 'showLogin']);
+        $r->post('/admin/login', ['App\Controllers\Admin\AuthController', 'login']);
+        $r->post('/admin/logout', ['App\Controllers\Admin\AuthController', 'logout']);
+        $r->get('/admin/logout', ['App\Controllers\Admin\AuthController', 'logout']);
+        $r->get('/admin/profile', ['App\Controllers\Admin\AuthController', 'profile']);
+        $r->post('/admin/profile', ['App\Controllers\Admin\AuthController', 'updateProfile']);
+
+        // Dashboard
+        $r->get('/admin/dashboard', ['App\Controllers\Admin\DashboardController', 'index']);
+
+        // Tenants
+        $r->get('/admin/tenants', ['App\Controllers\Admin\TenantController', 'index']);
+        $r->get('/admin/tenants/create', ['App\Controllers\Admin\TenantController', 'create']);
+        $r->post('/admin/tenants', ['App\Controllers\Admin\TenantController', 'store']);
+        $r->get('/admin/tenants/{id}', ['App\Controllers\Admin\TenantController', 'show']);
+        $r->post('/admin/tenants/{id}', ['App\Controllers\Admin\TenantController', 'update']);
+        $r->post('/admin/tenants/{id}/suspend', ['App\Controllers\Admin\TenantController', 'suspend']);
+        $r->post('/admin/tenants/{id}/activate', ['App\Controllers\Admin\TenantController', 'activate']);
+        $r->post('/admin/tenants/{id}/delete', ['App\Controllers\Admin\TenantController', 'delete']);
+        $r->post('/admin/tenants/{id}/impersonate', ['App\Controllers\Admin\TenantController', 'impersonate']);
+
+        // Plans
+        $r->get('/admin/plans', ['App\Controllers\Admin\PlanController', 'index']);
+        $r->get('/admin/plans/create', ['App\Controllers\Admin\PlanController', 'create']);
+        $r->post('/admin/plans', ['App\Controllers\Admin\PlanController', 'store']);
+        $r->get('/admin/plans/{id}', ['App\Controllers\Admin\PlanController', 'edit']);
+        $r->post('/admin/plans/{id}', ['App\Controllers\Admin\PlanController', 'update']);
+        $r->post('/admin/plans/{id}/toggle', ['App\Controllers\Admin\PlanController', 'toggle']);
+        $r->post('/admin/plans/{id}/delete', ['App\Controllers\Admin\PlanController', 'delete']);
+
+        // Subscriptions
+        $r->get('/admin/subscriptions', ['App\Controllers\Admin\SubscriptionController', 'index']);
+        $r->post('/admin/subscriptions/{id}', ['App\Controllers\Admin\SubscriptionController', 'update']);
+        $r->post('/admin/subscriptions/{id}/cancel', ['App\Controllers\Admin\SubscriptionController', 'cancel']);
+
+        // Invoices
+        $r->get('/admin/invoices', ['App\Controllers\Admin\InvoiceController', 'index']);
+        $r->get('/admin/invoices/create', ['App\Controllers\Admin\InvoiceController', 'create']);
+        $r->post('/admin/invoices', ['App\Controllers\Admin\InvoiceController', 'store']);
+        $r->get('/admin/invoices/{id}', ['App\Controllers\Admin\InvoiceController', 'show']);
+        $r->post('/admin/invoices/{id}/pay', ['App\Controllers\Admin\InvoiceController', 'markPaid']);
+        $r->post('/admin/invoices/{id}/delete', ['App\Controllers\Admin\InvoiceController', 'delete']);
+
+        // Payments
+        $r->get('/admin/payments', ['App\Controllers\Admin\PaymentController', 'index']);
+        $r->post('/admin/payments', ['App\Controllers\Admin\PaymentController', 'store']);
+
+        // Users (cross-tenant)
+        $r->get('/admin/users', ['App\Controllers\Admin\UserController', 'index']);
+        $r->get('/admin/users/create', ['App\Controllers\Admin\UserController', 'create']);
+        $r->post('/admin/users', ['App\Controllers\Admin\UserController', 'store']);
+        $r->get('/admin/users/{id}', ['App\Controllers\Admin\UserController', 'edit']);
+        $r->post('/admin/users/{id}', ['App\Controllers\Admin\UserController', 'update']);
+        $r->post('/admin/users/{id}/delete', ['App\Controllers\Admin\UserController', 'delete']);
+
+        // Super Admins
+        $r->get('/admin/super-admins', ['App\Controllers\Admin\SuperAdminController', 'index']);
+        $r->get('/admin/super-admins/create', ['App\Controllers\Admin\SuperAdminController', 'create']);
+        $r->post('/admin/super-admins', ['App\Controllers\Admin\SuperAdminController', 'store']);
+        $r->get('/admin/super-admins/{id}', ['App\Controllers\Admin\SuperAdminController', 'edit']);
+        $r->post('/admin/super-admins/{id}', ['App\Controllers\Admin\SuperAdminController', 'update']);
+        $r->post('/admin/super-admins/{id}/delete', ['App\Controllers\Admin\SuperAdminController', 'delete']);
+
+        // Reports
+        $r->get('/admin/reports', ['App\Controllers\Admin\ReportController', 'index']);
+        $r->get('/admin/audit', ['App\Controllers\Admin\ReportController', 'audit']);
+
+        // Settings
+        $r->get('/admin/settings', ['App\Controllers\Admin\SettingsController', 'index']);
+        $r->post('/admin/settings', ['App\Controllers\Admin\SettingsController', 'update']);
+
+        // Support
+        $r->get('/admin/support', ['App\Controllers\Admin\SupportController', 'index']);
+        $r->post('/admin/support/{id}', ['App\Controllers\Admin\SupportController', 'update']);
     }
 }
