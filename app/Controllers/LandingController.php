@@ -278,4 +278,39 @@ class LandingController extends Controller
     {
         $this->render('landing/contact', ['title' => 'Contacto'], 'public');
     }
+
+    public function clients(): void
+    {
+        $this->render('landing/clients', ['title' => 'Clientes que confían en Kydesk'], 'public');
+    }
+
+    public function careers(): void
+    {
+        $this->render('landing/careers', ['title' => 'Carreras · Trabajá con nosotros'], 'public');
+    }
+
+    public function docs(): void
+    {
+        $this->render('landing/docs', ['title' => 'Documentación'], 'public');
+    }
+
+    public function status(): void
+    {
+        $this->render('landing/status', ['title' => 'Estado del servicio'], 'public');
+    }
+
+    public function changelog(): void
+    {
+        $this->render('landing/changelog', ['title' => 'Changelog · Novedades'], 'public');
+    }
+
+    public function privacy(): void
+    {
+        $this->render('landing/privacy', ['title' => 'Política de privacidad'], 'public');
+    }
+
+    public function terms(): void
+    {
+        $this->render('landing/terms', ['title' => 'Términos y condiciones'], 'public');
+    }
 }

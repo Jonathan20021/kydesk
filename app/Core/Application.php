@@ -55,6 +55,13 @@ class Application
         $r->get('/features', ['App\Controllers\LandingController', 'features']);
         $r->get('/features/{key}', ['App\Controllers\LandingController', 'feature']);
         $r->get('/contact', ['App\Controllers\LandingController', 'contact']);
+        $r->get('/clients', ['App\Controllers\LandingController', 'clients']);
+        $r->get('/careers', ['App\Controllers\LandingController', 'careers']);
+        $r->get('/docs', ['App\Controllers\LandingController', 'docs']);
+        $r->get('/status', ['App\Controllers\LandingController', 'status']);
+        $r->get('/changelog', ['App\Controllers\LandingController', 'changelog']);
+        $r->get('/privacy', ['App\Controllers\LandingController', 'privacy']);
+        $r->get('/terms', ['App\Controllers\LandingController', 'terms']);
 
         // Demos
         $r->get('/demo', ['App\Controllers\DemoController', 'picker']);

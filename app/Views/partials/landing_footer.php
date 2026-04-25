@@ -14,8 +14,8 @@
         <?php
         $cols = [
             'Producto' => [['Funcionalidades','/features'],['Precios','/pricing'],['Portal demo','/portal/demo']],
-            'Empresa'  => [['Contacto','/contact'],['Clientes','#'],['Carreras','#']],
-            'Recursos' => [['Documentación','#'],['Estado','#'],['Changelog','#']],
+            'Empresa'  => [['Contacto','/contact'],['Clientes','/clients'],['Carreras','/careers']],
+            'Recursos' => [['Documentación','/docs'],['Estado','/status'],['Changelog','/changelog']],
         ];
         foreach ($cols as $heading => $items): ?>
             <div>
@@ -32,8 +32,8 @@
         <div class="max-w-[1240px] mx-auto px-6 h-12 flex items-center justify-between text-[11.5px] text-ink-400">
             <div>© <?= date('Y') ?> Kydesk Helpdesk</div>
             <div class="flex items-center gap-4">
-                <a href="#" class="hover:text-ink-900">Privacidad</a>
-                <a href="#" class="hover:text-ink-900">Términos</a>
+                <a href="<?= $url('/privacy') ?>" class="hover:text-ink-900">Privacidad</a>
+                <a href="<?= $url('/terms') ?>" class="hover:text-ink-900">Términos</a>
             </div>
         </div>
     </div>
