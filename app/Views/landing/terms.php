@@ -59,7 +59,7 @@
                 </ul>
 
                 <h2>6. Trial y reembolsos</h2>
-                <p>Ofrecemos 14 días de prueba gratuita sin tarjeta. Si pagaste y no estás satisfecho, podés solicitar reembolso completo dentro de los primeros 30 días contactando <a href="mailto:billing@kydesk.com">billing@kydesk.com</a>. Después de ese plazo no se otorgan reembolsos por períodos parciales.</p>
+                <p>Ofrecemos 14 días de prueba gratuita sin tarjeta. Si pagaste y no estás satisfecho, podés solicitar reembolso completo dentro de los primeros 30 días contactando <a href="mailto:jonathansandoval@kyrosrd.com">jonathansandoval@kyrosrd.com</a>. Después de ese plazo no se otorgan reembolsos por períodos parciales.</p>
 
                 <h2>7. Tus datos</h2>
                 <p>Vos sos dueño del contenido que subís a Kydesk (tickets, archivos, contactos, etc.). Nos otorgás una licencia limitada para almacenar, procesar y mostrarte ese contenido en el contexto del servicio. No usamos tus datos para entrenar modelos de IA externos ni los compartimos con terceros para marketing.</p>
@@ -93,7 +93,7 @@
                 <p>Estos términos se rigen por la legislación de la República Dominicana. Cualquier disputa se resolverá en los tribunales competentes de Santo Domingo, salvo que la ley aplicable disponga lo contrario.</p>
 
                 <h2>14. Contacto</h2>
-                <p>Preguntas sobre estos términos: <a href="mailto:legal@kydesk.com">legal@kydesk.com</a>.</p>
+                <p>Preguntas sobre estos términos: <a href="mailto:jonathansandoval@kyrosrd.com">jonathansandoval@kyrosrd.com</a>.</p>
             </div>
         </div>
     </div>

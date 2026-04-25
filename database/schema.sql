@@ -30,7 +30,7 @@ CREATE TABLE tenants (
     slug VARCHAR(80) NOT NULL UNIQUE,
     logo VARCHAR(255) NULL,
     primary_color VARCHAR(20) DEFAULT '#0f172a',
-    timezone VARCHAR(80) DEFAULT 'America/Guatemala',
+    timezone VARCHAR(80) DEFAULT 'America/Santo_Domingo',
     plan ENUM('free','pro','business','enterprise') DEFAULT 'pro',
     is_active TINYINT(1) DEFAULT 1,
     support_email VARCHAR(150) NULL,

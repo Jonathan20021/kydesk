@@ -98,7 +98,7 @@ $portalKb = $portalBase . '/kb';
             <div>
                 <label class="label">Zona horaria</label>
                 <select name="timezone" class="input">
-                    <?php foreach (['America/Guatemala','America/Mexico_City','America/Bogota','America/Lima','America/Santiago','America/Buenos_Aires','Europe/Madrid','UTC'] as $tz): ?><option value="<?= $tz ?>" <?= $t['timezone']===$tz?'selected':'' ?>><?= $tz ?></option><?php endforeach; ?>
+                    <?php foreach (['America/Santo_Domingo','America/Mexico_City','America/Guatemala','America/Bogota','America/Lima','America/Santiago','America/Buenos_Aires','Europe/Madrid','UTC'] as $tz): ?><option value="<?= $tz ?>" <?= $t['timezone']===$tz?'selected':'' ?>><?= $tz ?></option><?php endforeach; ?>
                 </select>
             </div>
         </div>

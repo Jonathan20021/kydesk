@@ -41,7 +41,7 @@
         <div><label class="label">Nombre</label><input name="name" value="<?= $e($u['name']) ?>" class="input"></div>
         <div><label class="label">Email</label><input value="<?= $e($u['email']) ?>" disabled class="input"></div>
         <div><label class="label">Cargo</label><input name="title" value="<?= $e($u['title']) ?>" placeholder="Ej. Soporte N2" class="input"></div>
-        <div><label class="label">Teléfono</label><input name="phone" value="<?= $e($u['phone']) ?>" placeholder="+502 0000 0000" class="input"></div>
+        <div><label class="label">Teléfono</label><input name="phone" value="<?= $e($u['phone']) ?>" placeholder="+1 809 000 0000" class="input"></div>
     </div>
 
     <div class="section-head mt-8">

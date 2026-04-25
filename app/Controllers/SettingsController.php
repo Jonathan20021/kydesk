@@ -23,7 +23,7 @@ class SettingsController extends Controller
             'support_email' => (string)$this->input('support_email',''),
             'website' => (string)$this->input('website',''),
             'primary_color' => (string)$this->input('primary_color','#6366f1'),
-            'timezone' => (string)$this->input('timezone','America/Guatemala'),
+            'timezone' => (string)$this->input('timezone','America/Santo_Domingo'),
         ];
         $this->db->update('tenants', $data, 'id=?', ['id' => $tenant->id]);
         $this->session->flash('success','Ajustes actualizados.');

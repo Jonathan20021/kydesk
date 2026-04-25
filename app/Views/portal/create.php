@@ -46,7 +46,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><label class="label">Nombre <span class="text-rose-500">*</span></label><input name="name" required placeholder="María García" class="input"></div>
                     <div><label class="label">Email <span class="text-rose-500">*</span></label><input name="email" type="email" required placeholder="maria@empresa.com" class="input"></div>
-                    <div class="md:col-span-2"><label class="label">Teléfono</label><input name="phone" placeholder="+502 0000 0000" class="input"></div>
+                    <div class="md:col-span-2"><label class="label">Teléfono</label><input name="phone" placeholder="+1 809 000 0000" class="input"></div>
                 </div>
             </div>
 

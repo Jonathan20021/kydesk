@@ -179,9 +179,9 @@ VALUES
 -- Seed default SaaS settings
 INSERT IGNORE INTO saas_settings (`key`, `value`) VALUES
 ('saas_name', 'Kydesk'),
-('saas_company', 'Kydesk SaaS'),
-('saas_support_email', 'support@kydesk.com'),
-('saas_billing_email', 'billing@kydesk.com'),
+('saas_company', 'Kyros RD'),
+('saas_support_email', 'jonathansandoval@kyrosrd.com'),
+('saas_billing_email', 'jonathansandoval@kyrosrd.com'),
 ('saas_currency', 'USD'),
 ('saas_tax_rate', '0'),
 ('saas_invoice_prefix', 'INV'),

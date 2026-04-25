@@ -97,7 +97,7 @@
         </div>
 
         <div class="mt-10 rounded-2xl p-6 text-center" style="background:#f3f0ff;border:1px solid #cdbfff">
-            <p class="text-[13.5px] text-ink-700">¿No ves tu rol? Mandanos un CV a <a href="mailto:carreras@kydesk.com" class="font-semibold text-brand-700 hover:underline">carreras@kydesk.com</a>. Siempre buscamos talento.</p>
+            <p class="text-[13.5px] text-ink-700">¿No ves tu rol? Mandanos un CV a <a href="mailto:jonathansandoval@kyrosrd.com" class="font-semibold text-brand-700 hover:underline">jonathansandoval@kyrosrd.com</a>. Siempre buscamos talento.</p>
         </div>
     </div>
 </section>

@@ -10,6 +10,11 @@
                 <span class="pulse"></span>
                 <span class="text-[12px] text-ink-500">Todos los sistemas operativos</span>
             </div>
+            <div class="mt-5 space-y-1.5 text-[12.5px] text-ink-500">
+                <a href="mailto:jonathansandoval@kyrosrd.com" class="flex items-center gap-2 hover:text-ink-900 transition"><i class="lucide lucide-mail text-[13px] text-brand-600"></i> jonathansandoval@kyrosrd.com</a>
+                <a href="https://wa.me/18495024061" target="_blank" rel="noopener" class="flex items-center gap-2 hover:text-ink-900 transition"><i class="lucide lucide-message-circle text-[13px] text-emerald-600"></i> +1 849 502 4061 · WhatsApp</a>
+                <div class="flex items-center gap-2"><i class="lucide lucide-globe text-[13px] text-brand-600"></i> República Dominicana · 100% remoto</div>
+            </div>
         </div>
         <?php
         $cols = [

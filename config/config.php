@@ -42,7 +42,7 @@ return [
         'base' => $basePaths[$env] ?? '',
         'env'  => $env,
         'debug' => $env !== 'production',
-        'timezone' => 'America/Guatemala',
+        'timezone' => 'America/Santo_Domingo',
         'locale' => 'es',
     ],
     'db' => $databases[$env] ?? $databases['production'],

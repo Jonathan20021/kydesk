@@ -78,7 +78,7 @@
                     <li><strong>Exportar</strong> tu información en formato estructurado (JSON / CSV).</li>
                     <li><strong>Oponerte</strong> al procesamiento con fines de marketing.</li>
                 </ul>
-                <p>Para ejercer cualquiera de estos derechos, contactanos a <a href="mailto:privacy@kydesk.com">privacy@kydesk.com</a>.</p>
+                <p>Para ejercer cualquiera de estos derechos, contactanos a <a href="mailto:jonathansandoval@kyrosrd.com">jonathansandoval@kyrosrd.com</a>.</p>
 
                 <h2>8. Retención</h2>
                 <p>Mantenemos tus datos mientras tu cuenta esté activa. Al cancelar, retenemos los datos durante 30 días por si reactivás la cuenta, luego son eliminados permanentemente. Las copias de respaldo se purgan dentro de los 90 días siguientes.</p>
@@ -90,7 +90,7 @@
                 <p>Podemos actualizar esta política ocasionalmente. Si hacemos cambios materiales te notificaremos con al menos 30 días de antelación a la dirección de email asociada a tu cuenta.</p>
 
                 <h2>11. Contacto</h2>
-                <p>Para cualquier pregunta sobre privacidad o tratamiento de datos personales, escribinos a <a href="mailto:privacy@kydesk.com">privacy@kydesk.com</a>.</p>
+                <p>Para cualquier pregunta sobre privacidad o tratamiento de datos personales, escribinos a <a href="mailto:jonathansandoval@kyrosrd.com">jonathansandoval@kyrosrd.com</a>.</p>
             </div>
         </div>
     </div>
