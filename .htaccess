@@ -25,11 +25,14 @@ RewriteRule ^ index.php [QSA,L]
     Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
-<FilesMatch "\.(env|sql|md|json|lock)$">
+<FilesMatch "\.(env|sql|md|lock)$">
     Require all denied
 </FilesMatch>
 
-# Bloquear el script de migración después del setup inicial
+# Bloquear scripts de migración después del setup inicial
 <Files "migrate_production.php">
+    Require all denied
+</Files>
+<Files "migrate_superadmin.php">
     Require all denied
 </Files>
