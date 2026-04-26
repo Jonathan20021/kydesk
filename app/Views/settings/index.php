@@ -134,9 +134,9 @@ $portalKb   = $base . '/kb';
                 <h3 class="section-title">Recursos</h3>
             </div>
             <ul class="space-y-2.5 text-[13px]">
-                <li><a href="#" class="flex items-center gap-2 text-ink-700 hover:text-brand-700"><i class="lucide lucide-book-open text-[14px] text-ink-400"></i> Centro de ayuda</a></li>
-                <li><a href="#" class="flex items-center gap-2 text-ink-700 hover:text-brand-700"><i class="lucide lucide-file-text text-[14px] text-ink-400"></i> Documentación API</a></li>
-                <li><a href="#" class="flex items-center gap-2 text-ink-700 hover:text-brand-700"><i class="lucide lucide-message-circle text-[14px] text-ink-400"></i> Contactar soporte</a></li>
+                <li><a href="<?= $url('/t/' . $tenant->slug . '/help') ?>" class="flex items-center gap-2 text-ink-700 hover:text-brand-700"><i class="lucide lucide-book-open text-[14px] text-ink-400"></i> Centro de ayuda</a></li>
+                <li><a href="<?= $url('/t/' . $tenant->slug . '/api-docs') ?>" class="flex items-center gap-2 text-ink-700 hover:text-brand-700"><i class="lucide lucide-file-text text-[14px] text-ink-400"></i> Documentación API</a></li>
+                <li><a href="<?= $url('/t/' . $tenant->slug . '/support') ?>" class="flex items-center gap-2 text-ink-700 hover:text-brand-700"><i class="lucide lucide-message-circle text-[14px] text-ink-400"></i> Contactar soporte</a></li>
             </ul>
         </div>
     </div>

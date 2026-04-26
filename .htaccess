@@ -1,5 +1,9 @@
 RewriteEngine On
 
+# Pasar el header Authorization a PHP (Apache puede stripearlo)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Forzar HTTPS solo en producción (kydesk.kyrosrd.com)
 RewriteCond %{HTTP_HOST} kyrosrd\.com$ [NC]
 RewriteCond %{HTTPS} !=on

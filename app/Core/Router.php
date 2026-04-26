@@ -9,12 +9,19 @@ class Router
     {
         $this->routes[] = [strtoupper($method), $path, $handler];
     }
-    public function get(string $p, array $h): void  { $this->add('GET', $p, $h); }
-    public function post(string $p, array $h): void { $this->add('POST', $p, $h); }
+    public function get(string $p, array $h): void    { $this->add('GET', $p, $h); }
+    public function post(string $p, array $h): void   { $this->add('POST', $p, $h); }
+    public function patch(string $p, array $h): void  { $this->add('PATCH', $p, $h); }
+    public function delete(string $p, array $h): void { $this->add('DELETE', $p, $h); }
 
     public function dispatch(string $method, string $uri): void
     {
         $method = strtoupper($method);
+        // Method override for HTML forms / API simplification
+        if ($method === 'POST') {
+            $override = $_POST['_method'] ?? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? null;
+            if ($override) $method = strtoupper($override);
+        }
         foreach ($this->routes as [$m, $path, $handler]) {
             if ($m !== $method) continue;
             $regex = $this->compile($path);

@@ -197,6 +197,41 @@ class Application
         $r->post('/t/{slug}/preferences', ['App\Controllers\PreferencesController', 'update']);
         $r->post('/t/{slug}/preferences/reset', ['App\Controllers\PreferencesController', 'reset']);
 
+        // Centro de ayuda + API docs (tenant)
+        $r->get('/t/{slug}/help', ['App\Controllers\HelpController', 'index']);
+        $r->get('/t/{slug}/api-docs', ['App\Controllers\HelpController', 'apiDocs']);
+        $r->post('/t/{slug}/api-docs/tokens', ['App\Controllers\HelpController', 'tokenCreate']);
+        $r->post('/t/{slug}/api-docs/tokens/{id}/revoke', ['App\Controllers\HelpController', 'tokenRevoke']);
+
+        // Soporte directo (tenant → super admin)
+        $r->get('/t/{slug}/support', ['App\Controllers\SupportController', 'index']);
+        $r->post('/t/{slug}/support', ['App\Controllers\SupportController', 'store']);
+        $r->get('/t/{slug}/support/{id}', ['App\Controllers\SupportController', 'show']);
+        $r->post('/t/{slug}/support/{id}/reply', ['App\Controllers\SupportController', 'reply']);
+
+        // ─────────────────── REST API v1 ───────────────────
+        $r->get('/api',    ['App\Controllers\ApiController', 'index']);
+        $r->get('/api/v1', ['App\Controllers\ApiController', 'index']);
+        $r->get('/api/v1/me', ['App\Controllers\ApiController', 'me']);
+        $r->get('/api/v1/tickets',           ['App\Controllers\ApiController', 'ticketsIndex']);
+        $r->post('/api/v1/tickets',          ['App\Controllers\ApiController', 'ticketsCreate']);
+        $r->get('/api/v1/tickets/{id}',       ['App\Controllers\ApiController', 'ticketsShow']);
+        $r->patch('/api/v1/tickets/{id}',     ['App\Controllers\ApiController', 'ticketsUpdate']);
+        $r->post('/api/v1/tickets/{id}',      ['App\Controllers\ApiController', 'ticketsUpdate']);
+        $r->delete('/api/v1/tickets/{id}',    ['App\Controllers\ApiController', 'ticketsDelete']);
+        $r->post('/api/v1/tickets/{id}/delete', ['App\Controllers\ApiController', 'ticketsDelete']);
+        $r->get('/api/v1/tickets/{id}/comments',  ['App\Controllers\ApiController', 'commentsIndex']);
+        $r->post('/api/v1/tickets/{id}/comments', ['App\Controllers\ApiController', 'commentsCreate']);
+        $r->get('/api/v1/categories',  ['App\Controllers\ApiController', 'categoriesIndex']);
+        $r->post('/api/v1/categories', ['App\Controllers\ApiController', 'categoriesCreate']);
+        $r->get('/api/v1/companies',   ['App\Controllers\ApiController', 'companiesIndex']);
+        $r->post('/api/v1/companies',  ['App\Controllers\ApiController', 'companiesCreate']);
+        $r->get('/api/v1/users',         ['App\Controllers\ApiController', 'usersIndex']);
+        $r->get('/api/v1/kb/articles',   ['App\Controllers\ApiController', 'kbIndex']);
+        $r->get('/api/v1/sla',           ['App\Controllers\ApiController', 'slaIndex']);
+        $r->get('/api/v1/automations',   ['App\Controllers\ApiController', 'automationsIndex']);
+        $r->get('/api/v1/stats',         ['App\Controllers\ApiController', 'stats']);
+
         // Instalador
         $r->get('/install', ['App\Controllers\InstallController', 'index']);
         $r->post('/install', ['App\Controllers\InstallController', 'run']);

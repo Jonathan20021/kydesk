@@ -22,4 +22,11 @@ class Tenant
         $row = $app->db->one('SELECT * FROM tenants WHERE slug = :s AND is_active = 1 LIMIT 1', ['s' => $slug]);
         return $row ? new self($row) : null;
     }
+
+    public static function find(int $id): ?self
+    {
+        $app = Application::get();
+        $row = $app->db->one('SELECT * FROM tenants WHERE id = :i AND is_active = 1 LIMIT 1', ['i' => $id]);
+        return $row ? new self($row) : null;
+    }
 }
