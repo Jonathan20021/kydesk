@@ -1,7 +1,7 @@
 <?php include APP_PATH . '/Views/partials/landing_nav.php'; ?>
 
 <!-- ========== HERO ========== -->
-<section class="relative pt-36 pb-24 overflow-hidden">
+<section class="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
     <div class="aurora-bg">
         <div class="aurora-blob b1"></div>
         <div class="aurora-blob b2"></div>
@@ -32,7 +32,7 @@
                 <a href="<?= $url('/auth/register') ?>" class="btn btn-outline btn-lg">Crear cuenta <i class="lucide lucide-arrow-right"></i></a>
             </div>
 
-            <div class="mt-7 flex flex-wrap items-center justify-center gap-6 text-[12.5px] text-ink-400">
+            <div class="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px] text-ink-400">
                 <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> 14 días gratis</span>
                 <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> Sin tarjeta</span>
                 <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> Setup 5 minutos</span>
@@ -40,8 +40,8 @@
             </div>
         </div>
 
-        <!-- HERO MOCKUP con chips superpuestos en las esquinas (mitad sobre el frame, mitad fuera) -->
-        <div class="mt-20 relative max-w-[1180px] mx-auto reveal" data-reveal>
+        <!-- HERO MOCKUP — solo desktop / tablet grande -->
+        <div class="hidden md:block mt-20 relative max-w-[1180px] mx-auto reveal" data-reveal>
 
             <div class="float-chip delay-1 hidden xl:flex absolute z-30" style="top:84px;left:-32px;">
                 <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 grid place-items-center"><i class="lucide lucide-check-circle-2"></i></div>
@@ -201,6 +201,31 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- HERO STATS — solo móvil (reemplaza el mockup) -->
+        <div class="md:hidden mt-12 max-w-md mx-auto reveal" data-reveal>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="rounded-2xl bg-white border border-[#ececef] p-4">
+                    <div class="font-display font-extrabold text-[22px] tracking-[-0.02em] text-brand-700 leading-none">82%</div>
+                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5">SLA</div>
+                </div>
+                <div class="rounded-2xl bg-white border border-[#ececef] p-4">
+                    <div class="font-display font-extrabold text-[22px] tracking-[-0.02em] text-emerald-600 leading-none">2.4×</div>
+                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5">Resolución</div>
+                </div>
+                <div class="rounded-2xl bg-white border border-[#ececef] p-4">
+                    <div class="font-display font-extrabold text-[22px] tracking-[-0.02em] text-rose-600 leading-none">+98%</div>
+                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5">Cumplido</div>
+                </div>
+            </div>
+            <div class="mt-4 rounded-2xl p-5 text-white text-center" style="background:linear-gradient(135deg,#7c5cff 0%,#a78bfa 60%,#d946ef 110%);box-shadow:0 24px 48px -16px rgba(124,92,255,.5)">
+                <div class="text-[10px] uppercase tracking-[0.16em] font-bold opacity-90">Soporte profesional</div>
+                <div class="font-display font-extrabold text-[22px] mt-1.5 leading-tight">Resuelve más,<br>más rápido</div>
+                <a href="<?= $url('/auth/register') ?>" class="inline-flex items-center gap-2 mt-4 bg-white text-ink-900 font-semibold text-[12.5px] px-4 py-2 rounded-full">
+                    Empezar gratis <i class="lucide lucide-arrow-right text-[12px]"></i>
+                </a>
             </div>
         </div>
     </div>
