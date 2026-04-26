@@ -1,6 +1,6 @@
 <?php use App\Core\Helpers; ?>
 
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <div class="admin-stat" style="border-top:3px solid #f59e0b"><div class="admin-stat-label">Abiertos</div><div class="admin-stat-value"><?= number_format($stats['open']) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #7c5cff"><div class="admin-stat-label">En progreso</div><div class="admin-stat-value"><?= number_format($stats['in_progress']) ?></div></div>
     <div class="admin-stat" style="border-top:3px solid #22c55e"><div class="admin-stat-label">Resueltos</div><div class="admin-stat-value"><?= number_format($stats['resolved']) ?></div></div>

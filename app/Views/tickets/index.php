@@ -45,7 +45,7 @@ $catBgMap = ['Hardware'=>['#fef3c7','#b45309'],'Software'=>['#dbeafe','#1d4ed8']
 </div>
 
 <!-- Filtros -->
-<form method="GET" class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+<form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
     <div class="search-pill" style="max-width:none"><i class="lucide lucide-search"></i><input name="q" value="<?= $e($filters['q']) ?>" placeholder="Buscar por asunto, código, email…"></div>
     <select name="priority" class="input">
         <option value="">Cualquier prioridad</option>
@@ -82,6 +82,7 @@ $catBgMap = ['Hardware'=>['#fef3c7','#b45309'],'Software'=>['#dbeafe','#1d4ed8']
             <?php endif; ?>
         </div>
     <?php else: ?>
+        <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
@@ -131,5 +132,6 @@ $catBgMap = ['Hardware'=>['#fef3c7','#b45309'],'Software'=>['#dbeafe','#1d4ed8']
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     <?php endif; ?>
 </div>

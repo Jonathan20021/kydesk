@@ -1,6 +1,6 @@
 <?php use App\Core\Helpers; ?>
 
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <div class="admin-stat" style="border-top:3px solid #22c55e">
         <div class="admin-stat-label">Activas</div>
         <div class="admin-stat-value"><?= number_format($totalActive) ?></div>

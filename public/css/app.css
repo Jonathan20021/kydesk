@@ -624,9 +624,80 @@ body[data-theme="dark"] .choice-tile.selected { background: color-mix(in srgb, v
 /* RESPONSIVE */
 @media (max-width: 1023px) {
     .app-shell { padding: 0; }
-    .app-frame { border-radius: 0; min-height: 100vh; }
-    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 50; transform: translateX(-100%); transition: transform .25s; }
-    .sidebar.open { transform: translateX(0); box-shadow: 0 24px 56px -12px rgba(22,21,27,.16); }
+    .app-frame { border-radius: 0; min-height: 100vh; grid-template-columns: 1fr !important; }
+    .sidebar {
+        position: fixed; inset: 0 auto 0 0; z-index: 60;
+        width: 280px; max-width: 84vw;
+        transform: translateX(-100%); transition: transform .25s;
+        background: #fff; padding: 24px 20px 20px;
+        overflow-y: auto;
+        box-shadow: 0 0 0 1px var(--border);
+    }
+    .sidebar.open { transform: translateX(0); box-shadow: 0 24px 56px -12px rgba(22,21,27,.25); }
+    .main { padding: 16px; min-width: 0; }
+    .topbar {
+        flex-wrap: wrap; gap: 8px; padding: 10px 12px;
+        position: sticky; top: 0; background: #fff; z-index: 30;
+        border-bottom: 1px solid var(--border);
+    }
+    .topbar .search-pill { order: 99; flex: 1 1 100%; max-width: 100%; }
+    .topbar .icon-btn { width: 38px; height: 38px; }
+    .sidebar-toggle { display: none !important; } /* el botón colapsar desktop no aplica */
+
+    /* Tablas con scroll horizontal automático */
+    .table-wrap, .admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrap > table, .admin-table-wrap > table { min-width: 720px; }
+    /* Para tablas sin wrap explícito: hacer el card scrollable */
+    .admin-card:has(> .admin-table),
+    .admin-card:has(> table.admin-table),
+    .card:has(> table.table) {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .admin-card > .admin-table, .admin-card > table.admin-table { min-width: 680px; }
+    .card > table.table { min-width: 720px; }
+
+    /* Cards y grids genéricos */
+    .card-pad, .admin-card-pad { padding: 16px; }
+    .heading-xl { font-size: 28px !important; line-height: 1.15 !important; }
+    .heading-lg { font-size: 22px !important; line-height: 1.2 !important; }
+    .heading-md { font-size: 19px !important; }
+    .display-xl { font-size: 36px !important; line-height: 1.1 !important; }
+
+    /* Modales/dropdowns */
+    .dropdown-panel, .menu-panel, .popover { max-width: calc(100vw - 24px); }
+
+    /* Forzar collapsed-only-desktop a NO aplicar en móvil */
+    body.sidebar-collapsed .sidebar { width: 280px !important; padding: 24px 20px 20px !important; }
+    body.sidebar-collapsed .sidebar .nav-item .nav-label,
+    body.sidebar-collapsed .sidebar .nav-item .badge-mini,
+    body.sidebar-collapsed .sidebar .nav-heading,
+    body.sidebar-collapsed .sidebar .sidebar-bottom-card { display: revert !important; opacity: 1 !important; height: auto !important; pointer-events: auto !important; overflow: visible !important; }
+    body.sidebar-collapsed .sidebar .nav-item { justify-content: flex-start !important; padding: 9px 12px !important; gap: 10px !important; }
+    body.sidebar-collapsed .sidebar .nav-item .nav-label { display: inline !important; }
+    body.sidebar-collapsed .sidebar .brand-name { display: inline !important; }
+
+    /* admin layout */
+    .admin-shell, .admin-frame { padding: 0 !important; border-radius: 0 !important; min-height: 100vh; }
+    .admin-frame { grid-template-columns: 1fr !important; }
+    .admin-main { padding: 16px !important; min-width: 0; }
+    .admin-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 12px !important; }
+}
+
+@media (max-width: 640px) {
+    .topbar { padding: 8px 10px; gap: 6px; }
+    .topbar .icon-btn { width: 36px; height: 36px; }
+    .main { padding: 12px; }
+    .card-pad, .admin-card-pad { padding: 14px; }
+    .display-xl { font-size: 28px !important; }
+    .heading-xl { font-size: 22px !important; }
+    .heading-lg { font-size: 19px !important; }
+    .heading-md { font-size: 17px !important; }
+    .badge { font-size: 10.5px; padding: 3px 7px; }
+    .btn { padding: 8px 12px; font-size: 12.5px; }
+    .btn-lg { padding: 10px 14px; font-size: 13px; }
+    .admin-h1 { font-size: 20px !important; }
+    .admin-h2 { font-size: 16px !important; }
 }
 
 /* SIDEBAR TOGGLE BUTTON */
