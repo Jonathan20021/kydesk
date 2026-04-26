@@ -3,6 +3,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Helpers;
 use App\Core\License;
+use App\Core\Mailer;
 use App\Core\Tenant as TenantModel;
 
 class TenantController extends AdminController
@@ -196,6 +197,23 @@ class TenantController extends AdminController
 
             $this->db->pdo()->commit();
             $this->superAuth->log('tenant.create', 'tenant', $tenantId, ['name' => $name, 'plan' => $plan['slug']]);
+
+            try {
+                $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+                $loginUrl = $appUrl . '/auth/login';
+                $inner = '<p>Hola <strong>' . htmlspecialchars($ownerName) . '</strong>,</p>'
+                    . '<p>Tu organización <strong>' . htmlspecialchars($name) . '</strong> ha sido creada en Kydesk Helpdesk.</p>'
+                    . '<p><strong>Plan:</strong> ' . htmlspecialchars($plan['name']) . ($trialDays > 0 ? ' (' . $trialDays . ' días de prueba)' : '') . '</p>'
+                    . '<p><strong>Acceso:</strong> ' . htmlspecialchars($ownerEmail) . '</p>'
+                    . '<p><strong>Contraseña temporal:</strong> <code>' . htmlspecialchars($ownerPassword) . '</code></p>'
+                    . '<p style="color:#dc2626;font-size:13px;">Por seguridad, cámbiala en tu primer ingreso.</p>';
+                (new Mailer())->send(
+                    ['email' => $ownerEmail, 'name' => $ownerName],
+                    'Tu cuenta en Kydesk Helpdesk · ' . $name,
+                    Mailer::template('Tu cuenta está lista', $inner, 'Iniciar sesión', $loginUrl)
+                );
+            } catch (\Throwable $e) { /* ignore */ }
+
             $this->session->flash('success', "Empresa '{$name}' creada con éxito. Owner: {$ownerEmail}");
             $this->redirect('/admin/tenants/' . $tenantId);
         } catch (\Throwable $e) {

@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Helpers;
 use App\Core\Tenant;
+use App\Core\Mailer;
 
 class PortalController extends Controller
 {
@@ -78,7 +79,44 @@ class PortalController extends Controller
             'requester_phone' => (string)$this->input('phone',''),
             'public_token' => $token,
         ]);
-        $this->db->update('tickets', ['code' => Helpers::ticketCode($tenant->id, $id)], 'id=?', [$id]);
+        $code = Helpers::ticketCode($tenant->id, $id);
+        $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
+
+        // Notificar al solicitante + buzón del workspace
+        try {
+            $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+            $publicUrl = $appUrl . '/portal/' . $tenant->slug . '/ticket/' . $token;
+            $mailer = new Mailer();
+
+            $innerReq = '<p>Hola <strong>' . htmlspecialchars($name) . '</strong>,</p>'
+                . '<p>Recibimos tu solicitud y la registramos con el código <strong>' . htmlspecialchars($code) . '</strong>.</p>'
+                . '<p><strong>Asunto:</strong> ' . htmlspecialchars($subject) . '</p>'
+                . '<p>Te enviaremos actualizaciones a este correo. También puedes seguir el progreso desde el enlace.</p>';
+            $mailer->send(
+                ['email' => $email, 'name' => $name],
+                '[' . $code . '] Recibimos tu ticket · ' . $tenant->name,
+                Mailer::template('Tu ticket fue creado', $innerReq, 'Ver mi ticket', $publicUrl)
+            );
+
+            // Buzón interno del workspace
+            $support = trim((string)($tenant->support_email ?? ''));
+            if ($support && $support !== $email) {
+                $internalUrl = $appUrl . '/t/' . $tenant->slug . '/tickets/' . $id;
+                $innerSup = '<p>Nuevo ticket desde el portal público.</p>'
+                    . '<p><strong>De:</strong> ' . htmlspecialchars($name) . ' &lt;' . htmlspecialchars($email) . '&gt;</p>'
+                    . '<p><strong>Asunto:</strong> ' . htmlspecialchars($subject) . '</p>'
+                    . '<p><strong>Prioridad:</strong> ' . htmlspecialchars((string)$this->input('priority','medium')) . '</p>'
+                    . '<hr><p style="white-space:pre-wrap;">' . nl2br(htmlspecialchars($body)) . '</p>';
+                $mailer->send(
+                    $support,
+                    '[' . $code . '] Nuevo ticket · ' . $subject,
+                    Mailer::template('Nuevo ticket recibido', $innerSup, 'Abrir ticket', $internalUrl),
+                    null,
+                    ['reply_to' => $email]
+                );
+            }
+        } catch (\Throwable $e) { /* no bloquear creación */ }
+
         $this->session->flash('success','Ticket creado. Guarda el enlace para seguir su avance.');
         $this->redirect('/portal/' . $tenant->slug . '/ticket/' . $token);
     }
@@ -158,6 +196,24 @@ class PortalController extends Controller
             'is_internal' => 0,
         ]);
         $this->db->update('tickets', ['updated_at' => date('Y-m-d H:i:s'), 'status' => $ticket['status'] === 'closed' ? 'open' : $ticket['status']], 'id=?', ['id' => $ticket['id']]);
+
+        try {
+            $support = trim((string)($tenant->support_email ?? ''));
+            if ($support) {
+                $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+                $internalUrl = $appUrl . '/t/' . $tenant->slug . '/tickets/' . $ticket['id'];
+                $inner = '<p><strong>' . htmlspecialchars($ticket['requester_name']) . '</strong> respondió en el ticket <strong>' . htmlspecialchars($ticket['code']) . '</strong>.</p>'
+                    . '<hr><p style="white-space:pre-wrap;">' . nl2br(htmlspecialchars($body)) . '</p>';
+                (new Mailer())->send(
+                    $support,
+                    '[' . $ticket['code'] . '] Nueva respuesta del cliente',
+                    Mailer::template('Nueva respuesta del solicitante', $inner, 'Abrir ticket', $internalUrl),
+                    null,
+                    ['reply_to' => $ticket['requester_email']]
+                );
+            }
+        } catch (\Throwable $e) { /* ignore */ }
+
         $this->session->flash('success','Mensaje enviado.');
         $this->redirect('/portal/' . $tenant->slug . '/ticket/' . $params['token']);
     }

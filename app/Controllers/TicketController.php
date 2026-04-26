@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Helpers;
+use App\Core\Mailer;
 
 class TicketController extends Controller
 {
@@ -218,6 +219,7 @@ class TicketController extends Controller
         if ($body === '') { $this->back(); return; }
 
         $u = $this->auth->user();
+        $isInternal = (int)($this->input('is_internal',0) ? 1 : 0);
         $this->db->insert('ticket_comments', [
             'tenant_id' => $tenant->id,
             'ticket_id' => $id,
@@ -225,10 +227,32 @@ class TicketController extends Controller
             'author_name'  => $u['name'],
             'author_email' => $u['email'],
             'body'      => $body,
-            'is_internal' => (int)($this->input('is_internal',0) ? 1 : 0),
+            'is_internal' => $isInternal,
         ]);
         // Primer response_at si no existe
         $this->db->run("UPDATE tickets SET updated_at = NOW(), first_response_at = COALESCE(first_response_at, NOW()) WHERE id = ?", [$id]);
+
+        // Notificar al solicitante si la respuesta es pública
+        if (!$isInternal) {
+            try {
+                $tk = $this->db->one('SELECT code, subject, requester_name, requester_email, public_token FROM tickets WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+                if ($tk && filter_var($tk['requester_email'], FILTER_VALIDATE_EMAIL)) {
+                    $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+                    $publicUrl = $appUrl . '/portal/' . $tenant->slug . '/ticket/' . $tk['public_token'];
+                    $inner = '<p>Hola <strong>' . htmlspecialchars($tk['requester_name']) . '</strong>,</p>'
+                        . '<p><strong>' . htmlspecialchars($u['name']) . '</strong> ha respondido a tu ticket <strong>' . htmlspecialchars($tk['code']) . '</strong>:</p>'
+                        . '<blockquote style="border-left:3px solid #6366f1;padding:8px 14px;margin:14px 0;background:#f4f5f8;color:#3a3946;white-space:pre-wrap;">' . nl2br(htmlspecialchars($body)) . '</blockquote>';
+                    (new Mailer())->send(
+                        ['email' => $tk['requester_email'], 'name' => $tk['requester_name']],
+                        '[' . $tk['code'] . '] Nueva respuesta · ' . $tk['subject'],
+                        Mailer::template('Nueva respuesta en tu ticket', $inner, 'Ver respuesta', $publicUrl),
+                        null,
+                        ['reply_to' => $u['email']]
+                    );
+                }
+            } catch (\Throwable $e) { /* ignore */ }
+        }
+
         $this->session->flash('success','Comentario agregado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
     }

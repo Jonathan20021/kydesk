@@ -269,6 +269,7 @@ class Application
         // Settings
         $r->get('/admin/settings', ['App\Controllers\Admin\SettingsController', 'index']);
         $r->post('/admin/settings', ['App\Controllers\Admin\SettingsController', 'update']);
+        $r->post('/admin/settings/test-email', ['App\Controllers\Admin\SettingsController', 'testEmail']);
 
         // Support
         $r->get('/admin/support', ['App\Controllers\Admin\SupportController', 'index']);

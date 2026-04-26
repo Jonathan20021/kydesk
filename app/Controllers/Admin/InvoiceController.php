@@ -1,6 +1,8 @@
 <?php
 namespace App\Controllers\Admin;
 
+use App\Core\Mailer;
+
 class InvoiceController extends AdminController
 {
     public function index(): void
@@ -92,6 +94,30 @@ class InvoiceController extends AdminController
             'notes' => (string)$this->input('notes', ''),
         ]);
         $this->superAuth->log('invoice.create', 'invoice', $id, ['number' => $invoiceNumber, 'total' => $total]);
+
+        try {
+            $billingTo = trim((string)($tenant['billing_email'] ?: $tenant['support_email']));
+            if ($billingTo) {
+                $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+                $url = $appUrl . '/admin/invoices/' . $id;
+                $currency = (string)$this->input('currency', 'USD');
+                $inner = '<p>Hola <strong>' . htmlspecialchars($tenant['name']) . '</strong>,</p>'
+                    . '<p>Hemos generado tu factura <strong>' . htmlspecialchars($invoiceNumber) . '</strong>.</p>'
+                    . '<table width="100%" cellpadding="6" style="border-collapse:collapse;font-size:14px;">'
+                    . '<tr><td>Subtotal</td><td align="right">' . number_format($subtotal,2) . ' ' . $currency . '</td></tr>'
+                    . '<tr><td>Descuento</td><td align="right">-' . number_format($discount,2) . '</td></tr>'
+                    . '<tr><td>Impuesto (' . number_format($taxRate,2) . '%)</td><td align="right">' . number_format($taxAmount,2) . '</td></tr>'
+                    . '<tr style="border-top:2px solid #ececf0;font-weight:700;"><td>Total</td><td align="right">' . number_format($total,2) . ' ' . $currency . '</td></tr>'
+                    . '</table>'
+                    . '<p style="margin-top:18px;"><strong>Vencimiento:</strong> ' . htmlspecialchars($this->input('due_date') ?: date('Y-m-d', strtotime('+15 days'))) . '</p>';
+                (new Mailer())->send(
+                    $billingTo,
+                    'Factura ' . $invoiceNumber . ' · Kydesk Helpdesk',
+                    Mailer::template('Nueva factura disponible', $inner, 'Ver factura', $url)
+                );
+            }
+        } catch (\Throwable $e) { /* ignore */ }
+
         $this->session->flash('success', "Factura {$invoiceNumber} creada.");
         $this->redirect('/admin/invoices/' . $id);
     }
@@ -142,6 +168,22 @@ class InvoiceController extends AdminController
             'paid_at' => date('Y-m-d H:i:s'),
         ], 'id = :id', ['id' => $id]);
         $this->superAuth->log('invoice.paid', 'invoice', $id);
+
+        try {
+            $tenant = $this->db->one('SELECT name, support_email, billing_email FROM tenants WHERE id = ?', [$inv['tenant_id']]);
+            $billingTo = trim((string)($tenant['billing_email'] ?? $tenant['support_email'] ?? ''));
+            if ($billingTo) {
+                $inner = '<p>¡Pago recibido! Gracias por confiar en Kydesk Helpdesk.</p>'
+                    . '<p><strong>Factura:</strong> ' . htmlspecialchars($inv['invoice_number']) . '</p>'
+                    . '<p><strong>Monto:</strong> ' . number_format((float)$inv['total'], 2) . ' ' . htmlspecialchars($inv['currency']) . '</p>';
+                (new Mailer())->send(
+                    $billingTo,
+                    'Pago recibido · ' . $inv['invoice_number'],
+                    Mailer::template('Pago confirmado', $inner)
+                );
+            }
+        } catch (\Throwable $e) { /* ignore */ }
+
         $this->session->flash('success', 'Factura marcada como pagada.');
         $this->redirect('/admin/invoices/' . $id);
     }

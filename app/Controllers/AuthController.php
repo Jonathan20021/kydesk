@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Helpers;
 use App\Core\License;
+use App\Core\Mailer;
 
 class AuthController extends Controller
 {
@@ -156,6 +157,22 @@ class AuthController extends Controller
 
             $this->auth->login($userId);
             $trialDays = License::defaultTrialDays();
+
+            // Email de bienvenida (no bloquear si falla)
+            try {
+                $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+                $loginUrl = $appUrl . '/t/' . $orgSlug . '/dashboard';
+                $inner = '<p>Hola <strong>' . htmlspecialchars($name) . '</strong>,</p>'
+                    . '<p>¡Tu organización <strong>' . htmlspecialchars($orgName) . '</strong> ya está lista en Kydesk Helpdesk!</p>'
+                    . ($trialDays > 0 ? '<p>Tienes <strong>' . $trialDays . ' días</strong> de prueba para explorar todas las funciones.</p>' : '')
+                    . '<p>Próximos pasos sugeridos:</p>'
+                    . '<ul><li>Invita a tu equipo desde Usuarios</li><li>Crea tu primera categoría de tickets</li><li>Comparte el portal público con tus clientes</li></ul>';
+                (new Mailer())->send(
+                    ['email' => $email, 'name' => $name],
+                    'Bienvenido a Kydesk Helpdesk · ' . $orgName,
+                    Mailer::template('¡Bienvenido a Kydesk!', $inner, 'Ir al panel', $loginUrl)
+                );
+            } catch (\Throwable $e) { /* no bloquear registro */ }
             $msg = $trialDays > 0
                 ? "¡Organización creada! Tienes {$trialDays} días de prueba. Tu cuenta queda lista para que el equipo de Kydesk active tu licencia."
                 : '¡Organización creada con éxito! Contacta al equipo de Kydesk para activar tu licencia.';

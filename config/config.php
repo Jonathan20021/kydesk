@@ -63,4 +63,23 @@ return [
         'max_size' => 10 * 1024 * 1024,
         'allowed' => ['png','jpg','jpeg','gif','webp','pdf','doc','docx','xls','xlsx','txt','zip'],
     ],
+    'mail' => [
+        // 'resend' (default) o 'smtp'. Si el primario falla, intenta el otro.
+        'driver' => getenv('KYDESK_MAIL_DRIVER') ?: 'resend',
+        'from' => [
+            'email' => getenv('KYDESK_MAIL_FROM') ?: 'no-reply@kyrosrd.com',
+            'name'  => getenv('KYDESK_MAIL_FROM_NAME') ?: 'Kydesk Helpdesk',
+        ],
+        'reply_to' => getenv('KYDESK_MAIL_REPLY_TO') ?: 'jonathansandoval@kyrosrd.com',
+        'resend' => [
+            'api_key' => getenv('KYDESK_RESEND_KEY') ?: 're_UdsKH5CN_3QKk1NixfgQrCvaUfnUHufpt',
+        ],
+        'smtp' => [
+            'host'   => getenv('KYDESK_SMTP_HOST') ?: '',
+            'port'   => (int)(getenv('KYDESK_SMTP_PORT') ?: 587),
+            'user'   => getenv('KYDESK_SMTP_USER') ?: '',
+            'pass'   => getenv('KYDESK_SMTP_PASS') ?: '',
+            'secure' => getenv('KYDESK_SMTP_SECURE') ?: 'tls', // tls | ssl | ''
+        ],
+    ],
 ];
