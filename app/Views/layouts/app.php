@@ -23,6 +23,7 @@ $navOps = [
     ['Dashboard','layout-dashboard','/dashboard',null,'tickets'],
     ['Tickets','inbox','/tickets','tickets.view','tickets'],
     ['Tablero','kanban-square','/tickets/board','tickets.view','tickets'],
+    ['Categorías','tags','/categories','tickets.view','tickets'],
     ['Plantillas','zap','/macros','tickets.comment','tickets'],
     ['Tareas','check-square','/todos','todos.view','todos'],
     ['Notas','notebook-pen','/notes','notes.view','notes'],

@@ -103,6 +103,12 @@ class Application
         $r->post('/t/{slug}/tickets/{id}/move', ['App\Controllers\TicketController', 'move']);
         $r->post('/t/{slug}/tickets/{id}/delete', ['App\Controllers\TicketController', 'delete']);
 
+        // Categorías
+        $r->get('/t/{slug}/categories', ['App\Controllers\CategoryController', 'index']);
+        $r->post('/t/{slug}/categories', ['App\Controllers\CategoryController', 'store']);
+        $r->post('/t/{slug}/categories/{id}', ['App\Controllers\CategoryController', 'update']);
+        $r->post('/t/{slug}/categories/{id}/delete', ['App\Controllers\CategoryController', 'delete']);
+
         // Macros / Plantillas
         $r->get('/t/{slug}/macros', ['App\Controllers\MacroController', 'index']);
         $r->post('/t/{slug}/macros', ['App\Controllers\MacroController', 'store']);
@@ -163,6 +169,8 @@ class Application
 
         // Automations
         $r->get('/t/{slug}/automations', ['App\Controllers\AutomationController', 'index']);
+        $r->get('/t/{slug}/automations/create', ['App\Controllers\AutomationController', 'create']);
+        $r->post('/t/{slug}/automations', ['App\Controllers\AutomationController', 'store']);
         $r->post('/t/{slug}/automations/{id}/toggle', ['App\Controllers\AutomationController', 'toggle']);
         $r->post('/t/{slug}/automations/{id}/delete', ['App\Controllers\AutomationController', 'delete']);
 

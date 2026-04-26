@@ -6,6 +6,9 @@ $triggerLabels = ['ticket.created'=>'Ticket creado','ticket.updated'=>'Ticket ac
         <h1 class="font-display font-extrabold text-[28px] tracking-[-0.025em]">Automatizaciones</h1>
         <p class="text-[13px] text-ink-400">Reglas que ejecutan acciones sobre tus tickets</p>
     </div>
+    <?php if ($auth->can('automations.edit')): ?>
+        <a href="<?= $url('/t/' . $slug . '/automations/create') ?>" class="btn btn-primary"><i class="lucide lucide-plus"></i> Nueva automatización</a>
+    <?php endif; ?>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -56,6 +59,10 @@ $triggerLabels = ['ticket.created'=>'Ticket creado','ticket.updated'=>'Ticket ac
         <div class="card card-pad text-center py-16">
             <div class="w-14 h-14 rounded-2xl bg-[#f3f4f6] grid place-items-center mx-auto mb-3"><i class="lucide lucide-workflow text-[22px] text-ink-400"></i></div>
             <div class="font-display font-bold">Sin automatizaciones</div>
+            <p class="text-[13px] text-ink-400 mt-1.5 max-w-sm mx-auto">Crea reglas para auto-asignar, escalar o notificar según el contenido del ticket.</p>
+            <?php if ($auth->can('automations.edit')): ?>
+                <a href="<?= $url('/t/' . $slug . '/automations/create') ?>" class="btn btn-primary mt-4"><i class="lucide lucide-plus"></i> Crear primera automatización</a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>

@@ -10,6 +10,26 @@ class SlaController extends Controller
         $tenant = $this->requireTenant($params['slug']); $this->requireFeature('sla');
         $this->requireCan('sla.view');
         $policies = $this->db->all('SELECT * FROM sla_policies WHERE tenant_id=? ORDER BY FIELD(priority,"urgent","high","medium","low")', [$tenant->id]);
+
+        // Auto-seed políticas por defecto si están vacías
+        if (empty($policies)) {
+            $defaults = [
+                ['Urgente · Atención inmediata', 'urgent', 15,  240,  'Sistemas caídos o impacto severo en operaciones.'],
+                ['Alta · Respuesta prioritaria', 'high',   60,  480,  'Funcionalidad importante afectada para múltiples usuarios.'],
+                ['Media · Estándar',             'medium', 240, 1440, 'Tickets normales sin bloqueo grave.'],
+                ['Baja · Mejoras y consultas',   'low',    480, 2880, 'Solicitudes informativas o problemas menores.'],
+            ];
+            foreach ($defaults as [$n, $p, $rsp, $res, $d]) {
+                $this->db->insert('sla_policies', [
+                    'tenant_id' => $tenant->id,
+                    'name' => $n, 'priority' => $p,
+                    'response_minutes' => $rsp, 'resolve_minutes' => $res,
+                    'description' => $d, 'active' => 1,
+                ]);
+            }
+            $policies = $this->db->all('SELECT * FROM sla_policies WHERE tenant_id=? ORDER BY FIELD(priority,"urgent","high","medium","low")', [$tenant->id]);
+        }
+
         $compliance = (int)$this->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id=? AND status IN ('resolved','closed') AND sla_breached=0", [$tenant->id]);
         $breached = (int)$this->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id=? AND sla_breached=1", [$tenant->id]);
         $atRisk = (int)$this->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id=? AND status IN ('open','in_progress') AND sla_due_at IS NOT NULL AND TIMESTAMPDIFF(MINUTE, NOW(), sla_due_at) BETWEEN 0 AND 60", [$tenant->id]);
