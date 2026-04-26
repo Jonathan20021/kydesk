@@ -309,6 +309,16 @@ class Application
         $r->get('/admin/reports', ['App\Controllers\Admin\ReportController', 'index']);
         $r->get('/admin/audit', ['App\Controllers\Admin\ReportController', 'audit']);
 
+        // Changelog
+        $r->get('/admin/changelog', ['App\Controllers\Admin\ChangelogController', 'index']);
+        $r->get('/admin/changelog/create', ['App\Controllers\Admin\ChangelogController', 'create']);
+        $r->post('/admin/changelog', ['App\Controllers\Admin\ChangelogController', 'store']);
+        $r->get('/admin/changelog/{id}', ['App\Controllers\Admin\ChangelogController', 'edit']);
+        $r->post('/admin/changelog/{id}', ['App\Controllers\Admin\ChangelogController', 'update']);
+        $r->post('/admin/changelog/{id}/delete', ['App\Controllers\Admin\ChangelogController', 'delete']);
+        $r->post('/admin/changelog/{id}/feature', ['App\Controllers\Admin\ChangelogController', 'feature']);
+        $r->post('/admin/changelog/{id}/publish', ['App\Controllers\Admin\ChangelogController', 'togglePublish']);
+
         // Settings
         $r->get('/admin/settings', ['App\Controllers\Admin\SettingsController', 'index']);
         $r->post('/admin/settings', ['App\Controllers\Admin\SettingsController', 'update']);

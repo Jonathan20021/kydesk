@@ -232,9 +232,21 @@ class LandingController extends Controller
                 "SELECT * FROM plans WHERE is_active = 1 AND is_public = 1 ORDER BY sort_order ASC, price_monthly ASC"
             );
         } catch (\Throwable $e) { /* tabla no existe en setups antiguos */ }
+
+        $featured = null;
+        try {
+            $featured = $this->db->one(
+                "SELECT id, version, title, hero_pill_label
+                 FROM changelog_entries
+                 WHERE is_featured = 1 AND is_published = 1
+                 ORDER BY published_at DESC LIMIT 1"
+            );
+        } catch (\Throwable $e) { /* tabla no existe en setups antiguos */ }
+
         $this->render('landing/index', [
             'title' => 'Kydesk Helpdesk — El helpdesk que tu equipo merece',
             'plans' => $plans,
+            'featuredChangelog' => $featured,
         ], 'public');
     }
 
@@ -301,7 +313,27 @@ class LandingController extends Controller
 
     public function changelog(): void
     {
-        $this->render('landing/changelog', ['title' => 'Changelog · Novedades'], 'public');
+        $entries = [];
+        try {
+            $rows = $this->db->all(
+                "SELECT id, version, title, summary, release_type, published_at
+                 FROM changelog_entries
+                 WHERE is_published = 1
+                 ORDER BY published_at DESC, id DESC LIMIT 50"
+            );
+            foreach ($rows as $r) {
+                $items = $this->db->all(
+                    "SELECT item_type, text FROM changelog_items WHERE entry_id = ? ORDER BY sort_order ASC, id ASC",
+                    [$r['id']]
+                );
+                $r['items'] = $items;
+                $entries[] = $r;
+            }
+        } catch (\Throwable $e) { /* tabla no existe */ }
+        $this->render('landing/changelog', [
+            'title' => 'Changelog · Novedades',
+            'entries' => $entries,
+        ], 'public');
     }
 
     public function privacy(): void

@@ -23,6 +23,9 @@ $nav = [
         ['Facturas','file-text','/invoices','invoices.view'],
         ['Pagos','wallet','/payments','payments.view'],
     ],
+    'Marketing' => [
+        ['Changelog','newspaper','/changelog','settings.view'],
+    ],
     'Sistema' => [
         ['Reportes','bar-chart-3','/reports','reports.view'],
         ['Auditoría','history','/audit','reports.view'],

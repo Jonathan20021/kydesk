@@ -12,13 +12,18 @@
 
     <div class="max-w-[1240px] mx-auto px-6 relative">
         <div class="max-w-3xl mx-auto text-center reveal-stagger" data-reveal>
-            <div class="inline-flex justify-center">
-                <div class="aura-pill">
+            <?php
+            $pillText = !empty($featuredChangelog)
+                ? ($featuredChangelog['hero_pill_label'] ?: $featuredChangelog['title'])
+                : 'Tablero Kanban + Automatizaciones IA';
+            ?>
+            <a href="<?= $url('/changelog') ?>" class="inline-flex justify-center">
+                <div class="aura-pill hover:shadow-md transition cursor-pointer">
                     <span class="aura-pill-tag"><i class="lucide lucide-sparkles"></i> NUEVO</span>
-                    <span class="text-ink-700 font-medium">Tablero Kanban + Automatizaciones IA</span>
+                    <span class="text-ink-700 font-medium"><?= $e($pillText) ?></span>
                     <i class="lucide lucide-arrow-right text-[12px] text-ink-400"></i>
                 </div>
-            </div>
+            </a>
 
             <h1 class="display-xl mt-8" style="text-wrap:balance">
                 El helpdesk para equipos<br>
