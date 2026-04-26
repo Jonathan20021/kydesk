@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <?= $content ?>
 
+<?php if (!empty($showPoweredFooter)): ?>
 <footer class="border-t border-[#ececef] bg-white mt-16">
     <div class="max-w-[1100px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12.5px]">
         <a href="https://kydesk.kyrosrd.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition">
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 </footer>
+<?php endif; ?>
 
 <script src="<?= $asset('js/app.js') ?>"></script>
 </body>

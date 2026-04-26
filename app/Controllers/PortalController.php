@@ -23,7 +23,7 @@ class PortalController extends Controller
     public function index(array $params): void
     {
         $tenant = $this->resolveTenant($params['slug']);
-        $this->render('portal/index', ['title' => 'Portal de soporte · ' . $tenant->name, 'tenant' => $tenant], 'public');
+        $this->render('portal/index', ['title' => 'Portal de soporte · ' . $tenant->name, 'tenant' => $tenant, 'showPoweredFooter' => true], 'public');
     }
 
     public function create(array $params): void
@@ -35,7 +35,7 @@ class PortalController extends Controller
         if ($companyId > 0) {
             $company = $this->db->one('SELECT id, name, industry FROM companies WHERE id=? AND tenant_id=?', [$companyId, $tenant->id]);
         }
-        $this->render('portal/create', ['title' => 'Crear ticket · ' . $tenant->name, 'tenant' => $tenant, 'categories' => $categories, 'company' => $company], 'public');
+        $this->render('portal/create', ['title' => 'Crear ticket · ' . $tenant->name, 'tenant' => $tenant, 'categories' => $categories, 'company' => $company, 'showPoweredFooter' => true], 'public');
     }
 
     public function store(array $params): void
@@ -145,6 +145,7 @@ class PortalController extends Controller
             'tenant' => $tenant,
             'ticket' => $ticket,
             'comments' => $comments,
+            'showPoweredFooter' => true,
         ], 'public');
     }
 
@@ -162,7 +163,7 @@ class PortalController extends Controller
             $args
         );
         $cats = $this->db->all('SELECT * FROM kb_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
-        $this->render('portal/kb', ['title'=>'Centro de ayuda','tenant'=>$tenant,'articles'=>$articles,'cats'=>$cats,'q'=>$q], 'public');
+        $this->render('portal/kb', ['title'=>'Centro de ayuda','tenant'=>$tenant,'articles'=>$articles,'cats'=>$cats,'q'=>$q,'showPoweredFooter'=>true], 'public');
     }
 
     public function article(array $params): void
@@ -176,7 +177,7 @@ class PortalController extends Controller
         );
         if (!$art) { http_response_code(404); echo $this->view->render('errors/404', ['message'=>'Artículo no encontrado'], 'public'); exit; }
         $this->db->run('UPDATE kb_articles SET views=views+1 WHERE id=?', [$art['id']]);
-        $this->render('portal/article', ['title'=>$art['title'],'tenant'=>$tenant,'art'=>$art], 'public');
+        $this->render('portal/article', ['title'=>$art['title'],'tenant'=>$tenant,'art'=>$art,'showPoweredFooter'=>true], 'public');
     }
 
     public function reply(array $params): void
