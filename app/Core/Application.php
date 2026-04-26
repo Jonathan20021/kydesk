@@ -205,6 +205,11 @@ class Application
         $r->post('/t/{slug}/api-docs/tokens', ['App\Controllers\HelpController', 'tokenCreate']);
         $r->post('/t/{slug}/api-docs/tokens/{id}/revoke', ['App\Controllers\HelpController', 'tokenRevoke']);
 
+        // Billing del tenant (cliente helpdesk)
+        $r->get('/t/{slug}/billing', ['App\Controllers\BillingController', 'index']);
+        $r->get('/t/{slug}/billing/payment-info', ['App\Controllers\BillingController', 'paymentInfo']);
+        $r->post('/t/{slug}/billing/payment-proof', ['App\Controllers\BillingController', 'uploadProof']);
+
         // Soporte directo (tenant → super admin)
         $r->get('/t/{slug}/support', ['App\Controllers\SupportController', 'index']);
         $r->post('/t/{slug}/support', ['App\Controllers\SupportController', 'store']);
@@ -421,6 +426,15 @@ class Application
         $r->get('/admin/dev-settings', ['App\Controllers\Admin\DevSettingsController', 'index']);
         $r->post('/admin/dev-settings', ['App\Controllers\Admin\DevSettingsController', 'update']);
 
+        // Payment proofs review + bank settings
+        $r->get('/admin/payment-proofs', ['App\Controllers\Admin\PaymentProofController', 'index']);
+        $r->get('/admin/payment-proofs/{id}', ['App\Controllers\Admin\PaymentProofController', 'show']);
+        $r->get('/admin/payment-proofs/{id}/file', ['App\Controllers\Admin\PaymentProofController', 'downloadFile']);
+        $r->post('/admin/payment-proofs/{id}/approve', ['App\Controllers\Admin\PaymentProofController', 'approve']);
+        $r->post('/admin/payment-proofs/{id}/reject', ['App\Controllers\Admin\PaymentProofController', 'reject']);
+        $r->get('/admin/bank-settings', ['App\Controllers\Admin\PaymentProofController', 'bankSettings']);
+        $r->post('/admin/bank-settings', ['App\Controllers\Admin\PaymentProofController', 'updateBankSettings']);
+
         // Dev audit logs
         $r->get('/admin/dev-audit', ['App\Controllers\Admin\DevAuditController', 'index']);
         $r->get('/admin/dev-audit/requests', ['App\Controllers\Admin\DevAuditController', 'requestLog']);
@@ -498,6 +512,8 @@ class Application
         $r->post('/developers/billing/subscribe/{id}', ['App\Controllers\Developer\BillingController', 'subscribe']);
         $r->post('/developers/billing/cancel', ['App\Controllers\Developer\BillingController', 'cancel']);
         $r->get('/developers/billing/invoices/{id}', ['App\Controllers\Developer\BillingController', 'invoiceShow']);
+        $r->get('/developers/billing/payment-info', ['App\Controllers\Developer\PaymentProofController', 'paymentInfo']);
+        $r->post('/developers/billing/payment-proof', ['App\Controllers\Developer\PaymentProofController', 'uploadProof']);
 
         // Usage
         $r->get('/developers/usage', ['App\Controllers\Developer\UsageController', 'index']);

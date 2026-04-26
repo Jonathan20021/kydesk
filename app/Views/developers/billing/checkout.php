@@ -43,9 +43,23 @@
             </ul>
         </div>
 
-        <?php if ((float)$plan['price_monthly'] > 0): ?>
-            <div class="text-[12px] text-slate-400 leading-relaxed">
-                Al confirmar generaremos una factura pendiente. Un super admin verifica el pago manualmente. Cancela cuando quieras desde tu panel.
+        <?php if ((float)$plan['price_monthly'] > 0):
+            $bank = \App\Core\BankInfo::all();
+        ?>
+            <div class="dev-feature !p-4" style="background:rgba(14,165,233,.05); border-color:rgba(56,189,248,.20)">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="lucide lucide-landmark text-sky-300 text-[15px]"></i>
+                    <strong class="text-white text-[13.5px]">Pago manual con depósito bancario</strong>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-2 text-[12px]">
+                    <div><span class="text-slate-500">Banco:</span> <strong class="text-slate-200"><?= $e($bank['bank_name']) ?></strong></div>
+                    <div><span class="text-slate-500">Cuenta:</span> <code class="text-slate-200 font-mono"><?= $e($bank['bank_account_number']) ?></code></div>
+                    <div><span class="text-slate-500">Tipo:</span> <strong class="text-slate-200"><?= $e($bank['bank_account_type']) ?></strong></div>
+                    <div><span class="text-slate-500">Cédula:</span> <code class="text-slate-200 font-mono"><?= $e($bank['bank_id_number']) ?></code></div>
+                </div>
+                <div class="text-[11.5px] text-slate-400 mt-3 leading-[1.5]">
+                    Al confirmar, se genera una factura pendiente. Realiza el depósito y <a href="<?= $url('/developers/billing/payment-info') ?>" class="dev-link">sube el comprobante</a> — o envíalo a <code class="text-slate-300"><?= $e($bank['billing_approval_email']) ?></code>. Verificamos en 24-48h.
+                </div>
             </div>
         <?php endif; ?>
 

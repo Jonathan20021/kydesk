@@ -165,4 +165,56 @@ class DevMailer
                . '<p>Si no fuiste tú, <strong>revoca el token inmediatamente</strong> desde tu panel y cambia tu contraseña.</p>';
         return self::send($to, "Nuevo token API · $portal", $inner, 'Ver tokens', $url);
     }
+
+    /**
+     * Notifica al admin de billing (jonathansandoval@kyrosrd.com por default)
+     * cuando un cliente o developer sube un comprobante de pago.
+     * Adjunta el archivo del comprobante si existe.
+     */
+    public static function paymentProofSubmitted(int $proofId, string $submitterName, string $submitterEmail, string $context, float $amount, string $currency, ?string $reference, ?string $filePath, ?string $fileMime, ?string $reviewUrl): array
+    {
+        $approverEmail = (string)BankInfo::get('billing_approval_email', 'jonathansandoval@kyrosrd.com');
+        $amountStr = '$' . number_format($amount, 2) . ' ' . $currency;
+        $inner = '<p>Has recibido un <strong>nuevo comprobante de pago</strong> que requiere validación:</p>'
+               . '<ul style="line-height:1.8;">'
+               . '<li>Tipo: <strong>' . htmlspecialchars($context) . '</strong></li>'
+               . '<li>Enviado por: <strong>' . htmlspecialchars($submitterName) . '</strong> (<a href="mailto:' . htmlspecialchars($submitterEmail) . '">' . htmlspecialchars($submitterEmail) . '</a>)</li>'
+               . '<li>Monto reportado: <strong>' . $amountStr . '</strong></li>'
+               . ($reference ? '<li>Referencia bancaria: <code>' . htmlspecialchars($reference) . '</code></li>' : '')
+               . '<li>Proof ID: <code>#' . $proofId . '</code></li>'
+               . '</ul>'
+               . '<p>Verifica el depósito en tu cuenta de Banco Popular y aprueba o rechaza desde el panel super admin.</p>';
+
+        $opts = [];
+        if ($filePath && is_file($filePath)) {
+            $opts['attachments'] = [[
+                'path' => $filePath,
+                'name' => basename($filePath),
+                'mime' => $fileMime ?: 'application/octet-stream',
+            ]];
+        }
+
+        return self::send($approverEmail, "🧾 Comprobante de pago recibido · #$proofId", $inner, $reviewUrl ? 'Revisar comprobante' : null, $reviewUrl, $opts);
+    }
+
+    public static function paymentProofApproved(string $to, string $name, float $amount, string $currency, string $context, ?string $url = null): array
+    {
+        $portal = self::portalName();
+        $url = $url ?: self::url('/developers/billing');
+        $inner = '<p>Hola <strong>' . htmlspecialchars($name) . '</strong>,</p>'
+               . '<p>Hemos <strong>aprobado tu comprobante</strong> de pago por <strong>$' . number_format($amount, 2) . ' ' . $currency . '</strong> para <em>' . htmlspecialchars($context) . '</em>.</p>'
+               . '<p>Tu factura ha sido marcada como pagada. ¡Gracias!</p>';
+        return self::send($to, "✓ Comprobante aprobado · $portal", $inner, 'Ver mi cuenta', $url);
+    }
+
+    public static function paymentProofRejected(string $to, string $name, string $reason, string $context, ?string $url = null): array
+    {
+        $portal = self::portalName();
+        $url = $url ?: self::url('/developers/billing');
+        $inner = '<p>Hola <strong>' . htmlspecialchars($name) . '</strong>,</p>'
+               . '<p>Tu comprobante de pago para <em>' . htmlspecialchars($context) . '</em> <strong>no pudo ser validado</strong>.</p>'
+               . '<p><strong>Motivo:</strong> ' . htmlspecialchars($reason) . '</p>'
+               . '<p>Puedes subir un nuevo comprobante desde el panel o contactarnos si necesitas ayuda.</p>';
+        return self::send($to, "✗ Comprobante rechazado · $portal", $inner, 'Subir nuevo comprobante', $url);
+    }
 }

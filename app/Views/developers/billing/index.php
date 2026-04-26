@@ -1,3 +1,16 @@
+<?php if (!empty($invoices) && in_array(($invoices[0]['status'] ?? ''), ['pending','overdue','partial'], true)): ?>
+<div class="dev-card dev-card-pad" style="border-color:rgba(245,158,11,.30); background:rgba(245,158,11,.04)">
+    <div class="flex items-center gap-3">
+        <i class="lucide lucide-landmark text-amber-300"></i>
+        <div class="flex-1">
+            <div class="font-display font-bold text-white text-[14px]">¿Necesitas pagar una factura?</div>
+            <p class="text-[12.5px] text-slate-300 mt-0.5">Realiza un depósito bancario y sube el comprobante. Verificamos en 24-48h.</p>
+        </div>
+        <a href="<?= $url('/developers/billing/payment-info') ?>" class="dev-btn dev-btn-primary"><i class="lucide lucide-landmark text-[13px]"></i> Cómo pagar</a>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="grid sm:grid-cols-3 gap-4">
     <div class="dev-stat">
         <div class="dev-stat-label">Plan actual</div>

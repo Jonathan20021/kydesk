@@ -22,6 +22,8 @@ $nav = [
         ['Suscripciones','repeat','/subscriptions','subscriptions.view'],
         ['Facturas','file-text','/invoices','invoices.view'],
         ['Pagos','wallet','/payments','payments.view'],
+        ['Comprobantes','receipt','/payment-proofs','invoices.view'],
+        ['Datos bancarios','landmark','/bank-settings','settings.view'],
     ],
     'Developers' => [
         ['Developers','code','/developers','developers.view'],

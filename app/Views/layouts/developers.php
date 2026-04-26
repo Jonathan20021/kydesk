@@ -25,6 +25,7 @@ $nav = [
     'Cuenta' => [
         ['Facturación','wallet','/billing'],
         ['Planes','tag','/billing/plans'],
+        ['Cómo pagar','landmark','/billing/payment-info'],
         ['Perfil','user','/profile'],
     ],
 ];

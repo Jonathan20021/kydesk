@@ -119,6 +119,21 @@ class Mailer
         if (!empty($opts['cc']))  $payload['cc']  = (array)$opts['cc'];
         if (!empty($opts['bcc'])) $payload['bcc'] = (array)$opts['bcc'];
         if (!empty($opts['tags']) && is_array($opts['tags'])) $payload['tags'] = $opts['tags'];
+        // Attachments (path-based, encoded inline as base64 for Resend)
+        if (!empty($opts['attachments']) && is_array($opts['attachments'])) {
+            $atts = [];
+            foreach ($opts['attachments'] as $a) {
+                $path = $a['path'] ?? null;
+                if (!$path || !is_file($path)) continue;
+                $data = @file_get_contents($path);
+                if ($data === false) continue;
+                $atts[] = [
+                    'filename' => $a['name'] ?? basename($path),
+                    'content' => base64_encode($data),
+                ];
+            }
+            if ($atts) $payload['attachments'] = $atts;
+        }
 
         $ch = curl_init('https://api.resend.com/emails');
         curl_setopt_array($ch, [

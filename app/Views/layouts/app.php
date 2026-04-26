@@ -40,6 +40,7 @@ $navAdmin = [
     ['Auditoría','history','/audit','audit.view','audit'],
     ['Usuarios','users','/users','users.view','users'],
     ['Roles','shield','/roles','roles.view','roles'],
+    ['Facturación','wallet','/billing',null,'tickets'],
 ];
 
 $openTickets = (int)$app->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id=? AND status IN ('open','in_progress')", [$tenant->id ?? 0]);
