@@ -34,10 +34,10 @@
 
     <div class="admin-table-wrap">
         <table class="admin-table">
-            <thead><tr><th>Fecha</th><th>Developer</th><th>Factura</th><th>Método</th><th>Monto</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Developer</th><th>Factura</th><th>Método</th><th>Monto</th><th>Origen</th><th>Estado</th></tr></thead>
             <tbody>
                 <?php if (empty($payments)): ?>
-                    <tr><td colspan="6" class="text-center py-10 text-ink-400">Sin pagos.</td></tr>
+                    <tr><td colspan="7" class="text-center py-10 text-ink-400">Sin pagos.</td></tr>
                 <?php else: foreach ($payments as $p): ?>
                     <tr>
                         <td class="text-[12.5px]"><?= $e($p['paid_at'] ?? $p['created_at']) ?></td>
@@ -54,6 +54,18 @@
                         </td>
                         <td class="text-[12.5px]"><?= $e($p['method']) ?></td>
                         <td class="font-display font-bold">$<?= number_format((float)$p['amount'], 2) ?></td>
+                        <td>
+                            <?php if (!empty($p['payment_proof_id'])): ?>
+                                <a href="<?= $url('/admin/payment-proofs/' . (int)$p['payment_proof_id']) ?>" class="admin-pill admin-pill-purple inline-flex items-center gap-1 hover:opacity-80" title="Ver comprobante asociado">
+                                    <i class="lucide lucide-receipt text-[10px]"></i> Comprobante #<?= (int)$p['payment_proof_id'] ?>
+                                </a>
+                                <?php if (!empty($p['proof_bank'])): ?>
+                                    <div class="text-[10.5px] text-ink-400 mt-1"><?= $e($p['proof_bank']) ?> · <?= $e($p['proof_transfer_date'] ?? '—') ?></div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="admin-pill admin-pill-gray text-[10px]">Manual</span>
+                            <?php endif; ?>
+                        </td>
                         <td><span class="admin-pill <?= $p['status']==='completed'?'admin-pill-green':'admin-pill-amber' ?>"><?= $e($p['status']) ?></span></td>
                     </tr>
                 <?php endforeach; endif; ?>

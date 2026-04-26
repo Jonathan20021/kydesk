@@ -72,6 +72,27 @@ $fileUrl = $proof['file_path'] ? $url('/admin/payment-proofs/' . $proof['id'] . 
             <?php endif; ?>
         </div>
         <?php endif; ?>
+
+        <?php if (!empty($registeredPayment)): ?>
+        <div class="admin-card-pad" style="border:1px solid #a7f3d0; border-radius:14px; background:linear-gradient(135deg,#ecfdf5,#f0fdf4)">
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="w-11 h-11 rounded-xl grid place-items-center flex-shrink-0" style="background:#d1fae5; color:#047857"><i class="lucide lucide-check-circle-2 text-[18px]"></i></div>
+                <div class="flex-1 min-w-[200px]">
+                    <div class="text-[11px] uppercase font-bold tracking-[0.14em] mb-0.5" style="color:#047857">✓ Pago registrado · #<?= (int)$registeredPayment['id'] ?></div>
+                    <div class="font-display font-bold text-[16px]" style="color:#064e3b">
+                        $<?= number_format((float)$registeredPayment['amount'], 2) ?> <?= $e($registeredPayment['currency']) ?>
+                        <span class="text-[12.5px] font-normal" style="color:#065f46">· <?= $e(substr((string)$registeredPayment['paid_at'], 0, 16)) ?></span>
+                    </div>
+                    <?php if (!empty($registeredPayment['reference'])): ?>
+                        <div class="text-[12px] font-mono mt-0.5" style="color:#065f46">Ref: <?= $e($registeredPayment['reference']) ?></div>
+                    <?php endif; ?>
+                </div>
+                <a href="<?= $url($registeredPayment['_url']) ?>" class="admin-btn" style="background:#047857; color:white; box-shadow:0 4px 10px -2px rgba(4,120,87,.3)">
+                    <i class="lucide lucide-external-link text-[13px]"></i> Ver en <?= $registeredPayment['_url'] === '/admin/payments' ? '/admin/payments' : '/admin/dev-payments' ?>
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Sidebar acciones -->

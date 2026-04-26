@@ -68,10 +68,22 @@ class PaymentProofController extends AdminController
             [$id]
         );
         if (!$proof) $this->redirect('/admin/payment-proofs');
+
+        // Cargar el pago registrado (si ya fue aprobado)
+        $registeredPayment = null;
+        if (!empty($proof['payment_id'])) {
+            $registeredPayment = $this->db->one('SELECT id, amount, currency, paid_at, reference FROM payments WHERE id=?', [(int)$proof['payment_id']]);
+            if ($registeredPayment) $registeredPayment['_url'] = '/admin/payments';
+        } elseif (!empty($proof['dev_payment_id'])) {
+            $registeredPayment = $this->db->one('SELECT id, amount, currency, paid_at, reference FROM dev_payments WHERE id=?', [(int)$proof['dev_payment_id']]);
+            if ($registeredPayment) $registeredPayment['_url'] = '/admin/dev-payments';
+        }
+
         $this->render('admin/payment_proofs/show', [
             'title' => 'Comprobante #' . $id,
             'pageHeading' => 'Comprobante #' . $id,
             'proof' => $proof,
+            'registeredPayment' => $registeredPayment,
         ]);
     }
 
@@ -95,57 +107,74 @@ class PaymentProofController extends AdminController
             'review_notes' => $notes ?: null,
         ], 'id=?', [$id]);
 
-        // Si está atado a una factura, registrar pago + marcar pagada
+        // Registrar SIEMPRE el pago en payments / dev_payments (aunque no haya factura asociada).
+        // Guarda trazabilidad bidireccional con payment_proof_id.
         $context = '';
-        if ($proof['proof_type'] === 'developer' && $proof['dev_invoice_id']) {
-            $invId = (int)$proof['dev_invoice_id'];
-            $inv = $this->db->one('SELECT * FROM dev_invoices WHERE id=?', [$invId]);
-            if ($inv) {
-                $this->db->insert('dev_payments', [
-                    'developer_id' => (int)$proof['developer_id'],
-                    'invoice_id' => $invId,
-                    'amount' => $proof['amount'],
-                    'currency' => $proof['currency'],
-                    'method' => 'transfer',
-                    'reference' => $proof['reference'],
-                    'status' => 'completed',
-                    'created_by' => $this->superAuth->id(),
-                    'paid_at' => date('Y-m-d H:i:s'),
-                    'notes' => "Auto-registrado desde comprobante #$id",
-                ]);
-                $totalPaid = (float)$inv['amount_paid'] + (float)$proof['amount'];
-                $newStatus = $totalPaid >= (float)$inv['total'] - 0.01 ? 'paid' : 'partial';
-                $this->db->update('dev_invoices', [
-                    'amount_paid' => $totalPaid,
-                    'status' => $newStatus,
-                    'paid_at' => $newStatus === 'paid' ? date('Y-m-d H:i:s') : null,
-                ], 'id=?', [$invId]);
-                $context = 'factura ' . $inv['invoice_number'];
+        $registeredPaymentId = null;
+
+        if ($proof['proof_type'] === 'developer') {
+            $invId = (int)($proof['dev_invoice_id'] ?? 0) ?: null;
+            $registeredPaymentId = $this->db->insert('dev_payments', [
+                'developer_id' => (int)$proof['developer_id'],
+                'invoice_id' => $invId,
+                'payment_proof_id' => $id,
+                'amount' => $proof['amount'],
+                'currency' => $proof['currency'],
+                'method' => 'transfer',
+                'reference' => $proof['reference'],
+                'status' => 'completed',
+                'created_by' => $this->superAuth->id(),
+                'paid_at' => date('Y-m-d H:i:s'),
+                'notes' => "Auto-registrado desde comprobante #$id" . ($proof['bank_used'] ? " · banco emisor: " . $proof['bank_used'] : ''),
+            ]);
+            $this->db->update('payment_proofs', ['dev_payment_id' => $registeredPaymentId], 'id=?', [$id]);
+
+            if ($invId) {
+                $inv = $this->db->one('SELECT * FROM dev_invoices WHERE id=?', [$invId]);
+                if ($inv) {
+                    $totalPaid = (float)$inv['amount_paid'] + (float)$proof['amount'];
+                    $newStatus = $totalPaid >= (float)$inv['total'] - 0.01 ? 'paid' : 'partial';
+                    $this->db->update('dev_invoices', [
+                        'amount_paid' => $totalPaid,
+                        'status' => $newStatus,
+                        'paid_at' => $newStatus === 'paid' ? date('Y-m-d H:i:s') : null,
+                    ], 'id=?', [$invId]);
+                    $context = 'factura ' . $inv['invoice_number'];
+                }
+            } else {
+                $context = 'depósito directo (developer)';
             }
-        } elseif ($proof['proof_type'] === 'tenant' && $proof['invoice_id']) {
-            $invId = (int)$proof['invoice_id'];
-            $inv = $this->db->one('SELECT * FROM invoices WHERE id=?', [$invId]);
-            if ($inv) {
-                $this->db->insert('payments', [
-                    'tenant_id' => (int)$proof['tenant_id'],
-                    'invoice_id' => $invId,
-                    'amount' => $proof['amount'],
-                    'currency' => $proof['currency'],
-                    'method' => 'transfer',
-                    'reference' => $proof['reference'],
-                    'status' => 'completed',
-                    'created_by' => $this->superAuth->id(),
-                    'paid_at' => date('Y-m-d H:i:s'),
-                    'notes' => "Auto-registrado desde comprobante #$id",
-                ]);
-                $totalPaid = (float)$inv['amount_paid'] + (float)$proof['amount'];
-                $newStatus = $totalPaid >= (float)$inv['total'] - 0.01 ? 'paid' : 'partial';
-                $this->db->update('invoices', [
-                    'amount_paid' => $totalPaid,
-                    'status' => $newStatus,
-                    'paid_at' => $newStatus === 'paid' ? date('Y-m-d H:i:s') : null,
-                ], 'id=?', [$invId]);
-                $context = 'factura ' . $inv['invoice_number'];
+        } elseif ($proof['proof_type'] === 'tenant') {
+            $invId = (int)($proof['invoice_id'] ?? 0) ?: null;
+            $registeredPaymentId = $this->db->insert('payments', [
+                'tenant_id' => (int)$proof['tenant_id'],
+                'invoice_id' => $invId,
+                'payment_proof_id' => $id,
+                'amount' => $proof['amount'],
+                'currency' => $proof['currency'],
+                'method' => 'transfer',
+                'reference' => $proof['reference'],
+                'status' => 'completed',
+                'created_by' => $this->superAuth->id(),
+                'paid_at' => date('Y-m-d H:i:s'),
+                'notes' => "Auto-registrado desde comprobante #$id" . ($proof['bank_used'] ? " · banco emisor: " . $proof['bank_used'] : ''),
+            ]);
+            $this->db->update('payment_proofs', ['payment_id' => $registeredPaymentId], 'id=?', [$id]);
+
+            if ($invId) {
+                $inv = $this->db->one('SELECT * FROM invoices WHERE id=?', [$invId]);
+                if ($inv) {
+                    $totalPaid = (float)$inv['amount_paid'] + (float)$proof['amount'];
+                    $newStatus = $totalPaid >= (float)$inv['total'] - 0.01 ? 'paid' : 'partial';
+                    $this->db->update('invoices', [
+                        'amount_paid' => $totalPaid,
+                        'status' => $newStatus,
+                        'paid_at' => $newStatus === 'paid' ? date('Y-m-d H:i:s') : null,
+                    ], 'id=?', [$invId]);
+                    $context = 'factura ' . $inv['invoice_number'];
+                }
+            } else {
+                $context = 'depósito directo';
             }
         }
 

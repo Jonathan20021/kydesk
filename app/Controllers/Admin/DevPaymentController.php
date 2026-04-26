@@ -7,10 +7,13 @@ class DevPaymentController extends AdminController
     {
         $this->requireSuperAuth();
         $rows = $this->db->all(
-            "SELECT p.*, d.name AS dev_name, d.email AS dev_email, i.invoice_number
+            "SELECT p.*, d.name AS dev_name, d.email AS dev_email, i.invoice_number,
+                    pp.id AS proof_id, pp.bank_used AS proof_bank, pp.transfer_date AS proof_transfer_date,
+                    pp.file_path AS proof_file_path
              FROM dev_payments p
              JOIN developers d ON d.id = p.developer_id
              LEFT JOIN dev_invoices i ON i.id = p.invoice_id
+             LEFT JOIN payment_proofs pp ON pp.id = p.payment_proof_id
              ORDER BY p.id DESC LIMIT 200"
         );
         $totalCompleted = (float)$this->db->val("SELECT IFNULL(SUM(amount),0) FROM dev_payments WHERE status='completed'");

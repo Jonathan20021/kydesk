@@ -7,10 +7,13 @@ class PaymentController extends AdminController
     {
         $this->requireCan('payments.view');
         $payments = $this->db->all(
-            "SELECT p.*, t.name AS tenant_name, t.slug AS tenant_slug, i.invoice_number
+            "SELECT p.*, t.name AS tenant_name, t.slug AS tenant_slug, i.invoice_number,
+                    pp.id AS proof_id, pp.bank_used AS proof_bank, pp.transfer_date AS proof_transfer_date,
+                    pp.file_path AS proof_file_path, pp.submitter_name AS proof_submitter
              FROM payments p
              JOIN tenants t ON t.id = p.tenant_id
              LEFT JOIN invoices i ON i.id = p.invoice_id
+             LEFT JOIN payment_proofs pp ON pp.id = p.payment_proof_id
              ORDER BY p.paid_at DESC, p.created_at DESC LIMIT 200"
         );
         $stats = [
