@@ -82,20 +82,37 @@ class ApiController
     public function me(): void
     {
         $this->authenticate('read');
-        $this->json([
-            'tenant' => [
+        $type = $this->ctx['type'] ?? 'tenant';
+        $payload = [
+            'type' => $type,
+            'tenant' => $this->ctx['tenant'] ? [
                 'id' => $this->ctx['tenant']->id,
                 'slug' => $this->ctx['tenant']->slug,
                 'name' => $this->ctx['tenant']->name,
-            ],
-            'user' => $this->ctx['user'],
+            ] : null,
+            'user' => $this->ctx['user'] ?? null,
             'token' => [
                 'name' => $this->ctx['token']['name'],
                 'preview' => $this->ctx['token']['token_preview'],
                 'scopes' => explode(',', $this->ctx['token']['scopes']),
                 'last_used_at' => $this->ctx['token']['last_used_at'],
             ],
-        ]);
+        ];
+        if ($type === 'developer') {
+            $payload['developer'] = [
+                'id' => $this->ctx['developer']['id'],
+                'name' => $this->ctx['developer']['name'],
+                'email' => $this->ctx['developer']['email'],
+                'company' => $this->ctx['developer']['company'] ?? null,
+            ];
+            $payload['app'] = [
+                'id' => $this->ctx['app']['id'],
+                'name' => $this->ctx['app']['name'],
+                'slug' => $this->ctx['app']['slug'],
+                'environment' => $this->ctx['app']['environment'],
+            ];
+        }
+        $this->json($payload);
     }
 
     // ==================== TICKETS ====================

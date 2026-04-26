@@ -10,6 +10,7 @@ class Application
     public Session $session;
     public Auth $auth;
     public SuperAuth $superAuth;
+    public DevAuth $devAuth;
     public ?Tenant $tenant = null;
 
     public function __construct(array $config)
@@ -23,6 +24,7 @@ class Application
         $this->db = new Database($config['db']);
         $this->auth = new Auth($this->db, $this->session);
         $this->superAuth = new SuperAuth($this->db, $this->session);
+        $this->devAuth = new DevAuth($this->db, $this->session);
         $this->router = new Router();
 
         $this->registerRoutes();
@@ -327,5 +329,91 @@ class Application
         // Support
         $r->get('/admin/support', ['App\Controllers\Admin\SupportController', 'index']);
         $r->post('/admin/support/{id}', ['App\Controllers\Admin\SupportController', 'update']);
+
+        // ─────────── SUPER ADMIN: Developer management ───────────
+        // Developers
+        $r->get('/admin/developers', ['App\Controllers\Admin\DeveloperController', 'index']);
+        $r->get('/admin/developers/create', ['App\Controllers\Admin\DeveloperController', 'create']);
+        $r->post('/admin/developers', ['App\Controllers\Admin\DeveloperController', 'store']);
+        $r->get('/admin/developers/{id}', ['App\Controllers\Admin\DeveloperController', 'show']);
+        $r->post('/admin/developers/{id}', ['App\Controllers\Admin\DeveloperController', 'update']);
+        $r->post('/admin/developers/{id}/suspend', ['App\Controllers\Admin\DeveloperController', 'suspend']);
+        $r->post('/admin/developers/{id}/activate', ['App\Controllers\Admin\DeveloperController', 'activate']);
+        $r->post('/admin/developers/{id}/delete', ['App\Controllers\Admin\DeveloperController', 'delete']);
+        $r->post('/admin/developers/{id}/plan', ['App\Controllers\Admin\DeveloperController', 'changePlan']);
+
+        // Developer Plans
+        $r->get('/admin/dev-plans', ['App\Controllers\Admin\DevPlanController', 'index']);
+        $r->get('/admin/dev-plans/create', ['App\Controllers\Admin\DevPlanController', 'create']);
+        $r->post('/admin/dev-plans', ['App\Controllers\Admin\DevPlanController', 'store']);
+        $r->get('/admin/dev-plans/{id}', ['App\Controllers\Admin\DevPlanController', 'edit']);
+        $r->post('/admin/dev-plans/{id}', ['App\Controllers\Admin\DevPlanController', 'update']);
+        $r->post('/admin/dev-plans/{id}/toggle', ['App\Controllers\Admin\DevPlanController', 'toggle']);
+        $r->post('/admin/dev-plans/{id}/delete', ['App\Controllers\Admin\DevPlanController', 'delete']);
+
+        // Developer Subscriptions
+        $r->get('/admin/dev-subscriptions', ['App\Controllers\Admin\DevSubscriptionController', 'index']);
+        $r->post('/admin/dev-subscriptions/{id}', ['App\Controllers\Admin\DevSubscriptionController', 'update']);
+        $r->post('/admin/dev-subscriptions/{id}/cancel', ['App\Controllers\Admin\DevSubscriptionController', 'cancel']);
+
+        // Developer Apps
+        $r->get('/admin/dev-apps', ['App\Controllers\Admin\DevAppController', 'index']);
+        $r->post('/admin/dev-apps/{id}/suspend', ['App\Controllers\Admin\DevAppController', 'suspend']);
+        $r->post('/admin/dev-apps/{id}/activate', ['App\Controllers\Admin\DevAppController', 'activate']);
+        $r->post('/admin/dev-apps/{id}/delete', ['App\Controllers\Admin\DevAppController', 'delete']);
+
+        // Developer Invoices
+        $r->get('/admin/dev-invoices', ['App\Controllers\Admin\DevInvoiceController', 'index']);
+        $r->get('/admin/dev-invoices/create', ['App\Controllers\Admin\DevInvoiceController', 'create']);
+        $r->post('/admin/dev-invoices', ['App\Controllers\Admin\DevInvoiceController', 'store']);
+        $r->get('/admin/dev-invoices/{id}', ['App\Controllers\Admin\DevInvoiceController', 'show']);
+        $r->post('/admin/dev-invoices/{id}/pay', ['App\Controllers\Admin\DevInvoiceController', 'markPaid']);
+        $r->post('/admin/dev-invoices/{id}/delete', ['App\Controllers\Admin\DevInvoiceController', 'delete']);
+
+        // Developer Payments
+        $r->get('/admin/dev-payments', ['App\Controllers\Admin\DevPaymentController', 'index']);
+        $r->post('/admin/dev-payments', ['App\Controllers\Admin\DevPaymentController', 'store']);
+
+        // ─────────── PORTAL DE DEVELOPERS (público + autenticado) ───────────
+        // Landing pública
+        $r->get('/developers', ['App\Controllers\Developer\LandingController', 'index']);
+        $r->get('/developers/pricing', ['App\Controllers\Developer\LandingController', 'pricing']);
+        $r->get('/developers/docs', ['App\Controllers\Developer\LandingController', 'docs']);
+
+        // Auth
+        $r->get('/developers/login', ['App\Controllers\Developer\AuthController', 'showLogin']);
+        $r->post('/developers/login', ['App\Controllers\Developer\AuthController', 'login']);
+        $r->get('/developers/register', ['App\Controllers\Developer\AuthController', 'showRegister']);
+        $r->post('/developers/register', ['App\Controllers\Developer\AuthController', 'register']);
+        $r->post('/developers/logout', ['App\Controllers\Developer\AuthController', 'logout']);
+        $r->get('/developers/logout', ['App\Controllers\Developer\AuthController', 'logout']);
+
+        // Dashboard
+        $r->get('/developers/dashboard', ['App\Controllers\Developer\DashboardController', 'index']);
+
+        // Apps
+        $r->get('/developers/apps', ['App\Controllers\Developer\AppsController', 'index']);
+        $r->get('/developers/apps/create', ['App\Controllers\Developer\AppsController', 'create']);
+        $r->post('/developers/apps', ['App\Controllers\Developer\AppsController', 'store']);
+        $r->get('/developers/apps/{id}', ['App\Controllers\Developer\AppsController', 'show']);
+        $r->post('/developers/apps/{id}/update', ['App\Controllers\Developer\AppsController', 'update']);
+        $r->post('/developers/apps/{id}/delete', ['App\Controllers\Developer\AppsController', 'delete']);
+        $r->post('/developers/apps/{id}/tokens', ['App\Controllers\Developer\AppsController', 'tokenCreate']);
+        $r->post('/developers/apps/{id}/tokens/{tokenId}/revoke', ['App\Controllers\Developer\AppsController', 'tokenRevoke']);
+
+        // Billing
+        $r->get('/developers/billing', ['App\Controllers\Developer\BillingController', 'index']);
+        $r->get('/developers/billing/plans', ['App\Controllers\Developer\BillingController', 'plans']);
+        $r->get('/developers/billing/checkout/{id}', ['App\Controllers\Developer\BillingController', 'checkout']);
+        $r->post('/developers/billing/subscribe/{id}', ['App\Controllers\Developer\BillingController', 'subscribe']);
+        $r->post('/developers/billing/cancel', ['App\Controllers\Developer\BillingController', 'cancel']);
+        $r->get('/developers/billing/invoices/{id}', ['App\Controllers\Developer\BillingController', 'invoiceShow']);
+
+        // Usage
+        $r->get('/developers/usage', ['App\Controllers\Developer\UsageController', 'index']);
+
+        // Profile
+        $r->get('/developers/profile', ['App\Controllers\Developer\ProfileController', 'index']);
+        $r->post('/developers/profile', ['App\Controllers\Developer\ProfileController', 'update']);
     }
 }

@@ -23,6 +23,14 @@ $nav = [
         ['Facturas','file-text','/invoices','invoices.view'],
         ['Pagos','wallet','/payments','payments.view'],
     ],
+    'Developers' => [
+        ['Developers','code','/developers','developers.view'],
+        ['Apps','boxes','/dev-apps','dev_apps.view'],
+        ['Planes Dev','sparkles','/dev-plans','dev_plans.view'],
+        ['Suscripciones Dev','repeat','/dev-subscriptions','dev_subscriptions.view'],
+        ['Facturas Dev','file-text','/dev-invoices','dev_invoices.view'],
+        ['Pagos Dev','wallet','/dev-payments','dev_payments.view'],
+    ],
     'Marketing' => [
         ['Changelog','newspaper','/changelog','settings.view'],
     ],

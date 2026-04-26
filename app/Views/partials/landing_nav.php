@@ -8,7 +8,7 @@
             <div class="hidden lg:flex items-center gap-0.5 text-[13px] font-medium text-ink-500 ml-4">
                 <a href="<?= $url('/features') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Producto</a>
                 <a href="<?= $url('/pricing') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Precios</a>
-                <a href="<?= $url('/#api') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">API</a>
+                <a href="<?= $url('/developers') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition flex items-center gap-1"><i class="lucide lucide-code text-[12px]"></i> Developers</a>
                 <a href="<?= $url('/#customers') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Clientes</a>
                 <a href="<?= $url('/#testimonials') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Testimonios</a>
                 <a href="<?= $url('/contact') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Contacto</a>

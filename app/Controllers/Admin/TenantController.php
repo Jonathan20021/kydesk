@@ -15,7 +15,7 @@ class TenantController extends AdminController
         $status = (string)$this->input('status', '');
         $plan = (string)$this->input('plan', '');
 
-        $where = ['1=1'];
+        $where = ['1=1', 'IFNULL(t.is_developer_sandbox,0) = 0'];
         $params = [];
         if ($q !== '') {
             $where[] = '(t.name LIKE ? OR t.slug LIKE ? OR t.support_email LIKE ?)';
@@ -41,9 +41,9 @@ class TenantController extends AdminController
             $params
         );
 
-        $totalActive = (int)$this->db->val("SELECT COUNT(*) FROM tenants WHERE is_active=1 AND suspended_at IS NULL");
-        $totalSuspended = (int)$this->db->val("SELECT COUNT(*) FROM tenants WHERE suspended_at IS NOT NULL OR is_active=0");
-        $totalDemo = (int)$this->db->val("SELECT COUNT(*) FROM tenants WHERE is_demo = 1");
+        $totalActive = (int)$this->db->val("SELECT COUNT(*) FROM tenants WHERE is_active=1 AND suspended_at IS NULL AND IFNULL(is_developer_sandbox,0)=0");
+        $totalSuspended = (int)$this->db->val("SELECT COUNT(*) FROM tenants WHERE (suspended_at IS NOT NULL OR is_active=0) AND IFNULL(is_developer_sandbox,0)=0");
+        $totalDemo = (int)$this->db->val("SELECT COUNT(*) FROM tenants WHERE is_demo = 1 AND IFNULL(is_developer_sandbox,0)=0");
 
         $this->render('admin/tenants/index', [
             'title' => 'Empresas',

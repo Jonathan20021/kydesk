@@ -88,12 +88,20 @@ class SuperAuth
                 'settings.*' => true,
                 'support.*' => true,
                 'super_admins.view' => true,
+                'developers.*' => true,
+                'dev_plans.*' => true,
+                'dev_subscriptions.*' => true,
+                'dev_apps.*' => true,
+                'dev_invoices.*' => true,
+                'dev_payments.*' => true,
             ],
             'support' => [
                 'tenants.view' => true, 'tenants.edit' => true,
                 'users.view' => true, 'users.edit' => true,
                 'support.*' => true,
                 'reports.view' => true,
+                'developers.view' => true,
+                'dev_apps.view' => true,
             ],
             'billing' => [
                 'tenants.view' => true,
@@ -102,6 +110,11 @@ class SuperAuth
                 'invoices.*' => true,
                 'payments.*' => true,
                 'reports.view' => true,
+                'developers.view' => true,
+                'dev_plans.*' => true,
+                'dev_subscriptions.*' => true,
+                'dev_invoices.*' => true,
+                'dev_payments.*' => true,
             ],
         ];
         $perms = $matrix[$role] ?? [];
