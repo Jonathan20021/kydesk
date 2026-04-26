@@ -23,7 +23,7 @@ class HelpController extends Controller
         );
 
         $newToken = $this->session->get('new_api_token');
-        if ($newToken) $this->session->set('new_api_token', null);
+        if ($newToken) $this->session->put('new_api_token', null);
 
         $this->render('help/api', [
             'title' => 'Documentación API',
@@ -56,7 +56,7 @@ class HelpController extends Controller
             'scopes' => implode(',', $scopesArr),
         ]);
 
-        $this->session->set('new_api_token', $gen['token']);
+        $this->session->put('new_api_token', $gen['token']);
         $this->session->flash('success', 'Token creado. Cópialo ahora — no se mostrará de nuevo.');
         $this->redirect('/t/' . $tenant->slug . '/api-docs');
     }

@@ -20,35 +20,35 @@
             'minor' => ['#7c5cff','#f3f0ff','MINOR'],
             'patch' => ['#22c55e','#dcfce7','PATCH'],
         ];
-        foreach ($entries as $e):
-            [$tCol, $tBg, $tLbl] = $tagColors[$e['release_type']] ?? $tagColors['minor']; ?>
+        foreach ($entries as $en):
+            [$tCol, $tBg, $tLbl] = $tagColors[$en['release_type']] ?? $tagColors['minor']; ?>
             <div class="admin-card admin-card-pad flex flex-wrap items-center gap-4">
                 <div class="w-11 h-11 rounded-xl grid place-items-center shrink-0" style="background:<?= $tBg ?>;color:<?= $tCol ?>;border:1px solid <?= $tCol ?>30">
                     <i class="lucide lucide-sparkles text-[16px]"></i>
                 </div>
                 <div class="flex-1 min-w-[220px]">
                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span class="font-mono text-[12px] font-bold"><?= $e($e['version']) ?></span>
+                        <span class="font-mono text-[12px] font-bold"><?= $e($en['version']) ?></span>
                         <span class="text-[10px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 rounded-full" style="background:<?= $tBg ?>;color:<?= $tCol ?>"><?= $tLbl ?></span>
-                        <?php if ((int)$e['is_featured']): ?><span class="text-[10px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><i class="lucide lucide-star text-[10px]"></i> DESTACADA</span><?php endif; ?>
-                        <?php if (!(int)$e['is_published']): ?><span class="text-[10px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">BORRADOR</span><?php endif; ?>
+                        <?php if ((int)$en['is_featured']): ?><span class="text-[10px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><i class="lucide lucide-star text-[10px]"></i> DESTACADA</span><?php endif; ?>
+                        <?php if (!(int)$en['is_published']): ?><span class="text-[10px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">BORRADOR</span><?php endif; ?>
                     </div>
-                    <div class="font-display font-bold text-[14.5px]"><?= $e($e['title']) ?></div>
-                    <div class="text-[11.5px] text-slate-500 mt-0.5"><?= date('d/m/Y', strtotime($e['published_at'])) ?> · <?= (int)$e['items_count'] ?> cambios</div>
+                    <div class="font-display font-bold text-[14.5px]"><?= $e($en['title']) ?></div>
+                    <div class="text-[11.5px] text-slate-500 mt-0.5"><?= date('d/m/Y', strtotime($en['published_at'])) ?> · <?= (int)$en['items_count'] ?> cambios</div>
                 </div>
                 <div class="flex items-center gap-2 ml-auto flex-wrap">
-                    <?php if (!(int)$e['is_featured']): ?>
-                        <form method="POST" action="<?= $url('/admin/changelog/' . $e['id'] . '/feature') ?>">
+                    <?php if (!(int)$en['is_featured']): ?>
+                        <form method="POST" action="<?= $url('/admin/changelog/' . $en['id'] . '/feature') ?>">
                             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                             <button class="admin-btn admin-btn-secondary admin-btn-sm" title="Destacar en hero"><i class="lucide lucide-star text-[13px]"></i></button>
                         </form>
                     <?php endif; ?>
-                    <form method="POST" action="<?= $url('/admin/changelog/' . $e['id'] . '/publish') ?>">
+                    <form method="POST" action="<?= $url('/admin/changelog/' . $en['id'] . '/publish') ?>">
                         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                        <button class="admin-btn admin-btn-secondary admin-btn-sm" title="<?= (int)$e['is_published']?'Despublicar':'Publicar' ?>"><i class="lucide lucide-<?= (int)$e['is_published']?'eye-off':'eye' ?> text-[13px]"></i></button>
+                        <button class="admin-btn admin-btn-secondary admin-btn-sm" title="<?= (int)$en['is_published']?'Despublicar':'Publicar' ?>"><i class="lucide lucide-<?= (int)$en['is_published']?'eye-off':'eye' ?> text-[13px]"></i></button>
                     </form>
-                    <a href="<?= $url('/admin/changelog/' . $e['id']) ?>" class="admin-btn admin-btn-secondary admin-btn-sm"><i class="lucide lucide-pencil text-[13px]"></i> Editar</a>
-                    <form method="POST" action="<?= $url('/admin/changelog/' . $e['id'] . '/delete') ?>" onsubmit="return confirm('¿Eliminar esta entrada?')">
+                    <a href="<?= $url('/admin/changelog/' . $en['id']) ?>" class="admin-btn admin-btn-secondary admin-btn-sm"><i class="lucide lucide-pencil text-[13px]"></i> Editar</a>
+                    <form method="POST" action="<?= $url('/admin/changelog/' . $en['id'] . '/delete') ?>" onsubmit="return confirm('¿Eliminar esta entrada?')">
                         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                         <button class="admin-btn admin-btn-sm" style="color:#dc2626;border:1px solid #fecaca;background:#fef2f2"><i class="lucide lucide-trash-2 text-[13px]"></i></button>
                     </form>
