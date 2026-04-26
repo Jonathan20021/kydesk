@@ -3,7 +3,7 @@ use App\Core\Helpers;
 use App\Core\Plan;
 use App\Core\Prefs;
 use App\Core\License;
-try { Prefs::ensureSchema($app->db); } catch (\Throwable $e) {}
+try { Prefs::ensureSchema($app->db); } catch (\Throwable $_layoutErr) {}
 $user = $auth->user();
 $prefs = Prefs::get($user);
 $tenant = $app->tenant;
@@ -52,7 +52,7 @@ $demoCreds = $app->session->get('demo_credentials');
 
 $license = null;
 if (!$isDemo) {
-    try { $license = License::status($tenant); } catch (\Throwable $e) { $license = null; }
+    try { $license = License::status($tenant); } catch (\Throwable $_licErr) { $license = null; }
 }
 $showLicenseBanner = $license && $license['is_usable'] && in_array($license['state'], ['trial','past_due'], true);
 ?><!DOCTYPE html>

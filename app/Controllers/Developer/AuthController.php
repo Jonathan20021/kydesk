@@ -35,9 +35,13 @@ class AuthController extends DeveloperController
             $this->session->flash('error', 'El registro de developers está deshabilitado.');
             $this->redirect('/developers/login');
         }
+        $plans = [];
+        try {
+            $plans = $this->db->all("SELECT * FROM dev_plans WHERE is_active=1 AND is_public=1 ORDER BY sort_order ASC, price_monthly ASC");
+        } catch (\Throwable $_e) {}
         echo $this->view->render('developers/auth/register', [
             'title' => 'Crear cuenta · Developers',
-            'plans' => $this->db->all("SELECT * FROM dev_plans WHERE is_active=1 AND is_public=1 ORDER BY sort_order ASC, price_monthly ASC"),
+            'plans' => $plans,
         ], 'developers_auth');
     }
 
@@ -120,7 +124,11 @@ class AuthController extends DeveloperController
 
     protected function setting(string $key, ?string $default = null): ?string
     {
-        $row = $this->db->one('SELECT `value` FROM saas_settings WHERE `key` = ?', [$key]);
-        return $row['value'] ?? $default;
+        try {
+            $row = $this->db->one('SELECT `value` FROM saas_settings WHERE `key` = ?', [$key]);
+            return $row['value'] ?? $default;
+        } catch (\Throwable $_e) {
+            return $default;
+        }
     }
 }

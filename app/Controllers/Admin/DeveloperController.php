@@ -122,6 +122,11 @@ class DeveloperController extends AdminController
             [$id]
         );
         $plans = $this->db->all('SELECT * FROM dev_plans WHERE is_active=1 ORDER BY sort_order ASC');
+        $effective = \App\Core\DevAuth::effectiveLimits($this->db, $id);
+        $recentRequests = $this->db->all(
+            'SELECT method, path, status_code, duration_ms, ip, created_at FROM dev_api_request_log WHERE developer_id=? ORDER BY id DESC LIMIT 25',
+            [$id]
+        );
 
         $this->render('admin/developers/show', [
             'title' => $d['name'],
@@ -135,6 +140,8 @@ class DeveloperController extends AdminController
             'usage' => $usage,
             'monthRequests' => $monthRequests,
             'plans' => $plans,
+            'effective' => $effective,
+            'recentRequests' => $recentRequests,
         ]);
     }
 
@@ -155,6 +162,7 @@ class DeveloperController extends AdminController
             'is_active' => (int)($this->input('is_active') ? 1 : 0),
             'is_verified' => (int)($this->input('is_verified') ? 1 : 0),
             'notes' => (string)$this->input('notes', ''),
+            'quota_alerts_enabled' => (int)($this->input('quota_alerts_enabled') ? 1 : 0),
         ];
         $newPass = (string)$this->input('password', '');
         if ($newPass !== '') {
@@ -163,6 +171,31 @@ class DeveloperController extends AdminController
         $this->db->update('developers', $data, 'id=?', [$id]);
         $this->superAuth->log('developer.update', 'developer', $id);
         $this->session->flash('success', 'Developer actualizado.');
+        $this->redirect('/admin/developers/' . $id);
+    }
+
+    public function overrides(array $params): void
+    {
+        $this->requireSuperAuth();
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $d = $this->db->one('SELECT id FROM developers WHERE id=?', [$id]);
+        if (!$d) $this->redirect('/admin/developers');
+
+        $val = function ($k) {
+            $v = $this->input($k, '');
+            return $v === '' ? null : (int)$v;
+        };
+
+        $this->db->update('developers', [
+            'custom_max_apps' => $val('custom_max_apps'),
+            'custom_max_requests_month' => $val('custom_max_requests_month'),
+            'custom_max_tokens_per_app' => $val('custom_max_tokens_per_app'),
+            'custom_rate_limit_per_min' => $val('custom_rate_limit_per_min'),
+        ], 'id=?', [$id]);
+
+        $this->superAuth->log('developer.overrides', 'developer', $id);
+        $this->session->flash('success', 'Overrides de cuota guardados.');
         $this->redirect('/admin/developers/' . $id);
     }
 

@@ -34,12 +34,38 @@ class ApiController
         $this->json(['error' => ['message' => $message, 'type' => $type ?? 'request_error', 'status' => $code]], $code);
     }
 
+    protected float $reqStart = 0.0;
+
     protected function authenticate(string $needScope = 'read'): void
     {
+        $this->reqStart = microtime(true);
         $ctx = ApiAuth::authenticate($this->db);
         if (!$ctx) $this->error('Token API inválido o ausente. Envía Authorization: Bearer {token}', 401, 'unauthorized');
-        if (!ApiAuth::requireScope($ctx, $needScope)) $this->error("Token sin scope '$needScope'", 403, 'forbidden');
+
+        // Plan/quota enforcement for developer tokens
+        if (($ctx['type'] ?? null) === 'developer') {
+            $deny = ApiAuth::enforcePolicies($ctx, $this->db);
+            if ($deny) {
+                ApiAuth::logRequest($ctx, $deny['status'] ?? 403, (int)((microtime(true) - $this->reqStart) * 1000), $this->db);
+                $this->error($deny['message'], $deny['status'] ?? 403, $deny['code'] ?? 'forbidden');
+            }
+        }
+
+        if (!ApiAuth::requireScope($ctx, $needScope)) {
+            if (($ctx['type'] ?? null) === 'developer') {
+                ApiAuth::logRequest($ctx, 403, (int)((microtime(true) - $this->reqStart) * 1000), $this->db);
+            }
+            $this->error("Token sin scope '$needScope'", 403, 'forbidden');
+        }
         $this->ctx = $ctx;
+
+        // Successful auth → log request now (final status defaults to 200; the json/error helpers don't override)
+        if (($ctx['type'] ?? null) === 'developer') {
+            register_shutdown_function(function () use ($ctx) {
+                $code = http_response_code() ?: 200;
+                ApiAuth::logRequest($ctx, (int)$code, (int)((microtime(true) - $this->reqStart) * 1000), $this->db);
+            });
+        }
     }
 
     protected function body(): array

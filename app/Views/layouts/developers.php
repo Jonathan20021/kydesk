@@ -143,21 +143,54 @@ window.renderIcons = devRenderIcons;
         <?php endforeach; ?>
 
         <div class="mt-auto pt-4 border-t" style="border-color:rgba(56,189,248,.10)">
+            <?php
+            $usage = $devAuth->usageStats();
+            $monthReq = (int)($usage['month_requests'] ?? 0);
+            $minReq = (int)($usage['last_minute_requests'] ?? 0);
+            $quota = $plan ? (int)$plan['max_requests_month'] : 0;
+            $rate = $plan ? (int)$plan['rate_limit_per_min'] : 0;
+            $pctMonth = $quota > 0 ? min(100, round(($monthReq / $quota) * 100)) : 0;
+            $pctMin = $rate > 0 ? min(100, round(($minReq / $rate) * 100)) : 0;
+            $pctColor = $pctMonth >= 95 ? '#f87171' : ($pctMonth >= 80 ? '#fbbf24' : '#0ea5e9');
+            ?>
             <?php if ($plan): ?>
-                <a href="<?= $url('/developers/billing/plans') ?>" class="block p-3 rounded-xl border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/10 transition mb-2">
+                <a href="<?= $url('/developers/billing/plans') ?>" class="block p-3 rounded-xl border hover:border-sky-400/40 transition mb-2 group" style="border-color:rgba(56,189,248,.20); background:linear-gradient(180deg, rgba(14,165,233,.07), rgba(14,165,233,.02))">
                     <div class="flex items-center justify-between gap-2 mb-1">
-                        <div class="text-[10.5px] font-bold uppercase tracking-[0.14em] text-sky-300">Plan actual</div>
-                        <i class="lucide lucide-chevron-right text-sky-300 text-[14px]"></i>
+                        <div class="text-[9.5px] font-bold uppercase tracking-[0.16em] text-sky-300">Plan actual</div>
+                        <i class="lucide lucide-arrow-up-right text-sky-300/60 text-[12px] group-hover:text-sky-300 transition"></i>
                     </div>
-                    <div class="font-display font-bold text-[14px] text-white"><?= $e($plan['name']) ?></div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">
-                        <?= number_format((int)$plan['max_requests_month']) ?> req/mes · <?= (int)$plan['max_apps'] ?> apps
+                    <div class="font-display font-bold text-[14px] text-white"><?= $e($plan['name']) ?> <?php if (!empty($plan['has_custom_overrides'])): ?><span class="dev-pill dev-pill-amber !text-[9px] !py-0.5 ml-1">custom</span><?php endif; ?></div>
+                    <?php if ($quota > 0): ?>
+                    <div class="mt-2">
+                        <div class="flex items-center justify-between text-[10px] mb-1">
+                            <span class="text-slate-400">Cuota mensual</span>
+                            <span class="text-white font-mono"><?= $pctMonth ?>%</span>
+                        </div>
+                        <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(15,23,42,.5)">
+                            <div class="h-full transition-all" style="width:<?= $pctMonth ?>%; background:<?= $pctColor ?>"></div>
+                        </div>
+                        <div class="text-[10px] text-slate-500 mt-1"><?= number_format($monthReq) ?> / <?= number_format($quota) ?></div>
                     </div>
+                    <?php endif; ?>
+                    <?php if ($rate > 0): ?>
+                    <div class="mt-2">
+                        <div class="flex items-center justify-between text-[10px] mb-1">
+                            <span class="text-slate-400">Rate limit (1m)</span>
+                            <span class="text-white font-mono"><?= $minReq ?>/<?= $rate ?></span>
+                        </div>
+                        <div class="h-1 rounded-full overflow-hidden" style="background:rgba(15,23,42,.5)">
+                            <div class="h-full transition-all" style="width:<?= $pctMin ?>%; background:<?= $pctMin >= 80 ? '#fbbf24' : '#6366f1' ?>"></div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </a>
             <?php else: ?>
-                <a href="<?= $url('/developers/billing/plans') ?>" class="block p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition mb-2">
-                    <div class="text-[10.5px] font-bold uppercase tracking-[0.14em] text-amber-300 mb-1">Sin plan</div>
-                    <div class="text-[12.5px] text-slate-300">Suscríbete a un plan API</div>
+                <a href="<?= $url('/developers/billing/plans') ?>" class="block p-3 rounded-xl border hover:border-amber-400/40 transition mb-2" style="border-color:rgba(245,158,11,.20); background:rgba(245,158,11,.05)">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i class="lucide lucide-alert-circle text-amber-300 text-[14px]"></i>
+                        <div class="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300">Sin plan</div>
+                    </div>
+                    <div class="text-[12.5px] text-slate-200">Suscríbete para usar la API</div>
                 </a>
             <?php endif; ?>
 
@@ -167,6 +200,7 @@ window.renderIcons = devRenderIcons;
                     <div class="font-display font-bold text-[12.5px] text-white truncate"><?= $e($d['name']) ?></div>
                     <div class="text-[10.5px] text-slate-400 truncate"><?= $e($d['email']) ?></div>
                 </div>
+                <a href="<?= $url('/developers/profile') ?>" class="text-slate-400 hover:text-sky-300 p-1.5" title="Perfil"><i class="lucide lucide-user text-[13px]"></i></a>
                 <form method="POST" action="<?= $url('/developers/logout') ?>">
                     <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                     <button type="submit" class="text-slate-400 hover:text-red-300 p-1.5" title="Salir"><i class="lucide lucide-log-out text-[14px]"></i></button>
@@ -178,10 +212,16 @@ window.renderIcons = devRenderIcons;
     <main class="dev-main">
         <div class="dev-topbar">
             <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1.5">
+                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                     <span class="dev-pill dev-pill-sky"><i class="lucide lucide-code text-[10px]"></i> Developer</span>
                     <?php if ($d && empty($d['is_verified'])): ?>
-                        <span class="dev-pill dev-pill-amber">Cuenta no verificada</span>
+                        <span class="dev-pill dev-pill-amber"><i class="lucide lucide-mail-warning text-[10px]"></i> Cuenta no verificada</span>
+                    <?php endif; ?>
+                    <?php if ($sub && $sub['status'] === 'trial'): ?>
+                        <span class="dev-pill dev-pill-amber"><i class="lucide lucide-hourglass text-[10px]"></i> Trial<?php if (!empty($sub['trial_ends_at'])): ?> · termina <?= date('d M', strtotime($sub['trial_ends_at'])) ?><?php endif; ?></span>
+                    <?php endif; ?>
+                    <?php if ($sub && $sub['status'] === 'past_due'): ?>
+                        <span class="dev-pill dev-pill-red"><i class="lucide lucide-alert-circle text-[10px]"></i> Pago pendiente</span>
                     <?php endif; ?>
                 </div>
                 <h1><?= $e($pageHeading ?? $title ?? 'Panel') ?></h1>

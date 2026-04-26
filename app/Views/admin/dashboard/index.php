@@ -51,6 +51,82 @@
     </div>
 </div>
 
+<!-- Developer Portal panel -->
+<?php if (!empty($devStats)): ?>
+<div class="admin-card">
+    <div class="admin-card-head">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl grid place-items-center text-white" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)"><i class="lucide lucide-code-2 text-[15px]"></i></div>
+            <div>
+                <h2 class="admin-h2">Developer Portal</h2>
+                <div class="text-[11.5px]" style="color:var(--ink-400)">Métricas en tiempo real del portal de developers</div>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="<?= $url('/admin/developers') ?>" class="admin-btn admin-btn-soft"><i class="lucide lucide-users text-[13px]"></i> Developers</a>
+            <a href="<?= $url('/admin/dev-settings') ?>" class="admin-btn admin-btn-soft"><i class="lucide lucide-settings-2 text-[13px]"></i> Ajustes</a>
+        </div>
+    </div>
+    <div class="admin-card-pad grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div>
+            <div class="admin-stat-label">Developers</div>
+            <div class="admin-stat-value text-[22px]"><?= number_format($devStats['developers_total']) ?></div>
+            <div class="text-[11px]" style="color:var(--ink-400)"><?= $devStats['developers_active'] ?> activos</div>
+        </div>
+        <div>
+            <div class="admin-stat-label">Apps</div>
+            <div class="admin-stat-value text-[22px]"><?= number_format($devStats['apps_total']) ?></div>
+            <div class="text-[11px]" style="color:var(--ink-400)"><?= $devStats['apps_active'] ?> activas</div>
+        </div>
+        <div>
+            <div class="admin-stat-label">Tokens</div>
+            <div class="admin-stat-value text-[22px]"><?= number_format($devStats['tokens_active']) ?></div>
+            <div class="text-[11px]" style="color:var(--ink-400)">activos</div>
+        </div>
+        <div>
+            <div class="admin-stat-label">Requests MTD</div>
+            <div class="admin-stat-value text-[22px]"><?= number_format($devStats['mtd_requests']) ?></div>
+            <div class="text-[11px]" style="color:var(--ink-400)"><?= number_format($devStats['mtd_errors']) ?> errores</div>
+        </div>
+        <div>
+            <div class="admin-stat-label">MRR Dev</div>
+            <div class="admin-stat-value text-[22px]">$<?= number_format($devStats['dev_mrr'], 0) ?></div>
+            <div class="text-[11px]" style="color:var(--ink-400)"><?= $devStats['subs_active'] ?> suscripciones</div>
+        </div>
+        <div>
+            <div class="admin-stat-label">Pagado MTD</div>
+            <div class="admin-stat-value text-[22px]">$<?= number_format($devStats['mtd_revenue'], 0) ?></div>
+            <div class="text-[11px]" style="color:var(--ink-400)"><?= $devStats['unpaid_invoices'] ?> facturas pendientes</div>
+        </div>
+    </div>
+    <?php if (!empty($topDevelopers)): ?>
+    <div class="border-t" style="border-color:var(--border)">
+        <div class="admin-card-pad">
+            <h3 class="text-[12px] uppercase font-bold tracking-wider mb-2" style="color:var(--ink-400)">Top developers por uso este mes</h3>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead><tr><th>Developer</th><th>Plan</th><th>Requests/mes</th><th></th></tr></thead>
+                    <tbody>
+                        <?php foreach ($topDevelopers as $d): ?>
+                            <tr>
+                                <td>
+                                    <a href="<?= $url('/admin/developers/' . $d['id']) ?>" class="font-display font-bold hover:text-brand-700"><?= $e($d['name']) ?></a>
+                                    <div class="text-[11px]" style="color:var(--ink-400)"><?= $e($d['email']) ?> <?= $d['company'] ? '· ' . $e($d['company']) : '' ?></div>
+                                </td>
+                                <td><?= $d['plan_name'] ? '<span class="admin-pill admin-pill-purple">' . $e($d['plan_name']) . '</span>' : '<span style="color:var(--ink-400)">—</span>' ?></td>
+                                <td class="font-display font-bold"><?= number_format((int)$d['month_requests']) ?></td>
+                                <td><a href="<?= $url('/admin/developers/' . $d['id']) ?>" class="admin-btn admin-btn-soft admin-btn-icon"><i class="lucide lucide-arrow-right text-[13px]"></i></a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
 <!-- Charts row -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="admin-card admin-card-pad">

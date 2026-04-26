@@ -341,6 +341,19 @@ class Application
         $r->post('/admin/developers/{id}/activate', ['App\Controllers\Admin\DeveloperController', 'activate']);
         $r->post('/admin/developers/{id}/delete', ['App\Controllers\Admin\DeveloperController', 'delete']);
         $r->post('/admin/developers/{id}/plan', ['App\Controllers\Admin\DeveloperController', 'changePlan']);
+        $r->post('/admin/developers/{id}/overrides', ['App\Controllers\Admin\DeveloperController', 'overrides']);
+
+        // Dev Tokens (cross-developer)
+        $r->get('/admin/dev-tokens', ['App\Controllers\Admin\DevTokenController', 'index']);
+        $r->post('/admin/dev-tokens/{id}/revoke', ['App\Controllers\Admin\DevTokenController', 'revoke']);
+
+        // Dev portal settings
+        $r->get('/admin/dev-settings', ['App\Controllers\Admin\DevSettingsController', 'index']);
+        $r->post('/admin/dev-settings', ['App\Controllers\Admin\DevSettingsController', 'update']);
+
+        // Dev audit logs
+        $r->get('/admin/dev-audit', ['App\Controllers\Admin\DevAuditController', 'index']);
+        $r->get('/admin/dev-audit/requests', ['App\Controllers\Admin\DevAuditController', 'requestLog']);
 
         // Developer Plans
         $r->get('/admin/dev-plans', ['App\Controllers\Admin\DevPlanController', 'index']);

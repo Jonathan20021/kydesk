@@ -31,8 +31,12 @@ class AppsController extends DeveloperController
     {
         $this->requireDeveloper();
         $plan = $this->devAuth->plan();
+        if (!$plan) {
+            $this->session->flash('error', 'No tienes una suscripción activa. Suscríbete a un plan para crear apps.');
+            $this->redirect('/developers/billing/plans');
+        }
         $count = (int)$this->db->val('SELECT COUNT(*) FROM dev_apps WHERE developer_id=?', [$this->devAuth->id()]);
-        if ($plan && $count >= (int)$plan['max_apps']) {
+        if ($count >= (int)$plan['max_apps']) {
             $this->session->flash('error', "Límite de apps alcanzado ({$plan['max_apps']}). Mejora tu plan para crear más.");
             $this->redirect('/developers/apps');
         }
@@ -49,8 +53,12 @@ class AppsController extends DeveloperController
         $this->validateCsrf();
         $devId = $this->devAuth->id();
         $plan = $this->devAuth->plan();
+        if (!$plan) {
+            $this->session->flash('error', 'No tienes una suscripción activa.');
+            $this->redirect('/developers/billing/plans');
+        }
         $count = (int)$this->db->val('SELECT COUNT(*) FROM dev_apps WHERE developer_id=?', [$devId]);
-        if ($plan && $count >= (int)$plan['max_apps']) {
+        if ($count >= (int)$plan['max_apps']) {
             $this->session->flash('error', 'Límite de apps alcanzado.');
             $this->redirect('/developers/apps');
         }

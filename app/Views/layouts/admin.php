@@ -26,10 +26,13 @@ $nav = [
     'Developers' => [
         ['Developers','code','/developers','developers.view'],
         ['Apps','boxes','/dev-apps','dev_apps.view'],
+        ['Tokens API','key','/dev-tokens','dev_apps.view'],
         ['Planes Dev','sparkles','/dev-plans','dev_plans.view'],
         ['Suscripciones Dev','repeat','/dev-subscriptions','dev_subscriptions.view'],
         ['Facturas Dev','file-text','/dev-invoices','dev_invoices.view'],
         ['Pagos Dev','wallet','/dev-payments','dev_payments.view'],
+        ['Auditoría Dev','history','/dev-audit','reports.view'],
+        ['Ajustes portal','settings-2','/dev-settings','settings.view'],
     ],
     'Marketing' => [
         ['Changelog','newspaper','/changelog','settings.view'],
