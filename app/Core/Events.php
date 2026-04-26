@@ -110,12 +110,22 @@ class Events
                 'delivered_at' => $sc >= 200 && $sc < 300 ? date('Y-m-d H:i:s') : null,
                 'next_retry_at' => $sc >= 200 && $sc < 300 ? null : date('Y-m-d H:i:s', strtotime('+5 minutes')),
             ]);
+            $newFailures = $sc >= 200 && $sc < 300 ? 0 : ((int)$hook['failure_count'] + 1);
+            $autoDisable = $newFailures >= 10;
             $db->update('dev_webhooks', [
                 'last_triggered_at' => date('Y-m-d H:i:s'),
                 'last_status_code' => $sc,
-                'failure_count' => $sc >= 200 && $sc < 300 ? 0 : ((int)$hook['failure_count'] + 1),
-                'is_active' => ((int)$hook['failure_count'] + 1) >= 10 ? 0 : (int)$hook['is_active'],
+                'failure_count' => $newFailures,
+                'is_active' => $autoDisable ? 0 : (int)$hook['is_active'],
             ], 'id=?', [(int)$hook['id']]);
+
+            // Notificar al developer si se acaba de auto-deshabilitar
+            if ($autoDisable && (int)$hook['is_active'] === 1) {
+                $dev = $db->one('SELECT email, name FROM developers WHERE id=?', [(int)$hook['developer_id']]);
+                if ($dev) {
+                    \App\Core\DevMailer::webhookDisabled((string)$dev['email'], (string)$dev['name'], (string)$hook['name'], $newFailures);
+                }
+            }
         } catch (\Throwable $e) { /* don't break the host request */ }
     }
 }

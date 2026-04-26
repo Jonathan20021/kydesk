@@ -183,9 +183,11 @@ class ApiAuth
                 [$devId]
             );
             if ($month >= $limits['max_requests_month']) {
+                // Notify developer the first time they hit the limit this month
+                self::maybeNotifyQuotaExceeded($db, $devId, $limits['max_requests_month']);
+
                 // If overage allowed and pricing > 0, allow but flag (super admin will bill later)
                 if (!$blockOnOverage && $limits['overage_price_per_1k'] > 0) {
-                    // allow through, but mark in headers
                     if (function_exists('header')) {
                         header('X-Quota-Status: overage');
                         header("X-Quota-Used: $month");
@@ -201,7 +203,7 @@ class ApiAuth
                     'limit' => $limits['max_requests_month'],
                 ];
             }
-            // Approaching limit: add warning header
+            // Approaching limit: add warning header + notify once at threshold
             $alertPct = (int)self::setting($db, 'dev_portal_alert_at_pct', '80');
             $usedPct = ($month / max(1, $limits['max_requests_month'])) * 100;
             if (function_exists('header')) {
@@ -209,6 +211,9 @@ class ApiAuth
                 header("X-Quota-Limit: {$limits['max_requests_month']}");
                 header("X-Quota-Pct: " . round($usedPct, 1));
                 if ($usedPct >= $alertPct) header('X-Quota-Warning: approaching-limit');
+            }
+            if ($usedPct >= $alertPct) {
+                self::maybeNotifyQuotaWarning($db, $devId, $month, $limits['max_requests_month'], (int)round($usedPct));
             }
         }
 
@@ -295,5 +300,35 @@ class ApiAuth
             $row = $db->one('SELECT `value` FROM saas_settings WHERE `key` = ?', [$key]);
             return $row['value'] ?? $default;
         } catch (\Throwable $e) { return $default; }
+    }
+
+    /**
+     * Send quota warning email at most once per developer per month.
+     * Tracks last alert via developers.notes field as a side-channel JSON marker.
+     */
+    protected static function maybeNotifyQuotaWarning(Database $db, int $devId, int $used, int $limit, int $pct): void
+    {
+        try {
+            $dev = $db->one('SELECT email, name, quota_alerts_enabled, notes FROM developers WHERE id=?', [$devId]);
+            if (!$dev || (int)($dev['quota_alerts_enabled'] ?? 1) !== 1) return;
+            $marker = '__quota_warn_' . date('Y-m');
+            if (str_contains((string)($dev['notes'] ?? ''), $marker)) return; // already alerted this month
+            $newNotes = trim((string)($dev['notes'] ?? '') . "\n" . $marker);
+            $db->update('developers', ['notes' => $newNotes], 'id=?', [$devId]);
+            \App\Core\DevMailer::quotaWarning((string)$dev['email'], (string)$dev['name'], $used, $limit, $pct);
+        } catch (\Throwable $e) { /* never block API */ }
+    }
+
+    protected static function maybeNotifyQuotaExceeded(Database $db, int $devId, int $limit): void
+    {
+        try {
+            $dev = $db->one('SELECT email, name, quota_alerts_enabled, notes FROM developers WHERE id=?', [$devId]);
+            if (!$dev || (int)($dev['quota_alerts_enabled'] ?? 1) !== 1) return;
+            $marker = '__quota_exceed_' . date('Y-m');
+            if (str_contains((string)($dev['notes'] ?? ''), $marker)) return;
+            $newNotes = trim((string)($dev['notes'] ?? '') . "\n" . $marker);
+            $db->update('developers', ['notes' => $newNotes], 'id=?', [$devId]);
+            \App\Core\DevMailer::quotaExceeded((string)$dev['email'], (string)$dev['name'], $limit);
+        } catch (\Throwable $e) { /* never block API */ }
     }
 }

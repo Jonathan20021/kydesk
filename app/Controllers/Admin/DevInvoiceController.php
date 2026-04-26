@@ -63,8 +63,16 @@ class DevInvoiceController extends AdminController
             'due_date' => (string)$this->input('due_date', date('Y-m-d', strtotime('+7 days'))),
             'notes' => (string)$this->input('notes', ''),
         ]);
+
+        // Email al developer notificando la nueva factura
+        $dev = $this->db->one('SELECT email, name FROM developers WHERE id=?', [$devId]);
+        $sendNotify = (string)$this->input('notify_email', '1') === '1';
+        if ($dev && $sendNotify) {
+            \App\Core\DevMailer::invoiceCreated((string)$dev['email'], (string)$dev['name'], $invNumber, (float)$total, (string)$this->input('currency', 'USD'), (string)$this->input('due_date', date('Y-m-d', strtotime('+7 days'))), $id);
+        }
+
         $this->superAuth->log('dev_invoice.create', 'dev_invoice', $id);
-        $this->session->flash('success', 'Factura creada.');
+        $this->session->flash('success', 'Factura creada' . ($sendNotify ? ' y notificada al developer por email' : '') . '.');
         $this->redirect('/admin/dev-invoices/' . $id);
     }
 
@@ -112,8 +120,15 @@ class DevInvoiceController extends AdminController
             'status' => $newStatus,
             'paid_at' => $newStatus === 'paid' ? date('Y-m-d H:i:s') : null,
         ], 'id=?', [$id]);
+
+        // Email al developer confirmando el pago
+        $dev = $this->db->one('SELECT email, name FROM developers WHERE id=?', [(int)$inv['developer_id']]);
+        if ($dev) {
+            \App\Core\DevMailer::paymentConfirmed((string)$dev['email'], (string)$dev['name'], $amount, (string)$inv['currency'], (string)$inv['invoice_number']);
+        }
+
         $this->superAuth->log('dev_invoice.pay', 'dev_invoice', $id, ['amount' => $amount]);
-        $this->session->flash('success', 'Pago registrado.');
+        $this->session->flash('success', 'Pago registrado y notificado por email.');
         $this->redirect('/admin/dev-invoices/' . $id);
     }
 

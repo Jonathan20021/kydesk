@@ -116,6 +116,10 @@ class AuthController extends DeveloperController
             $this->sendVerificationEmail($devId, $email, $name);
         }
 
+        // Welcome email (always sent, regardless of verification requirement)
+        $planNameForEmail = $plan ? (string)$plan['name'] : 'Free';
+        \App\Core\DevMailer::welcomeRegistered($email, $name, $planNameForEmail);
+
         $this->devAuth->attempt($email, $password);
         $this->devAuth->log('developer.register');
         $this->session->flash('success', $requireVer
@@ -245,13 +249,7 @@ class AuthController extends DeveloperController
             'expires_at' => date('Y-m-d H:i:s', strtotime("+{$ttl} minutes")),
         ]);
         $url = rtrim($this->app->config['app']['url'], '/') . '/developers/verify/' . $raw;
-        $portalName = $this->setting('dev_portal_name', 'Kydesk Developers');
-        $html = "<p>Hola <b>" . htmlspecialchars($name) . "</b>,</p>
-                 <p>Confirma tu email para activar tu cuenta en {$portalName}:</p>
-                 <p><a href=\"$url\" style=\"background:#0ea5e9;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600\">Verificar email</a></p>
-                 <p style=\"color:#64748b;font-size:12px\">Si el botón no funciona: <br><a href=\"$url\">$url</a></p>
-                 <p style=\"color:#94a3b8;font-size:11px\">Este enlace expira en " . round($ttl/60) . " horas. Si no creaste esta cuenta, ignora este email.</p>";
-        try { (new \App\Core\Mailer(null, $this->db))->send($email, "Verifica tu email · {$portalName}", $html); } catch (\Throwable $e) { /* ignore */ }
+        \App\Core\DevMailer::emailVerification($email, $name, $url, $ttl);
     }
 
     protected function sendPasswordReset(int $devId, string $email, string $name): void
@@ -265,13 +263,7 @@ class AuthController extends DeveloperController
             'expires_at' => date('Y-m-d H:i:s', strtotime("+{$ttl} minutes")),
         ]);
         $url = rtrim($this->app->config['app']['url'], '/') . '/developers/reset/' . $raw;
-        $portalName = $this->setting('dev_portal_name', 'Kydesk Developers');
-        $html = "<p>Hola <b>" . htmlspecialchars($name) . "</b>,</p>
-                 <p>Recibimos una solicitud para restablecer tu contraseña en {$portalName}.</p>
-                 <p><a href=\"$url\" style=\"background:#0ea5e9;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600\">Crear nueva contraseña</a></p>
-                 <p style=\"color:#64748b;font-size:12px\">Si el botón no funciona: <br><a href=\"$url\">$url</a></p>
-                 <p style=\"color:#94a3b8;font-size:11px\">Este enlace expira en {$ttl} minutos. Si no fuiste tú, ignora este email.</p>";
-        try { (new \App\Core\Mailer(null, $this->db))->send($email, "Restablece tu contraseña · {$portalName}", $html); } catch (\Throwable $e) { /* ignore */ }
+        \App\Core\DevMailer::passwordReset($email, $name, $url, $ttl);
     }
 
     protected function setting(string $key, ?string $default = null): ?string

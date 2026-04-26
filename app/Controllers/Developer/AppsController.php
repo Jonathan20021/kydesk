@@ -225,6 +225,13 @@ class AppsController extends DeveloperController
         $this->session->put('new_dev_api_token', $gen['token']);
         $this->session->flash('success', 'Token creado. Cópialo ahora — no se mostrará de nuevo.');
         $this->devAuth->log('token.create', 'dev_api_token', $tokenId, ['app_id' => $appId]);
+
+        // Security notification por email (al dueño de la cuenta)
+        $dev = $this->devAuth->developer();
+        if ($dev) {
+            \App\Core\DevMailer::tokenCreated((string)$dev['email'], (string)$dev['name'], $name, (string)$app['name'], $gen['preview']);
+        }
+
         $this->redirect('/developers/apps/' . $appId);
     }
 

@@ -70,6 +70,14 @@ class BillingController extends DeveloperController
         $endDate = $isFree ? date('Y-m-d H:i:s', strtotime('+10 years'))
             : ($cycle === 'yearly' ? date('Y-m-d H:i:s', strtotime('+1 year')) : date('Y-m-d H:i:s', strtotime('+1 month')));
 
+        // Capturar plan anterior para el email
+        $prevSub = $this->db->one(
+            "SELECT p.name AS plan_name FROM dev_subscriptions s JOIN dev_plans p ON p.id=s.plan_id
+             WHERE s.developer_id=? AND s.status IN ('trial','active','past_due') ORDER BY s.id DESC LIMIT 1",
+            [$devId]
+        );
+        $prevPlanName = $prevSub['plan_name'] ?? 'Sin plan';
+
         // Cancelar la suscripción activa anterior
         $this->db->update('dev_subscriptions', [
             'status' => 'cancelled',
@@ -97,7 +105,7 @@ class BillingController extends DeveloperController
         // Si no es free, crear factura en pending para que el super admin confirme el pago
         if (!$isFree) {
             $invNumber = 'DEV-' . date('Ymd') . '-' . str_pad((string)$subId, 5, '0', STR_PAD_LEFT);
-            $this->db->insert('dev_invoices', [
+            $invId = $this->db->insert('dev_invoices', [
                 'invoice_number' => $invNumber,
                 'developer_id' => $devId,
                 'subscription_id' => $subId,
@@ -109,7 +117,14 @@ class BillingController extends DeveloperController
                 'issue_date' => date('Y-m-d'),
                 'due_date' => date('Y-m-d', strtotime('+7 days')),
             ]);
+            // Email: nueva factura creada
+            $dev = $this->devAuth->developer();
+            \App\Core\DevMailer::invoiceCreated((string)$dev['email'], (string)$dev['name'], $invNumber, (float)$amount, (string)($plan['currency'] ?? 'USD'), date('Y-m-d', strtotime('+7 days')), $invId);
         }
+
+        // Email: cambio de plan
+        $dev = $dev ?? $this->devAuth->developer();
+        \App\Core\DevMailer::subscriptionChanged((string)$dev['email'], (string)$dev['name'], $prevPlanName, (string)$plan['name']);
 
         $this->devAuth->log('subscription.change', 'dev_subscription', $subId, ['plan_id' => $planId, 'cycle' => $cycle]);
         $this->session->flash('success', $isFree ? 'Plan activado.' : 'Suscripción creada — generamos una factura pendiente. Contacta al equipo de billing para completar el pago.');

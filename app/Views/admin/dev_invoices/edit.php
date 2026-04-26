@@ -61,6 +61,11 @@
         <textarea name="notes" class="admin-textarea" rows="3"></textarea>
     </div>
 
+    <label class="flex items-center gap-2 pt-2">
+        <input type="checkbox" name="notify_email" value="1" checked>
+        <span class="text-[13px]"><i class="lucide lucide-mail text-[13px]"></i> Notificar al developer por email (vía Resend)</span>
+    </label>
+
     <div class="flex items-center gap-2 pt-2">
         <button type="submit" class="admin-btn admin-btn-primary"><i class="lucide lucide-save text-[13px]"></i> Crear factura</button>
         <a href="<?= $url('/admin/dev-invoices') ?>" class="admin-btn admin-btn-soft">Cancelar</a>
