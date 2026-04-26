@@ -16,6 +16,23 @@ class AiStudioController extends DeveloperController
         ]);
     }
 
+    public function chat(): void
+    {
+        $this->requireDeveloper();
+        $devId = $this->devAuth->id();
+        $tokens = $this->db->all(
+            "SELECT t.id, t.name, t.token_preview, a.name AS app_name, a.tenant_id
+             FROM dev_api_tokens t JOIN dev_apps a ON a.id=t.app_id
+             WHERE t.developer_id=? AND t.revoked_at IS NULL ORDER BY t.id DESC",
+            [$devId]
+        );
+        $this->render('developers/ai/chat', [
+            'title' => 'AI Chat',
+            'pageHeading' => 'AI Chat · Habla con tu workspace',
+            'tokens' => $tokens,
+        ]);
+    }
+
     /**
      * Returns a compact, AI-optimized API spec ready to paste into a system prompt.
      * Format: markdown digest of the API for agents.
@@ -128,6 +145,35 @@ Each delivery is signed with HMAC-SHA256 in `X-Kydesk-Signature` header. Verify 
 ## Source of truth
 The full spec lives at `{$apiBase}/openapi.json`. Always reach there if uncertain about a field.
 PROMPT;
+        exit;
+    }
+
+    /**
+     * MCP server configuration for Claude Desktop, Continue, Cline, etc.
+     */
+    public function mcpConfig(): void
+    {
+        $this->requireDeveloper();
+        $base = rtrim($this->app->config['app']['url'], '/');
+        $apiBase = $base . '/api/v1';
+
+        // The developer needs an active token to use this — we don't embed real tokens
+        $config = [
+            'mcpServers' => [
+                'kydesk' => [
+                    'command' => 'npx',
+                    'args' => ['-y', '@modelcontextprotocol/server-fetch', $apiBase],
+                    'env' => [
+                        'KYDESK_TOKEN' => '${KYDESK_TOKEN}',
+                        'KYDESK_BASE_URL' => $apiBase,
+                    ],
+                    'description' => 'Kydesk Helpdesk API. Read tickets, create comments, update statuses. Set KYDESK_TOKEN env var with your Bearer token.',
+                ],
+            ],
+        ];
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Disposition: attachment; filename="claude_desktop_config.json"');
+        echo json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         exit;
     }
 

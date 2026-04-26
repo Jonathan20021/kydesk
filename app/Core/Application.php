@@ -223,6 +223,15 @@ class Application
         $r->get('/api/v1/openapi.json',      ['App\Controllers\Api\SpecController', 'openapi']);
         $r->get('/api/v1/postman.json',      ['App\Controllers\Api\SpecController', 'postman']);
 
+        // CSV exports
+        $r->get('/api/v1/tickets.csv',       ['App\Controllers\Api\ExportController', 'ticketsCsv']);
+        $r->get('/api/v1/companies.csv',     ['App\Controllers\Api\ExportController', 'companiesCsv']);
+        $r->get('/api/v1/users.csv',         ['App\Controllers\Api\ExportController', 'usersCsv']);
+
+        // Events / Activity stream
+        $r->get('/api/v1/events/recent',     ['App\Controllers\Api\EventsController', 'recent']);
+        $r->get('/api/v1/events/stream',     ['App\Controllers\Api\EventsController', 'stream']);
+
         // Tickets (full CRUD + sub-resources)
         $r->get('/api/v1/tickets',                    ['App\Controllers\Api\TicketsController', 'index']);
         $r->post('/api/v1/tickets',                   ['App\Controllers\Api\TicketsController', 'create']);
@@ -415,6 +424,7 @@ class Application
         // Dev audit logs
         $r->get('/admin/dev-audit', ['App\Controllers\Admin\DevAuditController', 'index']);
         $r->get('/admin/dev-audit/requests', ['App\Controllers\Admin\DevAuditController', 'requestLog']);
+        $r->get('/admin/dev-audit/webhooks', ['App\Controllers\Admin\DevAuditController', 'webhookDeliveries']);
 
         // Developer Plans
         $r->get('/admin/dev-plans', ['App\Controllers\Admin\DevPlanController', 'index']);
@@ -461,6 +471,12 @@ class Application
         $r->post('/developers/register', ['App\Controllers\Developer\AuthController', 'register']);
         $r->post('/developers/logout', ['App\Controllers\Developer\AuthController', 'logout']);
         $r->get('/developers/logout', ['App\Controllers\Developer\AuthController', 'logout']);
+        $r->get('/developers/forgot', ['App\Controllers\Developer\AuthController', 'showForgot']);
+        $r->post('/developers/forgot', ['App\Controllers\Developer\AuthController', 'forgot']);
+        $r->get('/developers/reset/{token}', ['App\Controllers\Developer\AuthController', 'showReset']);
+        $r->post('/developers/reset/{token}', ['App\Controllers\Developer\AuthController', 'reset']);
+        $r->get('/developers/verify/{token}', ['App\Controllers\Developer\AuthController', 'verifyEmail']);
+        $r->post('/developers/resend-verification', ['App\Controllers\Developer\AuthController', 'resendVerification']);
 
         // Dashboard
         $r->get('/developers/dashboard', ['App\Controllers\Developer\DashboardController', 'index']);
@@ -492,12 +508,16 @@ class Application
 
         // AI Studio
         $r->get('/developers/ai', ['App\Controllers\Developer\AiStudioController', 'index']);
+        $r->get('/developers/ai/chat', ['App\Controllers\Developer\AiStudioController', 'chat']);
         $r->get('/developers/ai/digest', ['App\Controllers\Developer\AiStudioController', 'digest']);
         $r->get('/developers/ai/system-prompt', ['App\Controllers\Developer\AiStudioController', 'systemPrompt']);
         $r->get('/developers/ai/cursorrules', ['App\Controllers\Developer\AiStudioController', 'cursorRules']);
+        $r->get('/developers/ai/mcp', ['App\Controllers\Developer\AiStudioController', 'mcpConfig']);
 
         // API Console (try-it)
         $r->get('/developers/console', ['App\Controllers\Developer\ConsoleController', 'index']);
+        $r->post('/developers/console/save', ['App\Controllers\Developer\ConsoleController', 'save']);
+        $r->post('/developers/console/saved/{id}/delete', ['App\Controllers\Developer\ConsoleController', 'deleteSaved']);
 
         // Webhooks
         $r->get('/developers/webhooks', ['App\Controllers\Developer\WebhooksController', 'index']);

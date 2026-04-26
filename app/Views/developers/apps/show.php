@@ -36,13 +36,13 @@
             </div>
         </div>
         <div class="p-4">
-            <form method="POST" action="<?= $url('/developers/apps/' . $devApp['id'] . '/tokens') ?>" class="flex items-end gap-2 mb-4 flex-wrap">
+            <form method="POST" action="<?= $url('/developers/apps/' . $devApp['id'] . '/tokens') ?>" class="grid sm:grid-cols-3 gap-2 mb-4" x-data="{adv:false}">
                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                <div class="flex-1 min-w-[180px]">
-                    <label class="dev-label">Nombre del token</label>
-                    <input type="text" name="name" class="dev-input" placeholder="Ej: producción" required>
+                <div>
+                    <label class="dev-label">Nombre</label>
+                    <input type="text" name="name" class="dev-input" placeholder="producción" required>
                 </div>
-                <div style="width:160px">
+                <div>
                     <label class="dev-label">Scopes</label>
                     <select name="scopes" class="dev-input">
                         <option value="read">read</option>
@@ -50,7 +50,28 @@
                         <option value="*">* (full)</option>
                     </select>
                 </div>
-                <button type="submit" class="dev-btn dev-btn-primary"><i class="lucide lucide-plus text-[13px]"></i> Generar</button>
+                <div>
+                    <label class="dev-label">Expira en (días, 0 = nunca)</label>
+                    <input type="number" name="expires_days" class="dev-input" value="0" min="0" max="3650">
+                </div>
+                <div class="sm:col-span-3">
+                    <button type="button" @click="adv=!adv" class="text-[11.5px] text-sky-300 hover:text-sky-200">
+                        <i class="lucide" :class="adv ? 'lucide-chevron-down' : 'lucide-chevron-right'"></i> Opciones avanzadas (IP allowlist, descripción)
+                    </button>
+                </div>
+                <div x-show="adv" x-cloak class="sm:col-span-3 grid sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="dev-label">IP allowlist (CSV, opcional)</label>
+                        <input type="text" name="allowed_ips" class="dev-input font-mono" placeholder="1.2.3.4, 5.6.7.0/24" style="font-size:11.5px">
+                    </div>
+                    <div>
+                        <label class="dev-label">Descripción</label>
+                        <input type="text" name="description" class="dev-input" placeholder="Para qué se usa este token">
+                    </div>
+                </div>
+                <div class="sm:col-span-3">
+                    <button type="submit" class="dev-btn dev-btn-primary"><i class="lucide lucide-plus text-[13px]"></i> Generar token</button>
+                </div>
             </form>
 
             <?php if (empty($tokens)): ?>

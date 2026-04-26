@@ -109,9 +109,18 @@ class AuthController extends DeveloperController
             ]);
         }
 
+        // If verification is required, send email and flag account
+        $requireVer = $this->setting('dev_portal_email_verification_required', '0') === '1' || $this->setting('dev_portal_require_verification', '0') === '1';
+        if ($requireVer) {
+            $this->db->update('developers', ['is_verified' => 0], 'id=?', [$devId]);
+            $this->sendVerificationEmail($devId, $email, $name);
+        }
+
         $this->devAuth->attempt($email, $password);
         $this->devAuth->log('developer.register');
-        $this->session->flash('success', '¡Bienvenido! Tu cuenta de developer está lista.');
+        $this->session->flash('success', $requireVer
+            ? '¡Bienvenido! Te enviamos un email para verificar tu cuenta.'
+            : '¡Bienvenido! Tu cuenta de developer está lista.');
         $this->redirect('/developers/dashboard');
     }
 
@@ -120,6 +129,149 @@ class AuthController extends DeveloperController
         $this->devAuth->log('developer.logout');
         $this->devAuth->logout();
         $this->redirect('/developers/login');
+    }
+
+    // ─── Email verification ────────────────────────────────────────
+
+    public function verifyEmail(array $params): void
+    {
+        $token = (string)$params['token'];
+        $row = $this->db->one(
+            "SELECT t.*, d.email, d.name FROM dev_email_tokens t
+             JOIN developers d ON d.id = t.developer_id
+             WHERE t.token = ? AND t.purpose = 'verify_email' AND t.used_at IS NULL AND t.expires_at > NOW() LIMIT 1",
+            [hash('sha256', $token)]
+        );
+        if (!$row) {
+            $this->session->flash('error', 'El enlace de verificación es inválido o ha expirado.');
+            $this->redirect('/developers/login');
+        }
+        $this->db->update('developers', ['is_verified' => 1, 'email_verified_at' => date('Y-m-d H:i:s')], 'id=?', [(int)$row['developer_id']]);
+        $this->db->update('dev_email_tokens', ['used_at' => date('Y-m-d H:i:s')], 'id=?', [(int)$row['id']]);
+        $this->session->flash('success', '✓ Email verificado. Ya puedes usar todos los recursos del portal.');
+        $this->redirect('/developers/login');
+    }
+
+    public function resendVerification(): void
+    {
+        $this->validateCsrf();
+        if (!$this->devAuth->check()) $this->redirect('/developers/login');
+        $d = $this->devAuth->developer();
+        if (!empty($d['is_verified'])) {
+            $this->session->flash('info', 'Tu email ya está verificado.');
+            $this->redirect('/developers/profile');
+        }
+        $this->sendVerificationEmail((int)$d['id'], (string)$d['email'], (string)$d['name']);
+        $this->session->flash('success', 'Email de verificación enviado a ' . $d['email']);
+        $this->redirect('/developers/profile');
+    }
+
+    public function showForgot(): void
+    {
+        echo $this->view->render('developers/auth/forgot', [
+            'title' => 'Recuperar contraseña',
+        ], 'developers_auth');
+    }
+
+    public function forgot(): void
+    {
+        $this->validateCsrf();
+        $email = trim((string)$this->input('email', ''));
+        if ($email === '') {
+            $this->session->flash('error', 'Ingresa tu email.');
+            $this->redirect('/developers/forgot');
+        }
+        $dev = $this->db->one('SELECT id, name, email FROM developers WHERE email = ? AND is_active = 1', [$email]);
+        // Always show success to avoid email enumeration
+        $this->session->flash('success', 'Si existe una cuenta con ese email, te hemos enviado un enlace para restablecer tu contraseña.');
+        if ($dev) {
+            $this->sendPasswordReset((int)$dev['id'], (string)$dev['email'], (string)$dev['name']);
+        }
+        $this->redirect('/developers/login');
+    }
+
+    public function showReset(array $params): void
+    {
+        $token = (string)$params['token'];
+        $row = $this->db->one(
+            "SELECT id, developer_id FROM dev_email_tokens
+             WHERE token = ? AND purpose='password_reset' AND used_at IS NULL AND expires_at > NOW() LIMIT 1",
+            [hash('sha256', $token)]
+        );
+        if (!$row) {
+            $this->session->flash('error', 'Enlace inválido o expirado.');
+            $this->redirect('/developers/forgot');
+        }
+        echo $this->view->render('developers/auth/reset', [
+            'title' => 'Nueva contraseña',
+            'token' => $token,
+        ], 'developers_auth');
+    }
+
+    public function reset(array $params): void
+    {
+        $this->validateCsrf();
+        $token = (string)$params['token'];
+        $row = $this->db->one(
+            "SELECT id, developer_id FROM dev_email_tokens
+             WHERE token = ? AND purpose='password_reset' AND used_at IS NULL AND expires_at > NOW() LIMIT 1",
+            [hash('sha256', $token)]
+        );
+        if (!$row) {
+            $this->session->flash('error', 'Enlace inválido o expirado.');
+            $this->redirect('/developers/forgot');
+        }
+        $pass = (string)$this->input('password', '');
+        if (strlen($pass) < 6) {
+            $this->session->flash('error', 'La contraseña debe tener al menos 6 caracteres.');
+            $this->redirect('/developers/reset/' . $token);
+        }
+        $this->db->update('developers', ['password' => password_hash($pass, PASSWORD_BCRYPT, ['cost' => 12])], 'id=?', [(int)$row['developer_id']]);
+        $this->db->update('dev_email_tokens', ['used_at' => date('Y-m-d H:i:s')], 'id=?', [(int)$row['id']]);
+        $this->session->flash('success', '✓ Contraseña actualizada. Ya puedes iniciar sesión.');
+        $this->redirect('/developers/login');
+    }
+
+    // ─── Email helpers ─────────────────────────────────────────────
+
+    protected function sendVerificationEmail(int $devId, string $email, string $name): void
+    {
+        $raw = bin2hex(random_bytes(32));
+        $ttl = (int)$this->setting('dev_portal_email_verification_ttl_minutes', '1440');
+        $this->db->insert('dev_email_tokens', [
+            'developer_id' => $devId,
+            'token' => hash('sha256', $raw),
+            'purpose' => 'verify_email',
+            'expires_at' => date('Y-m-d H:i:s', strtotime("+{$ttl} minutes")),
+        ]);
+        $url = rtrim($this->app->config['app']['url'], '/') . '/developers/verify/' . $raw;
+        $portalName = $this->setting('dev_portal_name', 'Kydesk Developers');
+        $html = "<p>Hola <b>" . htmlspecialchars($name) . "</b>,</p>
+                 <p>Confirma tu email para activar tu cuenta en {$portalName}:</p>
+                 <p><a href=\"$url\" style=\"background:#0ea5e9;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600\">Verificar email</a></p>
+                 <p style=\"color:#64748b;font-size:12px\">Si el botón no funciona: <br><a href=\"$url\">$url</a></p>
+                 <p style=\"color:#94a3b8;font-size:11px\">Este enlace expira en " . round($ttl/60) . " horas. Si no creaste esta cuenta, ignora este email.</p>";
+        try { (new \App\Core\Mailer(null, $this->db))->send($email, "Verifica tu email · {$portalName}", $html); } catch (\Throwable $e) { /* ignore */ }
+    }
+
+    protected function sendPasswordReset(int $devId, string $email, string $name): void
+    {
+        $raw = bin2hex(random_bytes(32));
+        $ttl = (int)$this->setting('dev_portal_password_reset_ttl_minutes', '60');
+        $this->db->insert('dev_email_tokens', [
+            'developer_id' => $devId,
+            'token' => hash('sha256', $raw),
+            'purpose' => 'password_reset',
+            'expires_at' => date('Y-m-d H:i:s', strtotime("+{$ttl} minutes")),
+        ]);
+        $url = rtrim($this->app->config['app']['url'], '/') . '/developers/reset/' . $raw;
+        $portalName = $this->setting('dev_portal_name', 'Kydesk Developers');
+        $html = "<p>Hola <b>" . htmlspecialchars($name) . "</b>,</p>
+                 <p>Recibimos una solicitud para restablecer tu contraseña en {$portalName}.</p>
+                 <p><a href=\"$url\" style=\"background:#0ea5e9;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600\">Crear nueva contraseña</a></p>
+                 <p style=\"color:#64748b;font-size:12px\">Si el botón no funciona: <br><a href=\"$url\">$url</a></p>
+                 <p style=\"color:#94a3b8;font-size:11px\">Este enlace expira en {$ttl} minutos. Si no fuiste tú, ignora este email.</p>";
+        try { (new \App\Core\Mailer(null, $this->db))->send($email, "Restablece tu contraseña · {$portalName}", $html); } catch (\Throwable $e) { /* ignore */ }
     }
 
     protected function setting(string $key, ?string $default = null): ?string

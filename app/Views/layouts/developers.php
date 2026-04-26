@@ -19,6 +19,7 @@ $nav = [
     'Developer Tools' => [
         ['API Console','terminal','/console'],
         ['AI Studio','bot','/ai'],
+        ['AI Chat','message-square','/ai/chat'],
         ['Documentación','book-open','/developers/docs', true],
     ],
     'Cuenta' => [

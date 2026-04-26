@@ -58,6 +58,14 @@ class ApiAuth
             return null; // table may not exist yet
         }
         if ($devTok) {
+            // IP allowlist
+            if (!empty($devTok['allowed_ips'])) {
+                $clientIp = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+                $allowed = array_filter(array_map('trim', explode(',', (string)$devTok['allowed_ips'])));
+                if ($allowed && !in_array($clientIp, $allowed, true)) {
+                    return ['type' => 'developer', 'denied' => 'ip_not_allowed', 'token' => $devTok, 'developer' => null, 'app' => null, 'tenant' => null];
+                }
+            }
             $developer = $db->one('SELECT * FROM developers WHERE id=?', [(int)$devTok['developer_id']]);
             if (!$developer || (int)$developer['is_active'] !== 1 || !empty($developer['suspended_at'])) {
                 return ['type' => 'developer', 'denied' => 'developer_suspended', 'token' => $devTok, 'developer' => $developer, 'app' => null, 'tenant' => null];
@@ -133,6 +141,7 @@ class ApiAuth
                 'app_suspended' => 'Esta app está suspendida o archivada.',
                 'no_subscription' => 'No hay suscripción activa para este developer.',
                 'subscription_inactive' => 'La suscripción no está activa (estado: ' . ($ctx['limits']['sub_status'] ?? '?') . ').',
+                'ip_not_allowed' => 'Tu IP no está en la allowlist de este token.',
             ];
             return [
                 'code' => $ctx['denied'],

@@ -21,6 +21,7 @@
     </button>
 </form>
 
-<div class="text-center mt-5 text-[12.5px] text-slate-400">
-    ¿No tienes cuenta? <a href="<?= $url('/developers/register') ?>" class="text-sky-300 hover:text-sky-200">Regístrate</a>
+<div class="text-center mt-5 text-[12.5px] text-slate-400 space-y-1">
+    <div><a href="<?= $url('/developers/forgot') ?>" class="text-sky-300 hover:text-sky-200">¿Olvidaste tu contraseña?</a></div>
+    <div>¿No tienes cuenta? <a href="<?= $url('/developers/register') ?>" class="text-sky-300 hover:text-sky-200">Regístrate</a></div>
 </div>

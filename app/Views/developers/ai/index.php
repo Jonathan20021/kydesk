@@ -176,6 +176,30 @@ $prompts = [
     </div>
 </div>
 
+<!-- AI Chat featured -->
+<div class="dev-card overflow-hidden relative">
+    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(600px 250px at 70% 0%, rgba(99,102,241,.18), transparent 70%)"></div>
+    <div class="relative p-6 grid lg:grid-cols-3 gap-5 items-center">
+        <div class="lg:col-span-2">
+            <span class="dev-pill mb-3" style="border-color:rgba(129,140,248,.30); background:rgba(99,102,241,.08); color:#c4b5fd"><i class="lucide lucide-bot text-[11px]"></i> Nuevo · AI Chat</span>
+            <h2 class="font-display font-bold text-white text-[22px] mb-2">Chatea con tu workspace usando IA</h2>
+            <p class="text-[13.5px] text-slate-400 leading-[1.65]">Conecta tu API key de OpenAI, Anthropic o Google. La IA usa tu token Kydesk para responder preguntas reales sobre tickets, métricas y datos. <strong class="text-white">Tus credenciales nunca tocan nuestros servidores</strong> — todo en tu navegador.</p>
+        </div>
+        <a href="<?= $url('/developers/ai/chat') ?>" class="dev-btn dev-btn-primary"><i class="lucide lucide-message-square text-[14px]"></i> Abrir AI Chat</a>
+    </div>
+</div>
+
+<!-- MCP servers callout -->
+<div class="dev-card dev-card-pad" style="border-color:rgba(168,85,247,.20); background:rgba(168,85,247,.03)">
+    <div class="grid lg:grid-cols-3 gap-5 items-center">
+        <div class="lg:col-span-2">
+            <h3 class="font-display font-bold text-white text-[16px] mb-1 flex items-center gap-2"><i class="lucide lucide-plug text-purple-300"></i> Conecta tu agente IA con MCP</h3>
+            <p class="text-[13px] text-slate-400 leading-[1.6]">Descarga el config MCP para Claude Desktop, Continue o Cline. La IA podrá consultar tu Kydesk directamente usando el Model Context Protocol.</p>
+        </div>
+        <a href="<?= $url('/developers/ai/mcp') ?>" class="dev-btn dev-btn-soft" style="border-color:rgba(168,85,247,.30); color:#d8b4fe"><i class="lucide lucide-download text-[13px]"></i> MCP config</a>
+    </div>
+</div>
+
 <!-- Step 1: choose AI -->
 <div class="dev-card">
     <div class="dev-card-head">

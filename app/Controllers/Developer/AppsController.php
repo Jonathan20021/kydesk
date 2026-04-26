@@ -189,6 +189,26 @@ class AppsController extends DeveloperController
         $scopesArr = array_filter(array_map('trim', explode(',', $scopes)), fn($s) => in_array($s, $allowed, true));
         if (!$scopesArr) $scopesArr = ['read'];
 
+        $allowedIps = trim((string)$this->input('allowed_ips', ''));
+        // Validate IPs (basic format check, comma separated)
+        if ($allowedIps !== '') {
+            $ips = array_filter(array_map('trim', explode(',', $allowedIps)));
+            $valid = [];
+            foreach ($ips as $ip) {
+                if (filter_var($ip, FILTER_VALIDATE_IP) || preg_match('/^[\d.]+\/\d{1,2}$/', $ip)) {
+                    $valid[] = $ip;
+                }
+            }
+            $allowedIps = implode(',', $valid);
+        }
+        $description = trim((string)$this->input('description', ''));
+
+        $expiresAt = null;
+        $expiresDays = (int)$this->input('expires_days', 0);
+        if ($expiresDays > 0) {
+            $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiresDays} days"));
+        }
+
         $gen = ApiAuth::generate();
         $tokenId = $this->db->insert('dev_api_tokens', [
             'developer_id' => $devId,
@@ -197,6 +217,9 @@ class AppsController extends DeveloperController
             'token_hash' => $gen['hash'],
             'token_preview' => $gen['preview'],
             'scopes' => implode(',', $scopesArr),
+            'allowed_ips' => $allowedIps ?: null,
+            'description' => $description ?: null,
+            'expires_at' => $expiresAt,
         ]);
 
         $this->session->put('new_dev_api_token', $gen['token']);

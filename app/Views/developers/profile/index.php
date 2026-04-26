@@ -1,3 +1,19 @@
+<?php if (empty($developer['is_verified'])): ?>
+    <div class="dev-card dev-card-pad max-w-[760px]" style="border-color:rgba(245,158,11,.40); background:rgba(245,158,11,.05)">
+        <div class="flex items-center gap-3">
+            <i class="lucide lucide-mail-warning text-amber-300"></i>
+            <div class="flex-1">
+                <div class="font-display font-bold text-white text-[14px]">Email no verificado</div>
+                <p class="text-[12.5px] text-slate-300 mt-0.5">Verifica tu email para acceder a todas las funcionalidades.</p>
+            </div>
+            <form method="POST" action="<?= $url('/developers/resend-verification') ?>">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <button type="submit" class="dev-btn dev-btn-primary text-[12px]"><i class="lucide lucide-send text-[12px]"></i> Reenviar email</button>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
 <form method="POST" action="<?= $url('/developers/profile') ?>" class="dev-card max-w-[760px] p-7 space-y-5">
     <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
     <div>

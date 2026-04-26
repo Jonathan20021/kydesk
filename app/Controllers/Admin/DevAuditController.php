@@ -32,6 +32,30 @@ class DevAuditController extends AdminController
         ]);
     }
 
+    public function webhookDeliveries(): void
+    {
+        $this->requireSuperAuth();
+        $devId = (int)$this->input('developer_id', 0);
+        $where = '1=1'; $args = [];
+        if ($devId) { $where .= ' AND w.developer_id = ?'; $args[] = $devId; }
+        $rows = $this->db->all(
+            "SELECT d.*, w.name AS webhook_name, w.url, dev.name AS dev_name, dev.email AS dev_email
+             FROM webhook_deliveries d
+             JOIN dev_webhooks w ON w.id = d.webhook_id
+             JOIN developers dev ON dev.id = w.developer_id
+             WHERE $where ORDER BY d.id DESC LIMIT 300",
+            $args
+        );
+        $devs = $this->db->all('SELECT id, name, email FROM developers ORDER BY name');
+        $this->render('admin/dev_audit/webhooks', [
+            'title' => 'Webhook deliveries',
+            'pageHeading' => 'Webhook deliveries (cross-developer)',
+            'logs' => $rows,
+            'developers' => $devs,
+            'devId' => $devId,
+        ]);
+    }
+
     public function requestLog(): void
     {
         $this->requireSuperAuth();

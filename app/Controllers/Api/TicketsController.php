@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers\Api;
 
+use App\Core\Events;
 use App\Core\Helpers;
 
 class TicketsController extends BaseApiController
@@ -103,6 +104,7 @@ class TicketsController extends BaseApiController
         $id = $this->db->insert('tickets', $insertData);
         $this->db->update('tickets', ['code' => Helpers::ticketCode($this->tid(), $id)], 'id=?', [$id]);
         $row = $this->db->one('SELECT * FROM tickets WHERE id=?', [$id]);
+        Events::emit(Events::TICKET_CREATED, $this->tid(), 'ticket', $id, $row, $this->uid());
         $rows = $this->expandTickets([$row]);
         $this->created($rows[0], rtrim($this->app->config['app']['url'], '/') . '/api/v1/tickets/' . $id);
     }
@@ -124,6 +126,14 @@ class TicketsController extends BaseApiController
         if (($upd['status'] ?? null) === 'closed') $upd['closed_at'] = date('Y-m-d H:i:s');
         if ($upd) $this->db->update('tickets', $upd, 'id=? AND tenant_id=?', [$id, $this->tid()]);
         $row = $this->db->one('SELECT * FROM tickets WHERE id=?', [$id]);
+
+        if ($upd) {
+            Events::emit(Events::TICKET_UPDATED, $this->tid(), 'ticket', $id, ['changes' => array_keys($upd), 'ticket' => $row], $this->uid());
+            if (($upd['status'] ?? null) === 'resolved') {
+                Events::emit(Events::TICKET_RESOLVED, $this->tid(), 'ticket', $id, $row, $this->uid());
+            }
+        }
+
         $rows = $this->expandTickets([$row]);
         $this->json($rows[0]);
     }
@@ -135,6 +145,7 @@ class TicketsController extends BaseApiController
         $exists = $this->db->one('SELECT id FROM tickets WHERE id=? AND tenant_id=?', [$id, $this->tid()]);
         if (!$exists) $this->error('Ticket no encontrado', 404, 'not_found');
         $this->db->delete('tickets', 'id=? AND tenant_id=?', [$id, $this->tid()]);
+        Events::emit(Events::TICKET_DELETED, $this->tid(), 'ticket', $id, ['id' => $id], $this->uid());
         $this->json(['deleted' => true, 'id' => $id]);
     }
 
@@ -178,6 +189,7 @@ class TicketsController extends BaseApiController
         ]);
         $this->db->run('UPDATE tickets SET updated_at=NOW(), first_response_at=COALESCE(first_response_at, NOW()) WHERE id=?', [$id]);
         $row = $this->db->one('SELECT * FROM ticket_comments WHERE id=?', [$cid]);
+        Events::emit(Events::COMMENT_CREATED, $this->tid(), 'comment', $cid, ['ticket_id' => $id, 'comment' => $row], $this->uid());
         $this->created($row);
     }
 
@@ -211,6 +223,7 @@ class TicketsController extends BaseApiController
         ]);
         $this->db->update('tickets', ['escalation_level' => $newLevel], 'id=?', [$id]);
         $row = $this->db->one('SELECT * FROM tickets WHERE id=?', [$id]);
+        Events::emit(Events::TICKET_ESCALATED, $this->tid(), 'ticket', $id, ['from_level' => $tk['escalation_level'], 'to_level' => $newLevel, 'ticket' => $row], $this->uid());
         $this->json($row);
     }
 
@@ -226,6 +239,7 @@ class TicketsController extends BaseApiController
         $u = $this->db->one('SELECT id FROM users WHERE id=? AND tenant_id=?', [$userId, $this->tid()]);
         if (!$u) $this->error('Usuario no encontrado', 422, 'validation_error');
         $this->db->update('tickets', ['assigned_to' => $userId], 'id=?', [$id]);
+        Events::emit(Events::TICKET_ASSIGNED, $this->tid(), 'ticket', $id, ['ticket_id' => $id, 'user_id' => $userId], $this->uid());
         $this->json(['assigned' => true, 'ticket_id' => $id, 'user_id' => $userId]);
     }
 
