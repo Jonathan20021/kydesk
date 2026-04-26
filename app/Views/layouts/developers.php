@@ -13,7 +13,12 @@ $nav = [
     'Construir' => [
         ['Dashboard','layout-dashboard','/dashboard'],
         ['Mis Apps','boxes','/apps'],
+        ['Webhooks','webhook','/webhooks'],
         ['Uso de API','activity','/usage'],
+    ],
+    'Developer Tools' => [
+        ['API Console','terminal','/console'],
+        ['AI Studio','bot','/ai'],
         ['Documentación','book-open','/developers/docs', true],
     ],
     'Cuenta' => [

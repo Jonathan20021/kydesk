@@ -211,28 +211,89 @@ class Application
         $r->get('/t/{slug}/support/{id}', ['App\Controllers\SupportController', 'show']);
         $r->post('/t/{slug}/support/{id}/reply', ['App\Controllers\SupportController', 'reply']);
 
-        // ─────────────────── REST API v1 ───────────────────
-        $r->get('/api',    ['App\Controllers\ApiController', 'index']);
-        $r->get('/api/v1', ['App\Controllers\ApiController', 'index']);
-        $r->get('/api/v1/me', ['App\Controllers\ApiController', 'me']);
-        $r->get('/api/v1/tickets',           ['App\Controllers\ApiController', 'ticketsIndex']);
-        $r->post('/api/v1/tickets',          ['App\Controllers\ApiController', 'ticketsCreate']);
-        $r->get('/api/v1/tickets/{id}',       ['App\Controllers\ApiController', 'ticketsShow']);
-        $r->patch('/api/v1/tickets/{id}',     ['App\Controllers\ApiController', 'ticketsUpdate']);
-        $r->post('/api/v1/tickets/{id}',      ['App\Controllers\ApiController', 'ticketsUpdate']);
-        $r->delete('/api/v1/tickets/{id}',    ['App\Controllers\ApiController', 'ticketsDelete']);
-        $r->post('/api/v1/tickets/{id}/delete', ['App\Controllers\ApiController', 'ticketsDelete']);
-        $r->get('/api/v1/tickets/{id}/comments',  ['App\Controllers\ApiController', 'commentsIndex']);
-        $r->post('/api/v1/tickets/{id}/comments', ['App\Controllers\ApiController', 'commentsCreate']);
-        $r->get('/api/v1/categories',  ['App\Controllers\ApiController', 'categoriesIndex']);
-        $r->post('/api/v1/categories', ['App\Controllers\ApiController', 'categoriesCreate']);
-        $r->get('/api/v1/companies',   ['App\Controllers\ApiController', 'companiesIndex']);
-        $r->post('/api/v1/companies',  ['App\Controllers\ApiController', 'companiesCreate']);
-        $r->get('/api/v1/users',         ['App\Controllers\ApiController', 'usersIndex']);
-        $r->get('/api/v1/kb/articles',   ['App\Controllers\ApiController', 'kbIndex']);
-        $r->get('/api/v1/sla',           ['App\Controllers\ApiController', 'slaIndex']);
-        $r->get('/api/v1/automations',   ['App\Controllers\ApiController', 'automationsIndex']);
-        $r->get('/api/v1/stats',         ['App\Controllers\ApiController', 'stats']);
+        // ─────────────────── REST API v1 (modular) ───────────────────
+        // Meta
+        $r->get('/api',                      ['App\Controllers\Api\MetaController', 'index']);
+        $r->get('/api/v1',                   ['App\Controllers\Api\MetaController', 'index']);
+        $r->get('/api/v1/me',                ['App\Controllers\Api\MetaController', 'me']);
+        $r->get('/api/v1/health',            ['App\Controllers\Api\MetaController', 'health']);
+        $r->get('/api/v1/stats',             ['App\Controllers\Api\MetaController', 'stats']);
+        $r->get('/api/v1/search',            ['App\Controllers\Api\MetaController', 'search']);
+        // OpenAPI spec + Postman
+        $r->get('/api/v1/openapi.json',      ['App\Controllers\Api\SpecController', 'openapi']);
+        $r->get('/api/v1/postman.json',      ['App\Controllers\Api\SpecController', 'postman']);
+
+        // Tickets (full CRUD + sub-resources)
+        $r->get('/api/v1/tickets',                    ['App\Controllers\Api\TicketsController', 'index']);
+        $r->post('/api/v1/tickets',                   ['App\Controllers\Api\TicketsController', 'create']);
+        $r->post('/api/v1/tickets/batch',             ['App\Controllers\Api\TicketsController', 'batch']);
+        $r->get('/api/v1/tickets/{id}',                ['App\Controllers\Api\TicketsController', 'show']);
+        $r->patch('/api/v1/tickets/{id}',              ['App\Controllers\Api\TicketsController', 'update']);
+        $r->post('/api/v1/tickets/{id}',               ['App\Controllers\Api\TicketsController', 'update']);
+        $r->delete('/api/v1/tickets/{id}',             ['App\Controllers\Api\TicketsController', 'delete']);
+        $r->post('/api/v1/tickets/{id}/delete',        ['App\Controllers\Api\TicketsController', 'delete']);
+        $r->get('/api/v1/tickets/{id}/comments',       ['App\Controllers\Api\TicketsController', 'commentsIndex']);
+        $r->post('/api/v1/tickets/{id}/comments',      ['App\Controllers\Api\TicketsController', 'commentsCreate']);
+        $r->delete('/api/v1/tickets/{id}/comments/{cid}', ['App\Controllers\Api\TicketsController', 'commentDelete']);
+        $r->post('/api/v1/tickets/{id}/escalate',      ['App\Controllers\Api\TicketsController', 'escalate']);
+        $r->post('/api/v1/tickets/{id}/assign',        ['App\Controllers\Api\TicketsController', 'assign']);
+
+        // Companies
+        $r->get('/api/v1/companies',                   ['App\Controllers\Api\CompaniesController', 'index']);
+        $r->post('/api/v1/companies',                  ['App\Controllers\Api\CompaniesController', 'create']);
+        $r->get('/api/v1/companies/{id}',               ['App\Controllers\Api\CompaniesController', 'show']);
+        $r->patch('/api/v1/companies/{id}',             ['App\Controllers\Api\CompaniesController', 'update']);
+        $r->post('/api/v1/companies/{id}',              ['App\Controllers\Api\CompaniesController', 'update']);
+        $r->delete('/api/v1/companies/{id}',            ['App\Controllers\Api\CompaniesController', 'delete']);
+
+        // Categories
+        $r->get('/api/v1/categories',                   ['App\Controllers\Api\CategoriesController', 'index']);
+        $r->post('/api/v1/categories',                  ['App\Controllers\Api\CategoriesController', 'create']);
+        $r->get('/api/v1/categories/{id}',               ['App\Controllers\Api\CategoriesController', 'show']);
+        $r->patch('/api/v1/categories/{id}',             ['App\Controllers\Api\CategoriesController', 'update']);
+        $r->post('/api/v1/categories/{id}',              ['App\Controllers\Api\CategoriesController', 'update']);
+        $r->delete('/api/v1/categories/{id}',            ['App\Controllers\Api\CategoriesController', 'delete']);
+
+        // Users
+        $r->get('/api/v1/users',                        ['App\Controllers\Api\UsersController', 'index']);
+        $r->post('/api/v1/users',                       ['App\Controllers\Api\UsersController', 'create']);
+        $r->get('/api/v1/users/{id}',                    ['App\Controllers\Api\UsersController', 'show']);
+        $r->patch('/api/v1/users/{id}',                  ['App\Controllers\Api\UsersController', 'update']);
+        $r->post('/api/v1/users/{id}',                   ['App\Controllers\Api\UsersController', 'update']);
+        $r->delete('/api/v1/users/{id}',                 ['App\Controllers\Api\UsersController', 'delete']);
+
+        // KB
+        $r->get('/api/v1/kb/articles',                  ['App\Controllers\Api\KbController', 'index']);
+        $r->post('/api/v1/kb/articles',                 ['App\Controllers\Api\KbController', 'create']);
+        $r->get('/api/v1/kb/articles/{id}',              ['App\Controllers\Api\KbController', 'show']);
+        $r->patch('/api/v1/kb/articles/{id}',            ['App\Controllers\Api\KbController', 'update']);
+        $r->post('/api/v1/kb/articles/{id}',             ['App\Controllers\Api\KbController', 'update']);
+        $r->delete('/api/v1/kb/articles/{id}',           ['App\Controllers\Api\KbController', 'delete']);
+        $r->get('/api/v1/kb/categories',                ['App\Controllers\Api\KbController', 'categoriesIndex']);
+
+        // SLA
+        $r->get('/api/v1/sla',                          ['App\Controllers\Api\SlaController', 'index']);
+        $r->post('/api/v1/sla',                         ['App\Controllers\Api\SlaController', 'create']);
+        $r->get('/api/v1/sla/{id}',                      ['App\Controllers\Api\SlaController', 'show']);
+        $r->patch('/api/v1/sla/{id}',                    ['App\Controllers\Api\SlaController', 'update']);
+        $r->post('/api/v1/sla/{id}',                     ['App\Controllers\Api\SlaController', 'update']);
+        $r->delete('/api/v1/sla/{id}',                   ['App\Controllers\Api\SlaController', 'delete']);
+
+        // Automations
+        $r->get('/api/v1/automations',                  ['App\Controllers\Api\AutomationsController', 'index']);
+        $r->post('/api/v1/automations',                 ['App\Controllers\Api\AutomationsController', 'create']);
+        $r->get('/api/v1/automations/{id}',              ['App\Controllers\Api\AutomationsController', 'show']);
+        $r->patch('/api/v1/automations/{id}',            ['App\Controllers\Api\AutomationsController', 'update']);
+        $r->post('/api/v1/automations/{id}',             ['App\Controllers\Api\AutomationsController', 'update']);
+        $r->delete('/api/v1/automations/{id}',           ['App\Controllers\Api\AutomationsController', 'delete']);
+
+        // Assets
+        $r->get('/api/v1/assets',                       ['App\Controllers\Api\AssetsController', 'index']);
+        $r->post('/api/v1/assets',                      ['App\Controllers\Api\AssetsController', 'create']);
+        $r->get('/api/v1/assets/{id}',                   ['App\Controllers\Api\AssetsController', 'show']);
+        $r->patch('/api/v1/assets/{id}',                 ['App\Controllers\Api\AssetsController', 'update']);
+        $r->post('/api/v1/assets/{id}',                  ['App\Controllers\Api\AssetsController', 'update']);
+        $r->delete('/api/v1/assets/{id}',                ['App\Controllers\Api\AssetsController', 'delete']);
 
         // Instalador
         $r->get('/install', ['App\Controllers\InstallController', 'index']);
@@ -428,5 +489,22 @@ class Application
         // Profile
         $r->get('/developers/profile', ['App\Controllers\Developer\ProfileController', 'index']);
         $r->post('/developers/profile', ['App\Controllers\Developer\ProfileController', 'update']);
+
+        // AI Studio
+        $r->get('/developers/ai', ['App\Controllers\Developer\AiStudioController', 'index']);
+        $r->get('/developers/ai/digest', ['App\Controllers\Developer\AiStudioController', 'digest']);
+        $r->get('/developers/ai/system-prompt', ['App\Controllers\Developer\AiStudioController', 'systemPrompt']);
+        $r->get('/developers/ai/cursorrules', ['App\Controllers\Developer\AiStudioController', 'cursorRules']);
+
+        // API Console (try-it)
+        $r->get('/developers/console', ['App\Controllers\Developer\ConsoleController', 'index']);
+
+        // Webhooks
+        $r->get('/developers/webhooks', ['App\Controllers\Developer\WebhooksController', 'index']);
+        $r->post('/developers/webhooks', ['App\Controllers\Developer\WebhooksController', 'create']);
+        $r->post('/developers/webhooks/{id}/toggle', ['App\Controllers\Developer\WebhooksController', 'toggle']);
+        $r->post('/developers/webhooks/{id}/delete', ['App\Controllers\Developer\WebhooksController', 'delete']);
+        $r->post('/developers/webhooks/{id}/rotate-secret', ['App\Controllers\Developer\WebhooksController', 'rotateSecret']);
+        $r->post('/developers/webhooks/{id}/test', ['App\Controllers\Developer\WebhooksController', 'test']);
     }
 }
