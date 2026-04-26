@@ -5,22 +5,33 @@ $brandRgb = sscanf($brand, "#%02x%02x%02x");
 $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
 ?>
 
-<!-- Top nav -->
-<nav class="bg-white/80 backdrop-blur-md border-b border-[#ececef] sticky top-0 z-30">
-    <div class="max-w-[1100px] mx-auto px-6 h-[68px] flex items-center justify-between">
-        <a href="<?= $url('/portal/' . $t->slug) ?>" class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl text-white grid place-items-center font-display font-bold" style="background:<?= $e($brand) ?>;box-shadow:0 6px 14px -4px rgba(<?= $rgbStr ?>,.5)"><?= strtoupper(substr($t->name,0,1)) ?></div>
-            <div>
-                <div class="font-display font-bold text-[14px]"><?= $e($t->name) ?></div>
-                <div class="text-[11px] text-ink-400">Centro de soporte</div>
+<!-- Top nav (estilo landing pill) -->
+<nav class="fixed top-4 inset-x-0 z-50 px-4">
+    <div class="nav-land">
+        <div class="nav-land-inner">
+            <a href="<?= $url('/portal/' . $t->slug) ?>" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl text-white grid place-items-center font-display font-bold text-[14px]" style="background:<?= $e($brand) ?>;box-shadow:0 6px 14px -4px rgba(<?= $rgbStr ?>,.45)"><?= strtoupper(substr($t->name,0,1)) ?></div>
+                <div class="leading-tight">
+                    <div class="font-display font-extrabold text-[15px] tracking-[-0.015em]"><?= $e($t->name) ?></div>
+                    <div class="text-[10px] text-ink-400 uppercase tracking-[0.12em]">Centro de soporte</div>
+                </div>
+            </a>
+            <div class="hidden lg:flex items-center gap-0.5 text-[13px] font-medium text-ink-500 ml-4">
+                <a href="<?= $url('/portal/' . $t->slug) ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Inicio</a>
+                <a href="<?= $url('/portal/' . $t->slug . '/kb') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Base de conocimiento</a>
+                <a href="<?= $url('/portal/' . $t->slug . '/new') ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition">Crear ticket</a>
             </div>
-        </a>
-        <div class="flex items-center gap-1.5">
-            <a href="<?= $url('/portal/' . $t->slug . '/kb') ?>" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12.5px] text-ink-500 hover:text-ink-900 hover:bg-[#fafafb] transition"><i class="lucide lucide-book-open text-[14px]"></i> Base de conocimiento</a>
-            <a href="<?= $url('/portal/' . $t->slug) ?>" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12.5px] text-ink-500 hover:text-ink-900 hover:bg-[#fafafb] transition"><i class="lucide lucide-home text-[14px]"></i> Inicio</a>
+            <div class="flex items-center gap-1.5 ml-auto">
+                <a href="https://kydesk.kyrosrd.com" target="_blank" rel="noopener" class="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-ink-400 hover:text-ink-900 transition">
+                    Powered by
+                    <span class="font-display font-bold text-ink-900">Kydesk</span>
+                </a>
+                <a href="<?= $url('/auth/login') ?>" class="btn btn-ghost btn-sm">Acceso equipo</a>
+            </div>
         </div>
     </div>
 </nav>
+<div class="h-[88px]"></div>
 
 <section class="py-12 relative overflow-hidden">
     <!-- Aurora background -->
