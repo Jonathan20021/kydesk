@@ -347,6 +347,293 @@
     </div>
 </section>
 
+<!-- ========== API SECTION (rediseñada) ========== -->
+<section id="api" class="apx-section">
+    <!-- Decorative background -->
+    <div class="apx-bg">
+        <div class="apx-glow apx-glow-1"></div>
+        <div class="apx-glow apx-glow-2"></div>
+    </div>
+
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+
+        <!-- Heading -->
+        <div class="text-center max-w-2xl mx-auto reveal" data-reveal>
+            <div class="apx-eyebrow">
+                <span class="apx-eyebrow-dot"></span>
+                <span class="font-mono">REST API</span>
+                <span class="apx-eyebrow-sep">·</span>
+                <span>v1 estable</span>
+            </div>
+            <h2 class="apx-title mt-6">
+                Construido para <span class="apx-grad">desarrolladores</span>.
+            </h2>
+            <p class="apx-sub mt-6">
+                API REST limpia, JSON tipado, autenticación Bearer y rate limiting. Integra Kydesk con cualquier stack en minutos.
+            </p>
+        </div>
+
+        <!-- Big terminal mockup -->
+        <div class="mt-14 max-w-[980px] mx-auto reveal" data-reveal>
+            <div class="apx-window" x-data="apiDemo()" x-init="start()">
+                <!-- Window chrome -->
+                <div class="apx-chrome">
+                    <div class="apx-chrome-dots">
+                        <span style="background:#ff5f57"></span>
+                        <span style="background:#febc2e"></span>
+                        <span style="background:#28c840"></span>
+                    </div>
+                    <div class="apx-chrome-url">
+                        <i class="lucide lucide-lock text-[10px]"></i>
+                        <span class="font-mono">api.kydesk.kyrosrd.com</span>
+                    </div>
+                    <button @click="copy()" class="apx-copy-btn">
+                        <i class="lucide lucide-copy text-[12px]"></i>
+                        <span x-text="copied ? '¡Copiado!' : 'Copiar'"></span>
+                    </button>
+                </div>
+
+                <!-- Method tabs -->
+                <div class="apx-tabs">
+                    <template x-for="(t, i) in tabs" :key="i">
+                        <button @click="switchTab(i)" :class="active===i?'apx-tab-on':''" class="apx-tab">
+                            <span class="apx-tab-method" :style="`background:${methodColors[t.method]}`" x-text="t.method"></span>
+                            <span x-text="t.label"></span>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Body: split request | response -->
+                <div class="apx-split">
+                    <!-- Request -->
+                    <div class="apx-pane">
+                        <div class="apx-pane-header">
+                            <span class="apx-pane-label"><i class="lucide lucide-send text-[11px]"></i> Request</span>
+                        </div>
+                        <pre class="apx-code"><code x-html="rendered"></code><span class="apx-caret"></span></pre>
+                    </div>
+                    <!-- Response -->
+                    <div class="apx-pane apx-pane-response">
+                        <div class="apx-pane-header">
+                            <span class="apx-pane-label"><i class="lucide lucide-arrow-down-left text-[11px]"></i> Response</span>
+                            <span class="apx-status" x-show="showResponse" x-cloak>
+                                <span class="apx-status-dot"></span>
+                                <span class="font-mono" x-text="statusLine"></span>
+                            </span>
+                        </div>
+                        <pre class="apx-code apx-code-response" x-show="showResponse" x-cloak><code x-html="responseRendered"></code></pre>
+                        <div class="apx-loading" x-show="!showResponse" x-cloak>
+                            <div class="apx-loading-bar"></div>
+                            <div class="apx-loading-bar" style="width:80%"></div>
+                            <div class="apx-loading-bar" style="width:60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capability strip -->
+        <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-[980px] mx-auto reveal" data-reveal>
+            <?php foreach ([
+                ['Bearer Auth','key','#7c5cff', 'Tokens con scopes'],
+                ['~ 42ms P95','zap','#10b981', 'Latencia promedio'],
+                ['99.99% uptime','activity','#38bdf8', 'SLA enterprise'],
+                ['Rate-limit','timer','#f59e0b', '60 req/min'],
+            ] as [$lbl, $ic, $c, $sub]): ?>
+                <div class="apx-feat" style="--c:<?= $c ?>">
+                    <div class="apx-feat-icon"><i class="lucide lucide-<?= $ic ?>"></i></div>
+                    <div class="apx-feat-label"><?= $lbl ?></div>
+                    <div class="apx-feat-sub"><?= $sub ?></div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Endpoints marquee -->
+        <div class="mt-14 reveal" data-reveal>
+            <div class="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-ink-400 mb-4">Endpoints disponibles · Todos sobre <code class="font-mono text-ink-700">/api/v1</code></div>
+            <div class="apx-marquee">
+                <div class="apx-marquee-track">
+                    <?php
+                    $endpoints = [
+                        ['GET',    '/tickets'],
+                        ['POST',   '/tickets'],
+                        ['GET',    '/tickets/{id}'],
+                        ['PATCH',  '/tickets/{id}'],
+                        ['DELETE', '/tickets/{id}'],
+                        ['POST',   '/tickets/{id}/comments'],
+                        ['GET',    '/tickets/{id}/comments'],
+                        ['GET',    '/categories'],
+                        ['POST',   '/categories'],
+                        ['GET',    '/companies'],
+                        ['POST',   '/companies'],
+                        ['GET',    '/users'],
+                        ['GET',    '/kb/articles'],
+                        ['GET',    '/sla'],
+                        ['GET',    '/automations'],
+                        ['GET',    '/stats'],
+                    ];
+                    $methodColors = ['GET'=>'#10b981','POST'=>'#7c5cff','PATCH'=>'#f59e0b','DELETE'=>'#ef4444'];
+                    for ($r = 0; $r < 2; $r++):
+                        foreach ($endpoints as [$m, $p]): ?>
+                            <div class="apx-endpoint">
+                                <span class="apx-endpoint-method" style="background:<?= $methodColors[$m] ?>"><?= $m ?></span>
+                                <code class="apx-endpoint-path"><?= $p ?></code>
+                            </div>
+                    <?php endforeach; endfor; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- SDK examples -->
+        <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-[1100px] mx-auto reveal" data-reveal>
+            <?php foreach ([
+                ['cURL', 'terminal', '#10b981', "curl https://kydesk.kyrosrd.com/api/v1/tickets \\\n  -H \"Authorization: Bearer kyd_xxx\""],
+                ['JavaScript', 'braces', '#f7df1e', "fetch('/api/v1/tickets', {\n  headers: {\n    Authorization: 'Bearer kyd_xxx'\n  }\n}).then(r => r.json())"],
+                ['Python', 'braces', '#3776ab', "import requests\n\nrequests.get(url, headers={\n  'Authorization': f'Bearer {token}'\n}).json()"],
+            ] as [$lang, $ic, $c, $code]): ?>
+                <div class="apx-sdk">
+                    <div class="apx-sdk-head">
+                        <div class="apx-sdk-icon" style="background:<?= $c ?>20;color:<?= $c ?>"><i class="lucide lucide-<?= $ic ?>"></i></div>
+                        <span class="apx-sdk-lang"><?= $lang ?></span>
+                        <button onclick="navigator.clipboard.writeText(this.parentElement.parentElement.querySelector('code').innerText);this.innerHTML='<i class=&quot;lucide lucide-check text-[12px]&quot;></i>'" class="apx-sdk-copy">
+                            <i class="lucide lucide-copy text-[12px]"></i>
+                        </button>
+                    </div>
+                    <pre class="apx-sdk-code"><code><?= $e($code) ?></code></pre>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- CTA -->
+        <div class="mt-16 text-center reveal" data-reveal>
+            <a href="<?= $url('/auth/register') ?>" class="apx-cta">
+                <i class="lucide lucide-key"></i>
+                Genera tu primer API token
+                <i class="lucide lucide-arrow-right text-[14px]"></i>
+            </a>
+            <div class="mt-5 flex items-center justify-center gap-5 text-[12px] text-ink-400">
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600 text-[13px]"></i> Disponible en todos los planes</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600 text-[13px]"></i> Docs interactivas dentro del workspace</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function apiDemo() {
+    return {
+        active: 0,
+        copied: false,
+        showResponse: false,
+        rendered: '',
+        responseRendered: '',
+        statusLine: '',
+        timer: null,
+        methodColors: { GET: '#10b981', POST: '#7c5cff', PATCH: '#f59e0b', DELETE: '#ef4444' },
+        tabs: [
+            { method: 'POST', label: 'Crear ticket' },
+            { method: 'GET',  label: 'Listar' },
+            { method: 'GET',  label: 'Métricas' },
+        ],
+        snippets: [
+            {
+                code: `<span class="ax-kw">POST</span> <span class="ax-fn">/api/v1/tickets</span>
+<span class="ax-com">Authorization:</span> <span class="ax-str">Bearer kyd_xxx</span>
+<span class="ax-com">Content-Type:</span> <span class="ax-str">application/json</span>
+
+{
+  <span class="ax-key">"subject"</span>: <span class="ax-str">"VPN se desconecta"</span>,
+  <span class="ax-key">"priority"</span>: <span class="ax-str">"high"</span>,
+  <span class="ax-key">"requester_email"</span>: <span class="ax-str">"maria@acme.com"</span>
+}`,
+                status: '201 Created · 38ms',
+                response: `{
+  <span class="ax-key">"data"</span>: {
+    <span class="ax-key">"id"</span>: <span class="ax-num">847</span>,
+    <span class="ax-key">"code"</span>: <span class="ax-str">"TK-01-00847"</span>,
+    <span class="ax-key">"status"</span>: <span class="ax-str">"open"</span>,
+    <span class="ax-key">"priority"</span>: <span class="ax-str">"high"</span>,
+    <span class="ax-key">"sla_due_at"</span>: <span class="ax-str">"2026-04-26T15:42Z"</span>
+  }
+}`
+            },
+            {
+                code: `<span class="ax-kw">GET</span> <span class="ax-fn">/api/v1/tickets</span>?status=open
+<span class="ax-com">Authorization:</span> <span class="ax-str">Bearer kyd_xxx</span>`,
+                status: '200 OK · 24ms',
+                response: `{
+  <span class="ax-key">"data"</span>: [
+    { <span class="ax-key">"id"</span>: <span class="ax-num">847</span>, <span class="ax-key">"subject"</span>: <span class="ax-str">"VPN…"</span>,      <span class="ax-key">"priority"</span>: <span class="ax-str">"high"</span> },
+    { <span class="ax-key">"id"</span>: <span class="ax-num">846</span>, <span class="ax-key">"subject"</span>: <span class="ax-str">"Impresora…"</span>, <span class="ax-key">"priority"</span>: <span class="ax-str">"medium"</span> },
+    { <span class="ax-key">"id"</span>: <span class="ax-num">845</span>, <span class="ax-key">"subject"</span>: <span class="ax-str">"Login…"</span>,    <span class="ax-key">"priority"</span>: <span class="ax-str">"low"</span> }
+  ],
+  <span class="ax-key">"meta"</span>: { <span class="ax-key">"total"</span>: <span class="ax-num">42</span> }
+}`
+            },
+            {
+                code: `<span class="ax-kw">GET</span> <span class="ax-fn">/api/v1/stats</span>
+<span class="ax-com">Authorization:</span> <span class="ax-str">Bearer kyd_xxx</span>`,
+                status: '200 OK · 18ms',
+                response: `{
+  <span class="ax-key">"data"</span>: {
+    <span class="ax-key">"tickets"</span>: {
+      <span class="ax-key">"total"</span>: <span class="ax-num">12480</span>,
+      <span class="ax-key">"open"</span>:  <span class="ax-num">87</span>,
+      <span class="ax-key">"resolved"</span>: <span class="ax-num">11891</span>
+    },
+    <span class="ax-key">"sla"</span>: { <span class="ax-key">"breached"</span>: <span class="ax-num">3</span> },
+    <span class="ax-key">"users"</span>: <span class="ax-num">12</span>
+  }
+}`
+            }
+        ],
+        start() { this.switchTab(0); this.cycle(); },
+        cycle() {
+            clearInterval(this.timer);
+            this.timer = setInterval(() => {
+                this.switchTab((this.active + 1) % this.tabs.length);
+            }, 7500);
+        },
+        switchTab(i) {
+            this.active = i;
+            this.cycle();
+            this.showResponse = false;
+            this.rendered = '';
+            const snip = this.snippets[i];
+            this.typeText(snip.code, () => {
+                setTimeout(() => {
+                    this.statusLine = snip.status;
+                    this.responseRendered = snip.response;
+                    this.showResponse = true;
+                }, 280);
+            });
+        },
+        typeText(html, done) {
+            const target = html;
+            let pos = 0;
+            const tick = () => {
+                if (pos > target.length) { done && done(); return; }
+                if (target[pos] === '<') {
+                    const end = target.indexOf('>', pos);
+                    if (end !== -1) pos = end + 1;
+                }
+                pos++;
+                this.rendered = target.slice(0, pos);
+                if (pos <= target.length) requestAnimationFrame(() => setTimeout(tick, 10));
+            };
+            tick();
+        },
+        async copy() {
+            try {
+                await navigator.clipboard.writeText(this.snippets[this.active].code.replace(/<[^>]+>/g, ''));
+                this.copied = true;
+                setTimeout(() => this.copied = false, 1500);
+            } catch (e) {}
+        }
+    };
+}
+</script>
+
 <!-- ========== TESTIMONIALS ========== -->
 <section id="testimonials" class="py-32">
     <div class="max-w-[1240px] mx-auto px-6">
