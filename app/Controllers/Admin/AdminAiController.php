@@ -192,11 +192,10 @@ class AdminAiController extends AdminController
 
     protected function setSetting(string $key, string $value): void
     {
-        $existing = $this->db->one('SELECT id FROM saas_settings WHERE `key` = ?', [$key]);
-        if ($existing) {
-            $this->db->update('saas_settings', ['value' => $value], 'id = :id', ['id' => (int)$existing['id']]);
-        } else {
-            $this->db->insert('saas_settings', ['key' => $key, 'value' => $value]);
-        }
+        // saas_settings tiene `key` como PK (no `id`), así que usamos upsert atómico
+        $this->db->run(
+            "INSERT INTO saas_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `updated_at` = NOW()",
+            [$key, $value]
+        );
     }
 }
