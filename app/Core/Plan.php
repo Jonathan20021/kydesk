@@ -4,16 +4,16 @@ namespace App\Core;
 class Plan
 {
     public const FEATURES = [
-        'starter'    => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings'],
-        'free'       => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings'],
-        'pro'        => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations'],
-        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers'],
-        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','sso','custom_branding'],
+        'starter'    => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','custom_fields','csat','status_page','customer_portal'],
+        'free'       => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','custom_fields','csat','status_page','customer_portal'],
+        'pro'        => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking'],
+        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','reports_builder','itsm'],
+        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','ai_assist','reports_builder','itsm','sso','custom_branding'],
     ];
 
     /** Catálogo de módulos que el super admin puede gestionar por tenant. */
     public const MODULE_CATALOG = [
-        'tickets'         => ['Tickets',         'inbox',         'Operación de tickets, kanban y flujos.', 'core'],
+        'tickets'          => ['Tickets',           'inbox',         'Operación de tickets, kanban y flujos.', 'core'],
         'kb'              => ['Conocimiento',    'book-open',     'Base de conocimiento interna y portal.', 'core'],
         'notes'           => ['Notas',           'notebook-pen',  'Notas internas del equipo.',             'core'],
         'todos'           => ['Tareas',          'check-square',  'Listas de tareas / pendientes.',         'core'],
@@ -28,9 +28,19 @@ class Plan
         'integrations'    => ['Integraciones',   'plug',          'Slack, Telegram, webhooks y más.',       'pro'],
         'sla'             => ['SLA',             'gauge',         'Políticas de respuesta y resolución.',   'pro'],
         'audit'           => ['Auditoría',       'history',       'Bitácora completa de eventos.',          'pro'],
-        'retainers'       => ['Igualas',         'handshake',     'Contratos recurrentes con empresas y clientes individuales.', 'business'],
-        'sso'             => ['SSO + SAML',      'key-round',     'Inicio de sesión único corporativo.',    'enterprise'],
-        'custom_branding' => ['Branding propio', 'palette',       'Logos, colores y dominios personalizados.', 'enterprise'],
+        'retainers'        => ['Igualas',           'handshake',       'Contratos recurrentes con empresas y clientes individuales.', 'business'],
+        'custom_fields'    => ['Custom Fields',     'list-plus',       'Campos personalizados por categoría de ticket.', 'core'],
+        'csat'             => ['CSAT / NPS',        'smile',           'Encuestas de satisfacción post-resolución.', 'core'],
+        'status_page'      => ['Status Page',       'activity',        'Página pública de estado con incidentes y suscriptores.', 'core'],
+        'customer_portal'  => ['Portal Clientes',   'lock-keyhole',    'Portal autenticado con histórico para clientes.', 'core'],
+        'email_inbound'    => ['Email-to-Ticket',   'mail-open',       'Recibir emails y convertirlos en tickets (IMAP / forward).', 'pro'],
+        'time_tracking'    => ['Time Tracking',     'timer',           'Cronómetro por ticket integrado a Igualas.', 'pro'],
+        'live_chat'        => ['Live Chat',         'message-square',  'Widget de chat en vivo embebible para sitios.', 'business'],
+        'ai_assist'        => ['IA Asistente',      'sparkles',        'Sugerir respuesta, resumir, clasificar, sentiment, traducir. Gestionada por Kydesk.', 'enterprise'],
+        'itsm'             => ['ITSM',              'workflow',        'Service Catalog, Change Management, Problems, Approvals.', 'business'],
+        'reports_builder'  => ['Reports Builder',   'bar-chart-3',     'Constructor visual de reportes con widgets y filtros.', 'business'],
+        'sso'              => ['SSO + SAML',        'key-round',       'Inicio de sesión único corporativo.',    'enterprise'],
+        'custom_branding'  => ['Branding propio',   'palette',         'Logos, colores y dominios personalizados.', 'enterprise'],
     ];
 
     public const PLAN_RANK = ['starter'=>1,'free'=>1,'pro'=>2,'business'=>2,'enterprise'=>3];

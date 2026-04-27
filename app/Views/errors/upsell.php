@@ -6,6 +6,12 @@ $featureLabels = [
     'departments' => ['Departamentos','layers','Organiza tu equipo en departamentos con asignación automática de tickets, SLAs propios y reportes independientes.','#3b82f6'],
     'integrations' => ['Integraciones','plug','Conecta Kydesk con Slack, Discord, Telegram, Teams, Zapier y más. Notifica eventos automáticamente.','#0ea5e9'],
     'retainers' => ['Igualas','handshake','Gestioná contratos recurrentes con empresas y clientes individuales: ciclos de facturación, horas incluidas, consumos y excedentes.','#10b981'],
+    'email_inbound' => ['Email-to-Ticket','mail-open','Convertí emails en tickets automáticamente con IMAP o forward webhook. Threading RFC-compliant.','#0ea5e9'],
+    'live_chat' => ['Live Chat','message-square','Widget de chat embebible para tu sitio web. Inbox del equipo + conversión 1-click a ticket.','#10b981'],
+    'ai_assist' => ['IA Asistente · Claude','sparkles','Sugerí respuestas, resumí hilos, auto-categorizá, detectá sentiment, traducí. Gestionado por Kydesk.','#a78bfa'],
+    'time_tracking' => ['Time Tracking','timer','Cronómetro por ticket integrado a Igualas: descuenta horas automáticamente del período abierto.','#dc2626'],
+    'reports_builder' => ['Reports Builder','bar-chart-3','Constructor visual de reportes con 10 widgets, filtros guardados y envío programado.','#7e22ce'],
+    'itsm' => ['ITSM · ITIL','workflow','Service Catalog, Change Management con multi-step approvals, Problem Management.','#0284c7'],
     'sso' => ['SSO + SAML','key-round','Inicio de sesión único corporativo con SAML 2.0 y aprovisionamiento SCIM.','#ec4899'],
 ];
 [$label, $icon, $desc, $color] = $featureLabels[$feature] ?? [ucfirst($feature), 'lock', 'Disponible en planes superiores', '#7c5cff'];

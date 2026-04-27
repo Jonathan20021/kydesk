@@ -253,6 +253,89 @@
     </div>
 </section>
 
+<!-- ========== WHAT'S NEW v4.6 (visual showcase) ========== -->
+<section id="whats-new" class="relative py-24 overflow-hidden" style="background:linear-gradient(180deg,#fafafb 0%,white 100%)">
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute" style="width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,.08),transparent 60%);top:-180px;left:-100px;filter:blur(50px)"></div>
+        <div class="absolute" style="width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.06),transparent 60%);bottom:-160px;right:-80px;filter:blur(50px)"></div>
+    </div>
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+        <div class="text-center max-w-3xl mx-auto reveal" data-reveal>
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.16em] mb-4" style="background:linear-gradient(135deg,rgba(124,92,255,.12),rgba(217,70,239,.08));color:#5a3aff;border:1px solid rgba(124,92,255,.25)">
+                <i class="lucide lucide-sparkles text-[12px]"></i> RELEASE v4.6 · LA MÁS GRANDE HASTA AHORA
+            </div>
+            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">10 módulos nuevos.<br><span class="gradient-shift">1 sola actualización.</span></h2>
+            <p class="mt-6 text-[16px] text-ink-500 max-w-2xl mx-auto">Email-to-Ticket, Live Chat, IA con Claude, CSAT/NPS, ITSM, Time Tracking, Status Page, Customer Portal, Reports Builder, Custom Fields. La suite enterprise completa lista para producción.</p>
+        </div>
+
+        <!-- 10 modules grid -->
+        <div class="mt-14 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 reveal-stagger" data-reveal>
+            <?php foreach ([
+                ['email_inbound', 'Email-to-Ticket', 'mail-open', '#0369a1', '#e0f2fe', 'PRO'],
+                ['live_chat', 'Live Chat', 'message-square', '#047857', '#ecfdf5', 'BUSINESS'],
+                ['ai_assist', 'IA Claude', 'sparkles', '#7e22ce', '#f3e8ff', 'ENTERPRISE'],
+                ['csat', 'CSAT / NPS', 'smile', '#b45309', '#fef3c7', 'TODOS'],
+                ['itsm', 'ITSM · ITIL', 'workflow', '#0284c7', '#dbeafe', 'BUSINESS'],
+                ['time_tracking', 'Time Tracking', 'timer', '#b91c1c', '#fee2e2', 'PRO'],
+                ['status_page', 'Status Page', 'activity', '#047857', '#d1fae5', 'TODOS'],
+                ['customer_portal', 'Portal Login', 'lock-keyhole', '#7c2d12', '#f3e8ff', 'TODOS'],
+                ['reports_builder', 'Reports Builder', 'bar-chart-3', '#7e22ce', '#f3e8ff', 'BUSINESS'],
+                ['custom_fields', 'Custom Fields', 'list-plus', '#0e7490', '#cffafe', 'TODOS'],
+            ] as [$key, $title, $icon, $color, $bg, $tier]): ?>
+                <a href="<?= $url('/features/' . $key) ?>" class="group relative rounded-2xl p-5 transition" style="background:white;border:1px solid #ececef" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 20px 40px -16px rgba(22,21,27,.12)';this.style.borderColor='<?= $color ?>33';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none';this.style.borderColor='#ececef';">
+                    <div class="absolute top-3 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-[0.1em]" style="background:<?= $bg ?>;color:<?= $color ?>"><?= $tier ?></div>
+                    <div class="w-11 h-11 rounded-xl grid place-items-center mb-3" style="background:<?= $bg ?>;color:<?= $color ?>"><i class="lucide lucide-<?= $icon ?> text-[18px]"></i></div>
+                    <div class="font-display font-bold text-[13.5px] tracking-[-0.01em]"><?= $title ?></div>
+                    <div class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition" style="color:<?= $color ?>">Ver <i class="lucide lucide-arrow-right text-[10px]"></i></div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- AI spotlight (Enterprise highlight) -->
+        <div class="mt-14 grid grid-cols-1 lg:grid-cols-5 gap-5 reveal" data-reveal>
+            <div class="lg:col-span-3 relative rounded-3xl p-8 md:p-10 overflow-hidden text-white" style="background:linear-gradient(135deg,#1a1825 0%,#2a1f3d 50%,#3f1d6b 100%);box-shadow:0 24px 60px -16px rgba(124,92,255,.35)">
+                <div class="absolute" style="width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.4),transparent 60%);top:-120px;right:-80px;filter:blur(40px)"></div>
+                <div class="relative">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10.5px] font-bold uppercase tracking-[0.16em]" style="background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)">
+                        <i class="lucide lucide-sparkles text-[11px]"></i> ENTERPRISE EXCLUSIVE
+                    </div>
+                    <h3 class="font-display font-extrabold text-[28px] md:text-[36px] tracking-[-0.025em] mt-5 leading-tight">IA Asistente con<br>Claude integrado.</h3>
+                    <p class="mt-4 text-[14.5px]" style="color:rgba(255,255,255,.78)">Sugerí respuestas, resumí hilos, auto-categorizá tickets, detectá sentiment y traducí entre idiomas. La API key la maneja Kydesk · vos solo elegís qué acciones usar.</p>
+                    <div class="mt-6 flex flex-wrap gap-2">
+                        <?php foreach ([['Sugerir respuesta','message-square-quote'],['Resumir hilo','file-text'],['Auto-categorizar','tag'],['Sentiment','heart-pulse'],['Traducir','languages']] as [$lbl,$ic]): ?>
+                            <span class="inline-flex items-center gap-1.5 text-[11.5px] px-2.5 py-1 rounded-full" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.12)"><i class="lucide lucide-<?= $ic ?> text-[11px]"></i> <?= $lbl ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <a href="<?= $url('/features/ai_assist') ?>" class="mt-7 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-[13px] transition" style="background:white;color:#1a1825" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">Ver detalle <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 grid grid-cols-1 gap-3">
+                <div class="card card-pad" style="background:linear-gradient(135deg,#ecfdf5,white)">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white grid place-items-center"><i class="lucide lucide-mail-open text-[15px]"></i></div>
+                        <div class="font-display font-bold text-[14px]">Email-to-Ticket inbound</div>
+                    </div>
+                    <p class="text-[12.5px] text-ink-500">La entrada #1 de soporte real. IMAP + forward webhook con threading RFC-compliant.</p>
+                    <a href="<?= $url('/features/email_inbound') ?>" class="text-[11.5px] font-semibold text-emerald-700 mt-2 inline-flex items-center gap-1">Saber más <i class="lucide lucide-arrow-right text-[11px]"></i></a>
+                </div>
+                <div class="card card-pad" style="background:linear-gradient(135deg,#dbeafe,white)">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-9 h-9 rounded-xl text-white grid place-items-center" style="background:#0284c7"><i class="lucide lucide-workflow text-[15px]"></i></div>
+                        <div class="font-display font-bold text-[14px]">ITSM · ITIL v4</div>
+                    </div>
+                    <p class="text-[12.5px] text-ink-500">Service Catalog, Change Management con multi-step approvals, Problem tracking.</p>
+                    <a href="<?= $url('/features/itsm') ?>" class="text-[11.5px] font-semibold text-blue-700 mt-2 inline-flex items-center gap-1">Saber más <i class="lucide lucide-arrow-right text-[11px]"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-10">
+            <a href="<?= $url('/changelog') ?>" class="inline-flex items-center gap-2 text-[13px] font-semibold text-brand-700 hover:gap-3 transition-all">Ver changelog completo <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+        </div>
+    </div>
+</section>
+
 <!-- ========== FEATURE BLOCKS ========== -->
 <section id="features" class="py-32 relative">
     <div class="max-w-[1240px] mx-auto px-6">
@@ -304,13 +387,18 @@
 
             <?php
             $bentos = [
+                ['email_inbound','Email-to-Ticket','IMAP + forward webhook · threading RFC.','mail-open','#e0f2fe','#0369a1'],
+                ['live_chat','Live Chat','Widget embebible para tu sitio.','message-square','#ecfdf5','#047857'],
+                ['ai_assist','IA con Claude','Sugerir, resumir, sentiment, traducir.','sparkles','#f3e8ff','#7e22ce'],
+                ['csat','CSAT / NPS','Encuestas post-resolución con dashboard.','smile','#fef3c7','#b45309'],
+                ['itsm','ITSM · ITIL','Service Catalog, Changes, Approvals.','workflow','#dbeafe','#0284c7'],
+                ['time_tracking','Time Tracking','Cronómetro integrado a Igualas.','timer','#fee2e2','#b91c1c'],
+                ['status_page','Status Page','Pública con suscripción email.','activity','#d1fae5','#047857'],
+                ['customer_portal','Portal con login','Histórico autenticado de tickets.','lock-keyhole','#f3e8ff','#7c2d12'],
+                ['reports_builder','Reports Builder','10 widgets · drag & drop.','bar-chart-3','#f3e8ff','#7e22ce'],
+                ['retainers','Igualas','Contratos recurrentes configurables.','handshake','#ecfdf5','#047857'],
                 ['kanban','Tablero Kanban','Drag & drop. Tu flujo, tu forma.','kanban-square','#dbeafe','#1d4ed8'],
-                ['automations','Automatizaciones IA','Reglas que ejecutan acciones solas.','workflow','#f3e8ff','#7e22ce'],
-                ['retainers','Igualas configurables','Contratos recurrentes para soporte, dev, sistemas.','handshake','#ecfdf5','#047857'],
-                ['analytics','Analítica profunda','Métricas que mueven decisiones.','line-chart','#d1fae5','#047857'],
-                ['kb','Conocimiento','Artículos públicos e internos.','book-open','#fef3c7','#b45309'],
-                ['multitenant','Multi-tenant','Aísla cada organización.','building-2','#fce7f3','#be185d'],
-                ['roles','Roles 30+','Permisos granulares por módulo.','shield','#fee2e2','#b91c1c'],
+                ['automations','Automatizaciones','Reglas que ejecutan acciones solas.','workflow','#f3e8ff','#7e22ce'],
             ];
             foreach ($bentos as [$key,$t,$d,$ic,$bg,$col]): ?>
                 <a href="<?= $url('/features/' . $key) ?>" class="col-span-12 sm:col-span-6 lg:col-span-4 bento spotlight-card group block">
@@ -1103,6 +1191,16 @@ function apiDemo() {
             'departments' => 'Departamentos',
             'integrations' => 'Integraciones',
             'retainers' => 'Igualas (contratos recurrentes)',
+            'csat' => 'CSAT / NPS',
+            'status_page' => 'Status Page pública',
+            'customer_portal' => 'Portal con login',
+            'custom_fields' => 'Custom Fields',
+            'email_inbound' => 'Email-to-Ticket',
+            'time_tracking' => 'Time Tracking',
+            'live_chat' => 'Live Chat',
+            'reports_builder' => 'Reports Builder',
+            'itsm' => 'ITSM (ITIL)',
+            'ai_assist' => 'IA Asistente · Claude',
             'sso' => 'SSO + SAML',
             'custom_branding' => 'Marca personalizada',
         ];

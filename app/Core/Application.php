@@ -161,6 +161,100 @@ class Application
         $r->post('/t/{slug}/roles/{id}', ['App\Controllers\RoleController', 'update']);
         $r->post('/t/{slug}/roles/{id}/delete', ['App\Controllers\RoleController', 'delete']);
 
+        // ─────────── CUSTOM FIELDS ───────────
+        $r->get('/t/{slug}/custom-fields', ['App\Controllers\CustomFieldController', 'index']);
+        $r->post('/t/{slug}/custom-fields', ['App\Controllers\CustomFieldController', 'store']);
+        $r->post('/t/{slug}/custom-fields/{id}', ['App\Controllers\CustomFieldController', 'update']);
+        $r->post('/t/{slug}/custom-fields/{id}/delete', ['App\Controllers\CustomFieldController', 'delete']);
+
+        // ─────────── CSAT / NPS ───────────
+        $r->get('/t/{slug}/csat', ['App\Controllers\CsatController', 'index']);
+        $r->post('/t/{slug}/csat/settings', ['App\Controllers\CsatController', 'settings']);
+        $r->post('/t/{slug}/csat/trigger', ['App\Controllers\CsatController', 'trigger']);
+        $r->get('/csat/{token}', ['App\Controllers\CsatController', 'show']);
+        $r->post('/csat/{token}', ['App\Controllers\CsatController', 'respond']);
+
+        // ─────────── STATUS PAGE ───────────
+        $r->get('/t/{slug}/status', ['App\Controllers\StatusPageController', 'index']);
+        $r->post('/t/{slug}/status/components', ['App\Controllers\StatusPageController', 'componentStore']);
+        $r->post('/t/{slug}/status/components/{id}', ['App\Controllers\StatusPageController', 'componentUpdate']);
+        $r->post('/t/{slug}/status/components/{id}/delete', ['App\Controllers\StatusPageController', 'componentDelete']);
+        $r->post('/t/{slug}/status/incidents', ['App\Controllers\StatusPageController', 'incidentStore']);
+        $r->post('/t/{slug}/status/incidents/{id}', ['App\Controllers\StatusPageController', 'incidentUpdate']);
+        $r->post('/t/{slug}/status/incidents/{id}/delete', ['App\Controllers\StatusPageController', 'incidentDelete']);
+        $r->get('/status/{slug}', ['App\Controllers\StatusPageController', 'publicPage']);
+        $r->post('/status/{slug}/subscribe', ['App\Controllers\StatusPageController', 'subscribe']);
+        $r->get('/status/{slug}/confirm/{token}', ['App\Controllers\StatusPageController', 'confirm']);
+
+        // ─────────── CUSTOMER PORTAL AUTH ───────────
+        $r->get('/portal/{slug}/login', ['App\Controllers\PortalAuthController', 'showLogin']);
+        $r->post('/portal/{slug}/login', ['App\Controllers\PortalAuthController', 'login']);
+        $r->get('/portal/{slug}/register', ['App\Controllers\PortalAuthController', 'showRegister']);
+        $r->post('/portal/{slug}/register', ['App\Controllers\PortalAuthController', 'register']);
+        $r->get('/portal/{slug}/verify/{token}', ['App\Controllers\PortalAuthController', 'verify']);
+        $r->post('/portal/{slug}/logout', ['App\Controllers\PortalAuthController', 'logout']);
+        $r->get('/portal/{slug}/forgot', ['App\Controllers\PortalAuthController', 'showForgot']);
+        $r->post('/portal/{slug}/forgot', ['App\Controllers\PortalAuthController', 'forgot']);
+        $r->get('/portal/{slug}/reset/{token}', ['App\Controllers\PortalAuthController', 'showReset']);
+        $r->post('/portal/{slug}/reset/{token}', ['App\Controllers\PortalAuthController', 'reset']);
+        $r->get('/portal/{slug}/account', ['App\Controllers\PortalAuthController', 'account']);
+        $r->post('/portal/{slug}/account/profile', ['App\Controllers\PortalAuthController', 'updateProfile']);
+        $r->get('/t/{slug}/portal-users', ['App\Controllers\PortalAuthController', 'manageList']);
+        $r->post('/t/{slug}/portal-users/{id}/toggle', ['App\Controllers\PortalAuthController', 'manageToggle']);
+        $r->post('/t/{slug}/portal-users/{id}/delete', ['App\Controllers\PortalAuthController', 'manageDelete']);
+
+        // ─────────── TIME TRACKING ───────────
+        $r->get('/t/{slug}/time', ['App\Controllers\TimeController', 'index']);
+        $r->post('/t/{slug}/time/start', ['App\Controllers\TimeController', 'start']);
+        $r->post('/t/{slug}/time/manual', ['App\Controllers\TimeController', 'manualStore']);
+        $r->post('/t/{slug}/time/{id}/stop', ['App\Controllers\TimeController', 'stop']);
+        $r->post('/t/{slug}/time/{id}/delete', ['App\Controllers\TimeController', 'delete']);
+
+        // ─────────── EMAIL-TO-TICKET ───────────
+        $r->get('/t/{slug}/email-inbound', ['App\Controllers\EmailInboundController', 'index']);
+        $r->post('/t/{slug}/email-inbound', ['App\Controllers\EmailInboundController', 'store']);
+        $r->post('/t/{slug}/email-inbound/{id}', ['App\Controllers\EmailInboundController', 'update']);
+        $r->post('/t/{slug}/email-inbound/{id}/delete', ['App\Controllers\EmailInboundController', 'delete']);
+        $r->post('/t/{slug}/email-inbound/{id}/fetch', ['App\Controllers\EmailInboundController', 'fetch']);
+        $r->post('/api/v1/email-inbound/forward', ['App\Controllers\EmailInboundController', 'forwardWebhook']);
+
+        // ─────────── LIVE CHAT ───────────
+        $r->get('/t/{slug}/chat', ['App\Controllers\ChatController', 'index']);
+        $r->get('/t/{slug}/chat/widgets', ['App\Controllers\ChatController', 'widgetConfig']);
+        $r->post('/t/{slug}/chat/widgets/{id}', ['App\Controllers\ChatController', 'widgetUpdate']);
+        $r->get('/t/{slug}/chat/poll', ['App\Controllers\ChatController', 'agentPoll']);
+        $r->get('/t/{slug}/chat/{id}', ['App\Controllers\ChatController', 'show']);
+        $r->post('/t/{slug}/chat/{id}/reply', ['App\Controllers\ChatController', 'reply']);
+        $r->post('/t/{slug}/chat/{id}/close', ['App\Controllers\ChatController', 'close']);
+        $r->post('/t/{slug}/chat/{id}/to-ticket', ['App\Controllers\ChatController', 'convertToTicket']);
+        $r->get('/chat-widget/{publicKey}.js', ['App\Controllers\ChatController', 'widgetScript']);
+        $r->post('/chat-api/start', ['App\Controllers\ChatController', 'visitorStart']);
+        $r->post('/chat-api/send', ['App\Controllers\ChatController', 'visitorSend']);
+        $r->get('/chat-api/poll', ['App\Controllers\ChatController', 'visitorPoll']);
+
+        // ─────────── AI ASISTENTE (tenant) ───────────
+        $r->get('/t/{slug}/ai', ['App\Controllers\AiController', 'settings']);
+        $r->post('/t/{slug}/ai/settings', ['App\Controllers\AiController', 'settingsUpdate']);
+        $r->post('/t/{slug}/ai/run', ['App\Controllers\AiController', 'run']);
+
+        // ─────────── ITSM ───────────
+        $r->get('/t/{slug}/itsm', ['App\Controllers\ItsmController', 'index']);
+        $r->post('/t/{slug}/itsm/catalog', ['App\Controllers\ItsmController', 'catalogStore']);
+        $r->post('/t/{slug}/itsm/catalog/{id}/delete', ['App\Controllers\ItsmController', 'catalogDelete']);
+        $r->post('/t/{slug}/itsm/changes', ['App\Controllers\ItsmController', 'changeStore']);
+        $r->get('/t/{slug}/itsm/changes/{id}', ['App\Controllers\ItsmController', 'changeShow']);
+        $r->post('/t/{slug}/itsm/changes/{id}', ['App\Controllers\ItsmController', 'changeUpdate']);
+        $r->post('/t/{slug}/itsm/approvals/{id}', ['App\Controllers\ItsmController', 'changeApprove']);
+        $r->post('/t/{slug}/itsm/problems', ['App\Controllers\ItsmController', 'problemStore']);
+        $r->post('/t/{slug}/itsm/problems/{id}', ['App\Controllers\ItsmController', 'problemUpdate']);
+
+        // ─────────── REPORTS BUILDER ───────────
+        $r->get('/t/{slug}/reports-builder', ['App\Controllers\ReportBuilderController', 'index']);
+        $r->post('/t/{slug}/reports-builder/create', ['App\Controllers\ReportBuilderController', 'create']);
+        $r->get('/t/{slug}/reports-builder/{id}', ['App\Controllers\ReportBuilderController', 'show']);
+        $r->post('/t/{slug}/reports-builder/{id}', ['App\Controllers\ReportBuilderController', 'update']);
+        $r->post('/t/{slug}/reports-builder/{id}/delete', ['App\Controllers\ReportBuilderController', 'delete']);
+
         // Igualas (Retainers) — Business / Enterprise
         $r->get('/t/{slug}/retainers', ['App\Controllers\RetainerController', 'index']);
         $r->get('/t/{slug}/retainers/settings', ['App\Controllers\RetainerController', 'settings']);
@@ -415,6 +509,13 @@ class Application
         $r->get('/admin/users/{id}', ['App\Controllers\Admin\UserController', 'edit']);
         $r->post('/admin/users/{id}', ['App\Controllers\Admin\UserController', 'update']);
         $r->post('/admin/users/{id}/delete', ['App\Controllers\Admin\UserController', 'delete']);
+
+        // AI Assistant (super admin: configuración global + asignación por tenant)
+        $r->get('/admin/ai', ['App\Controllers\Admin\AdminAiController', 'index']);
+        $r->post('/admin/ai/settings', ['App\Controllers\Admin\AdminAiController', 'settingsUpdate']);
+        $r->post('/admin/ai/tenants/{id}/assign', ['App\Controllers\Admin\AdminAiController', 'assign']);
+        $r->post('/admin/ai/tenants/{id}/unassign', ['App\Controllers\Admin\AdminAiController', 'unassign']);
+        $r->post('/admin/ai/tenants/{id}/update', ['App\Controllers\Admin\AdminAiController', 'tenantUpdate']);
 
         // Super Admins
         $r->get('/admin/super-admins', ['App\Controllers\Admin\SuperAdminController', 'index']);

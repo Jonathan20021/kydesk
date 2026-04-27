@@ -309,9 +309,22 @@ class TicketController extends Controller
         if ($data) {
             $this->db->update('tickets', $data, 'id=? AND tenant_id=?', [$id, $tenant->id]);
             $this->logAudit('ticket.updated','ticket', $id, $data);
+            // Auto CSAT al resolver si está habilitado
+            if (($data['status'] ?? null) === 'resolved') $this->maybeTriggerCsat($tenant->id, $id);
         }
         $this->session->flash('success','Ticket actualizado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
+    }
+
+    protected function maybeTriggerCsat(int $tenantId, int $ticketId): void
+    {
+        try {
+            foreach (['csat','nps'] as $type) {
+                $cfg = $this->db->one('SELECT * FROM csat_settings WHERE tenant_id=? AND type=? AND is_enabled=1', [$tenantId, $type]);
+                if (!$cfg) continue;
+                \App\Controllers\CsatController::createAndSend($tenantId, $ticketId, $type);
+            }
+        } catch (\Throwable $e) { /* swallow */ }
     }
 
     public function move(array $params): void
@@ -333,6 +346,7 @@ class TicketController extends Controller
         if ($status === 'closed')   $data['closed_at']   = date('Y-m-d H:i:s');
         $this->db->update('tickets', $data, 'id=? AND tenant_id=?', [$id, $tenant->id]);
         $this->logAudit('ticket.moved','ticket', $id, ['from' => $exists['status'], 'to' => $status]);
+        if ($status === 'resolved' && $exists['status'] !== 'resolved') $this->maybeTriggerCsat($tenant->id, $id);
         $this->json(['ok' => true, 'id' => $id, 'status' => $status]);
     }
 

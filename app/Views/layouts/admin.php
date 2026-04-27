@@ -42,6 +42,7 @@ $nav = [
     'Sistema' => [
         ['Reportes','bar-chart-3','/reports','reports.view'],
         ['Auditoría','history','/audit','reports.view'],
+        ['IA Asistente','sparkles','/ai','settings.view'],
         ['Super Admins','shield','/super-admins','super_admins.view'],
         ['Integraciones','plug','/integration-limits','settings.view'],
         ['Ajustes','settings','/settings','settings.view'],
