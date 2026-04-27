@@ -135,15 +135,21 @@ class Mailer
             if ($atts) $payload['attachments'] = $atts;
         }
 
+        $headers = [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json',
+        ];
+        if (!empty($opts['idempotency_key'])) {
+            $key = substr(preg_replace('/[^a-zA-Z0-9._:-]/', '-', (string)$opts['idempotency_key']), 0, 256);
+            if ($key !== '') $headers[] = 'Idempotency-Key: ' . $key;
+        }
+
         $ch = curl_init('https://api.resend.com/emails');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_TIMEOUT        => 15,
-            CURLOPT_HTTPHEADER     => [
-                'Authorization: Bearer ' . $apiKey,
-                'Content-Type: application/json',
-            ],
+            CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_POSTFIELDS     => json_encode($payload),
         ]);
         $body = curl_exec($ch);

@@ -76,6 +76,47 @@ $rate = $total ? round($resolved * 100 / $total) : 0;
     </div>
 </div>
 
+<?php if (!empty($byDepartment)): ?>
+<div class="card overflow-hidden">
+    <div class="px-7 pt-6 pb-2 flex items-center justify-between">
+        <div>
+            <h3 class="section-title flex items-center gap-2">Desempeño por departamento <span class="text-[10px] uppercase tracking-[0.14em] px-2 py-0.5 rounded-full" style="background:#eff6ff;color:#1d4ed8">PRO</span></h3>
+            <p class="text-[12px] mt-0.5 text-ink-400">Volumen, resolución y SLA por área funcional</p>
+        </div>
+        <a href="<?= $url('/t/' . $tenant->slug . '/departments') ?>" class="btn btn-soft btn-sm">Gestionar <i class="lucide lucide-arrow-right text-[12px]"></i></a>
+    </div>
+    <table class="table">
+        <thead><tr><th>Departamento</th><th>Total</th><th>Abiertos</th><th>Resueltos</th><th>Brechas SLA</th><th>Tiempo medio</th><th class="w-[200px]">% Resolución</th></tr></thead>
+        <tbody>
+            <?php foreach ($byDepartment as $d):
+                $total = (int)$d['total']; $resolved = (int)$d['resolved_count'];
+                $pct = $total ? round($resolved * 100 / $total) : 0;
+            ?>
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl grid place-items-center shrink-0" style="background:<?= $e($d['color']) ?>15;color:<?= $e($d['color']) ?>;border:1px solid <?= $e($d['color']) ?>30"><i class="lucide lucide-<?= $e($d['icon']) ?> text-[14px]"></i></div>
+                            <a href="<?= $url('/t/' . $tenant->slug . '/departments/' . (int)$d['id']) ?>" class="font-display font-bold text-[13px]" style="color:inherit"><?= $e($d['name']) ?></a>
+                        </div>
+                    </td>
+                    <td class="font-mono text-[12.5px]"><?= $total ?></td>
+                    <td class="font-mono text-[12.5px]" style="color:#b45309"><?= (int)$d['open_count'] ?></td>
+                    <td class="font-mono text-[12.5px] text-emerald-600 font-bold"><?= $resolved ?></td>
+                    <td class="font-mono text-[12.5px]" style="color:<?= (int)$d['breached']>0?'#dc2626':'#9ca3af' ?>"><?= (int)$d['breached'] ?></td>
+                    <td class="font-mono text-[12.5px]"><?= $total ? round((float)$d['avg_hours'],1) . ' h' : '—' ?></td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <div class="progress flex-1"><div class="progress-bar" style="width:<?= $pct ?>%;background:<?= $e($d['color']) ?>"></div></div>
+                            <span class="font-mono text-[12px] font-bold text-ink-700 w-10 text-right"><?= $pct ?>%</span>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+<?php endif; ?>
+
 <div class="card overflow-hidden">
     <div class="px-7 pt-6 pb-2 flex items-center justify-between">
         <div>

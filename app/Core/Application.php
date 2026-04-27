@@ -111,6 +111,16 @@ class Application
         $r->post('/t/{slug}/categories/{id}', ['App\Controllers\CategoryController', 'update']);
         $r->post('/t/{slug}/categories/{id}/delete', ['App\Controllers\CategoryController', 'delete']);
 
+        // Departamentos (PRO)
+        $r->get('/t/{slug}/departments', ['App\Controllers\DepartmentController', 'index']);
+        $r->post('/t/{slug}/departments', ['App\Controllers\DepartmentController', 'store']);
+        $r->get('/t/{slug}/departments/{id}', ['App\Controllers\DepartmentController', 'show']);
+        $r->post('/t/{slug}/departments/{id}', ['App\Controllers\DepartmentController', 'update']);
+        $r->post('/t/{slug}/departments/{id}/delete', ['App\Controllers\DepartmentController', 'delete']);
+        $r->post('/t/{slug}/departments/{id}/agents', ['App\Controllers\DepartmentController', 'addAgent']);
+        $r->post('/t/{slug}/departments/{id}/agents/{userId}/remove', ['App\Controllers\DepartmentController', 'removeAgent']);
+        $r->post('/t/{slug}/departments/{id}/agents/{userId}/lead', ['App\Controllers\DepartmentController', 'toggleLead']);
+
         // Macros / Plantillas
         $r->get('/t/{slug}/macros', ['App\Controllers\MacroController', 'index']);
         $r->post('/t/{slug}/macros', ['App\Controllers\MacroController', 'store']);
@@ -130,7 +140,10 @@ class Application
         $r->post('/t/{slug}/todos/lists', ['App\Controllers\TodoController', 'storeList']);
         $r->post('/t/{slug}/todos/lists/{id}/delete', ['App\Controllers\TodoController', 'deleteList']);
         $r->post('/t/{slug}/todos', ['App\Controllers\TodoController', 'store']);
+        $r->post('/t/{slug}/todos/reminders', ['App\Controllers\TodoController', 'sendDueReminders']);
+        $r->post('/t/{slug}/todos/{id}', ['App\Controllers\TodoController', 'update']);
         $r->post('/t/{slug}/todos/{id}/toggle', ['App\Controllers\TodoController', 'toggle']);
+        $r->post('/t/{slug}/todos/{id}/remind', ['App\Controllers\TodoController', 'sendReminder']);
         $r->post('/t/{slug}/todos/{id}/delete', ['App\Controllers\TodoController', 'delete']);
 
         // Usuarios

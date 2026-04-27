@@ -8,11 +8,12 @@ $env = getenv('KYDESK_ENV') ?: (
 
 $databases = [
     'local' => [
-        'host' => '127.0.0.1',
+        // Local apunta a la base de produccion para trabajar con datos reales desde XAMPP.
+        'host' => '129.121.81.172',
         'port' => 3306,
-        'name' => 'kyros_helpdesk',
-        'user' => 'root',
-        'pass' => '',
+        'name' => 'neetjbte_kydesk',
+        'user' => 'neetjbte_kydesk',
+        'pass' => 'Kydesk.2026!',
         'charset' => 'utf8mb4',
     ],
     'production' => [

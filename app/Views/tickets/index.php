@@ -45,7 +45,7 @@ $catBgMap = ['Hardware'=>['#fef3c7','#b45309'],'Software'=>['#dbeafe','#1d4ed8']
 </div>
 
 <!-- Filtros -->
-<form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+<form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-<?= !empty($departments) ? '5' : '4' ?> gap-3">
     <div class="search-pill" style="max-width:none"><i class="lucide lucide-search"></i><input name="q" value="<?= $e($filters['q']) ?>" placeholder="Buscar por asunto, código, email…"></div>
     <select name="priority" class="input">
         <option value="">Cualquier prioridad</option>
@@ -59,6 +59,14 @@ $catBgMap = ['Hardware'=>['#fef3c7','#b45309'],'Software'=>['#dbeafe','#1d4ed8']
             <option value="<?= (int)$c['id'] ?>" <?= (int)$filters['category']===(int)$c['id']?'selected':'' ?>><?= $e($c['name']) ?></option>
         <?php endforeach; ?>
     </select>
+    <?php if (!empty($departments)): ?>
+        <select name="department" class="input">
+            <option value="0">Cualquier departamento</option>
+            <?php foreach ($departments as $d): ?>
+                <option value="<?= (int)$d['id'] ?>" <?= (int)($filters['department']??0)===(int)$d['id']?'selected':'' ?>><?= $e($d['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+    <?php endif; ?>
     <select name="assigned" class="input">
         <option value="">Cualquier técnico</option>
         <option value="me" <?= $filters['assigned']==='me'?'selected':'' ?>>Míos</option>
@@ -103,10 +111,15 @@ $catBgMap = ['Hardware'=>['#fef3c7','#b45309'],'Software'=>['#dbeafe','#1d4ed8']
                             <div class="flex items-center gap-3">
                                 <div class="w-11 h-11 rounded-xl grid place-items-center shrink-0" style="background:<?= $bg ?>;color:<?= $col ?>"><i class="lucide lucide-ticket text-base"></i></div>
                                 <div class="min-w-0">
-                                    <div class="flex items-center gap-2 mb-0.5">
+                                    <div class="flex items-center gap-2 mb-0.5 flex-wrap">
                                         <span class="text-[10.5px] font-mono text-ink-400"><?= $e($t['code']) ?></span>
                                         <?php if ((int)$t['escalation_level'] > 0): ?>
                                             <span class="badge badge-rose">N<?= (int)$t['escalation_level']+1 ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($t['department_name'])): ?>
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style="background:<?= $e($t['department_color']) ?>15;color:<?= $e($t['department_color']) ?>;border:1px solid <?= $e($t['department_color']) ?>30">
+                                                <i class="lucide lucide-<?= $e($t['department_icon']) ?> text-[9px]"></i> <?= $e($t['department_name']) ?>
+                                            </span>
                                         <?php endif; ?>
                                     </div>
                                     <div class="font-display font-bold text-[13.5px] truncate max-w-[340px]"><?= $e($t['subject']) ?></div>

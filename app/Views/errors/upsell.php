@@ -3,6 +3,7 @@ $featureLabels = [
     'automations' => ['Automatizaciones','workflow','Crea reglas que ejecutan acciones solas: auto-asignar, escalar, cerrar, notificar.','#7c5cff'],
     'sla' => ['SLA + Escalamientos','gauge','Define políticas de respuesta y resolución por prioridad. Alertas antes de la brecha.','#f59e0b'],
     'audit' => ['Auditoría completa','history','Registro inmutable de cada acción del equipo: quién, qué, cuándo y desde dónde.','#16a34a'],
+    'departments' => ['Departamentos','layers','Organiza tu equipo en departamentos con asignación automática de tickets, SLAs propios y reportes independientes.','#3b82f6'],
     'sso' => ['SSO + SAML','key-round','Inicio de sesión único corporativo con SAML 2.0 y aprovisionamiento SCIM.','#ec4899'],
 ];
 [$label, $icon, $desc, $color] = $featureLabels[$feature] ?? [ucfirst($feature), 'lock', 'Disponible en planes superiores', '#7c5cff'];

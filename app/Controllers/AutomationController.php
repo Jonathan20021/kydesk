@@ -28,10 +28,17 @@ class AutomationController extends Controller
         $this->requireCan('automations.edit');
         $categories = $this->db->all('SELECT id, name FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $departments = [];
+        if (\App\Core\Plan::has($tenant, 'departments')) {
+            try {
+                $departments = $this->db->all('SELECT id, name FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]);
+            } catch (\Throwable $_e) { /* tabla no existe */ }
+        }
         $this->render('automations/create', [
             'title' => 'Nueva automatización',
             'categories' => $categories,
             'technicians' => $technicians,
+            'departments' => $departments,
         ]);
     }
 
@@ -53,11 +60,13 @@ class AutomationController extends Controller
         $conditions = [];
         if ($pri = (string)$this->input('cond_priority','')) $conditions['priority'] = $pri;
         if ($cat = (int)$this->input('cond_category_id',0)) $conditions['category_id'] = $cat;
+        if ($dept = (int)$this->input('cond_department_id',0)) $conditions['department_id'] = $dept;
         if ($keyword = trim((string)$this->input('cond_keyword',''))) $conditions['keyword'] = $keyword;
 
         $actions = [];
         if ($act = (string)$this->input('act_set_priority','')) $actions['set_priority'] = $act;
         if ($assignTo = (int)$this->input('act_assign_to',0)) $actions['assign_to'] = $assignTo;
+        if ($assignDept = (int)$this->input('act_assign_to_department',0)) $actions['assign_to_department'] = $assignDept;
         if ($status = (string)$this->input('act_set_status','')) $actions['set_status'] = $status;
         if ($notify = (string)$this->input('act_notify_email','')) $actions['notify_email'] = $notify;
         if ($comment = trim((string)$this->input('act_add_comment',''))) $actions['add_comment'] = $comment;

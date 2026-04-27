@@ -16,24 +16,31 @@ class TicketController extends Controller
         $status = (string)($_GET['status'] ?? '');
         $priority = (string)($_GET['priority'] ?? '');
         $category = (int)($_GET['category'] ?? 0);
+        $department = (int)($_GET['department'] ?? 0);
         $assigned = (string)($_GET['assigned'] ?? '');
+
+        $hasDepts = $this->hasDepartments();
 
         $where = ['t.tenant_id = ?']; $args = [$tenant->id];
         if ($q !== '')          { $where[] = '(t.subject LIKE ? OR t.code LIKE ? OR t.description LIKE ? OR t.requester_email LIKE ?)'; $qq = "%$q%"; array_push($args, $qq, $qq, $qq, $qq); }
         if ($status !== '')     { $where[] = 't.status = ?';  $args[] = $status; }
         if ($priority !== '')   { $where[] = 't.priority = ?'; $args[] = $priority; }
         if ($category)          { $where[] = 't.category_id = ?'; $args[] = $category; }
+        if ($department && $hasDepts) { $where[] = 't.department_id = ?'; $args[] = $department; }
         if ($assigned === 'me') { $where[] = 't.assigned_to = ?'; $args[] = $this->auth->userId(); }
         elseif ($assigned === 'unassigned') { $where[] = 't.assigned_to IS NULL'; }
         elseif ($assigned !== '' && ctype_digit($assigned)) { $where[] = 't.assigned_to = ?'; $args[] = (int)$assigned; }
 
+        $deptSelect = $hasDepts ? ', d.name AS department_name, d.color AS department_color, d.icon AS department_icon' : '';
+        $deptJoin   = $hasDepts ? ' LEFT JOIN departments d ON d.id = t.department_id' : '';
+
         $tickets = $this->db->all(
             "SELECT t.*, c.name AS category_name, c.color AS category_color, co.name AS company_name,
-                    u.name AS assigned_name, u.email AS assigned_email
+                    u.name AS assigned_name, u.email AS assigned_email" . $deptSelect . "
              FROM tickets t
              LEFT JOIN ticket_categories c ON c.id = t.category_id
              LEFT JOIN companies co ON co.id = t.company_id
-             LEFT JOIN users u ON u.id = t.assigned_to
+             LEFT JOIN users u ON u.id = t.assigned_to" . $deptJoin . "
              WHERE " . implode(' AND ', $where) . "
              ORDER BY
                 FIELD(t.priority,'urgent','high','medium','low'),
@@ -45,6 +52,7 @@ class TicketController extends Controller
 
         $categories = $this->db->all('SELECT id, name, color FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $departments = $hasDepts ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
 
         $counts = [
             'all'         => (int)$this->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id=?", [$tenant->id]),
@@ -61,8 +69,9 @@ class TicketController extends Controller
             'tickets' => $tickets,
             'categories' => $categories,
             'technicians' => $technicians,
+            'departments' => $departments,
             'counts' => $counts,
-            'filters' => compact('q','status','priority','category','assigned'),
+            'filters' => compact('q','status','priority','category','department','assigned'),
         ]);
     }
 
@@ -93,7 +102,8 @@ class TicketController extends Controller
         $categories = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
         $companies = $this->db->all('SELECT id, name FROM companies WHERE tenant_id=? ORDER BY name', [$tenant->id]);
-        $this->render('tickets/create', ['title'=>'Nuevo ticket','categories'=>$categories,'technicians'=>$technicians,'companies'=>$companies]);
+        $departments = $this->hasDepartments() ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
+        $this->render('tickets/create', ['title'=>'Nuevo ticket','categories'=>$categories,'technicians'=>$technicians,'companies'=>$companies,'departments'=>$departments]);
     }
 
     public function store(array $params): void
@@ -114,6 +124,21 @@ class TicketController extends Controller
         $channel = (string)$this->input('channel','internal');
         $this->enforceChannel($channel, '/t/' . $tenant->slug . '/tickets/create');
 
+        $deptId = ((int)$this->input('department_id',0)) ?: null;
+        $assignedTo = ((int)$this->input('assigned_to',0)) ?: null;
+
+        // Auto-asignar al líder del departamento si se eligió dept y no se asignó técnico
+        if ($deptId && !$assignedTo && $this->hasDepartments()) {
+            $lead = $this->db->val(
+                'SELECT du.user_id FROM department_users du
+                 JOIN users u ON u.id = du.user_id
+                 WHERE du.department_id=? AND u.tenant_id=? AND u.is_active=1
+                 ORDER BY du.is_lead DESC, RAND() LIMIT 1',
+                [$deptId, $tenant->id]
+            );
+            if ($lead) $assignedTo = (int)$lead;
+        }
+
         $data = [
             'tenant_id' => $tenant->id,
             'code'      => 'TMP-' . bin2hex(random_bytes(4)),
@@ -127,11 +152,12 @@ class TicketController extends Controller
             'requester_name'  => (string)$this->input('requester_name', $this->auth->user()['name']),
             'requester_email' => (string)$this->input('requester_email', $this->auth->user()['email']),
             'requester_phone' => (string)$this->input('requester_phone',''),
-            'assigned_to' => ((int)$this->input('assigned_to',0)) ?: null,
+            'assigned_to' => $assignedTo,
             'created_by'  => $this->auth->userId(),
             'tags' => (string)$this->input('tags',''),
             'public_token' => bin2hex(random_bytes(16)),
         ];
+        if ($this->hasDepartments()) $data['department_id'] = $deptId;
         $id = $this->db->insert('tickets', $data);
         $this->db->update('tickets', ['code' => Helpers::ticketCode($tenant->id, $id)], 'id=?', [$id]);
 
@@ -146,16 +172,20 @@ class TicketController extends Controller
         $this->requireCan('tickets.view');
         $id = (int)$params['id'];
 
+        $hasDepts = $this->hasDepartments();
+        $deptSelect = $hasDepts ? ', d.name AS department_name, d.color AS department_color, d.icon AS department_icon' : '';
+        $deptJoin   = $hasDepts ? ' LEFT JOIN departments d ON d.id = t.department_id' : '';
+
         $ticket = $this->db->one(
             "SELECT t.*, c.name AS category_name, c.color AS category_color,
                     co.name AS company_name, co.tier AS company_tier,
                     u.name AS assigned_name, u.email AS assigned_email, u.title AS assigned_title,
-                    cr.name AS creator_name
+                    cr.name AS creator_name" . $deptSelect . "
              FROM tickets t
              LEFT JOIN ticket_categories c ON c.id = t.category_id
              LEFT JOIN companies co ON co.id = t.company_id
              LEFT JOIN users u ON u.id = t.assigned_to
-             LEFT JOIN users cr ON cr.id = t.created_by
+             LEFT JOIN users cr ON cr.id = t.created_by" . $deptJoin . "
              WHERE t.id = ? AND t.tenant_id = ?",
             [$id, $tenant->id]
         );
@@ -181,6 +211,7 @@ class TicketController extends Controller
         );
         $categories = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $technicians = $this->db->all('SELECT id, name, email FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $departments = $hasDepts ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
         $relatedArticles = $this->db->all(
             "SELECT id, title, slug, excerpt FROM kb_articles WHERE tenant_id=? AND status='published' ORDER BY views DESC LIMIT 3",
             [$tenant->id]
@@ -204,6 +235,7 @@ class TicketController extends Controller
             'escalations' => $escalations,
             'categories' => $categories,
             'technicians' => $technicians,
+            'departments' => $departments,
             'relatedArticles' => $relatedArticles,
             'macros' => $macros,
         ]);
@@ -265,9 +297,11 @@ class TicketController extends Controller
         $id = (int)$params['id'];
 
         $data = [];
-        foreach (['status','priority','category_id','subject','description','tags'] as $f) {
+        $editable = ['status','priority','category_id','subject','description','tags'];
+        if ($this->hasDepartments()) $editable[] = 'department_id';
+        foreach ($editable as $f) {
             $v = $this->input($f, null);
-            if ($v !== null) $data[$f] = ($f === 'category_id') ? (((int)$v) ?: null) : $v;
+            if ($v !== null) $data[$f] = in_array($f, ['category_id','department_id'], true) ? (((int)$v) ?: null) : $v;
         }
         if (($data['status'] ?? null) === 'resolved') $data['resolved_at'] = date('Y-m-d H:i:s');
         if (($data['status'] ?? null) === 'closed')   $data['closed_at']   = date('Y-m-d H:i:s');
@@ -364,6 +398,19 @@ class TicketController extends Controller
         $this->logAudit('ticket.deleted','ticket',$id);
         $this->session->flash('success','Ticket eliminado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets');
+    }
+
+    protected function hasDepartments(): bool
+    {
+        static $cached = null;
+        if ($cached !== null) return $cached;
+        try {
+            $tenant = $this->app->tenant;
+            if (!$tenant) return $cached = false;
+            $hasFeature = \App\Core\Plan::has($tenant, 'departments');
+            $hasColumn = (bool)$this->db->one("SHOW COLUMNS FROM tickets LIKE 'department_id'");
+            return $cached = ($hasFeature && $hasColumn);
+        } catch (\Throwable $_e) { return $cached = false; }
     }
 
     protected function logAudit(string $action, string $entity, int $entityId, array $meta = []): void

@@ -263,6 +263,18 @@ $statusMeta = ['open'=>['Abierto','#3b82f6','#dbeafe'],'in_progress'=>['En progr
                         <?php else: ?><span class="text-ink-400">—</span><?php endif; ?>
                     </dd>
                 </div>
+                <?php if (!empty($departments) || !empty($t['department_name'])): ?>
+                <div class="flex items-start justify-between gap-3">
+                    <dt class="text-ink-400 inline-flex items-center gap-2"><i class="lucide lucide-layers text-[12px]"></i> Departamento</dt>
+                    <dd>
+                        <?php if (!empty($t['department_name'])): ?>
+                            <a href="<?= $url('/t/' . $slug . '/departments/' . (int)$t['department_id']) ?>" class="inline-flex items-center gap-1.5" style="color:<?= $e($t['department_color']) ?>">
+                                <i class="lucide lucide-<?= $e($t['department_icon']) ?> text-[11px]"></i> <?= $e($t['department_name']) ?>
+                            </a>
+                        <?php else: ?><span class="text-ink-400">—</span><?php endif; ?>
+                    </dd>
+                </div>
+                <?php endif; ?>
                 <div class="flex items-start justify-between gap-3">
                     <dt class="text-ink-400 inline-flex items-center gap-2"><i class="lucide lucide-user-check text-[12px]"></i> Asignado</dt>
                     <dd>
@@ -305,6 +317,17 @@ $statusMeta = ['open'=>['Abierto','#3b82f6','#dbeafe'],'in_progress'=>['En progr
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <?php if (!empty($departments)): ?>
+                        <div>
+                            <label class="label">Departamento</label>
+                            <select name="department_id" class="input">
+                                <option value="0">Sin departamento</option>
+                                <?php foreach ($departments as $d): ?>
+                                    <option value="<?= (int)$d['id'] ?>" <?= (int)($t['department_id']??0)===(int)$d['id']?'selected':'' ?>><?= $e($d['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endif; ?>
                     <button class="btn btn-primary btn-sm w-full"><i class="lucide lucide-save"></i> Guardar</button>
                 </form>
             </div>

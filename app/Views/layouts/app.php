@@ -29,6 +29,7 @@ $navOps = [
     ['Notas','notebook-pen','/notes','notes.view','notes'],
 ];
 $navManagement = [
+    ['Departamentos','layers','/departments','departments.view','departments'],
     ['Empresas','building-2','/companies','companies.view','companies'],
     ['Activos','server','/assets','assets.view','assets'],
     ['Conocimiento','book-open','/kb','kb.view','kb'],

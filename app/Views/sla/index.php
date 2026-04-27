@@ -28,8 +28,21 @@
                     <div class="w-9 h-9 rounded-xl grid place-items-center shrink-0" style="background:<?= $col ?>15;color:<?= $col ?>;border:1px solid <?= $col ?>30"><i class="lucide lucide-gauge text-[15px]"></i></div>
                     <span class="status-pill priority-<?= $p['priority'] ?>"><?= ucfirst($p['priority']) ?></span>
                     <input name="name" value="<?= $e($p['name']) ?>" class="input flex-1" style="height:36px;border-radius:10px;font-weight:600;min-width:200px">
+                    <?php if (!empty($departments) && !empty($hasDeptCol)): ?>
+                        <select name="department_id" class="input shrink-0" style="height:36px;border-radius:10px;max-width:200px">
+                            <option value="0">— Global —</option>
+                            <?php foreach ($departments as $d): ?>
+                                <option value="<?= (int)$d['id'] ?>" <?= (int)($p['department_id']??0)===(int)$d['id']?'selected':'' ?>><?= $e($d['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php endif; ?>
                     <label class="flex items-center gap-1.5 text-[12px] shrink-0"><input type="checkbox" name="active" value="1" <?= $p['active']?'checked':'' ?>> Activa</label>
                 </div>
+                <?php if (!empty($p['department_name'])): ?>
+                    <div class="text-[11px] mb-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full" style="background:<?= $e($p['department_color']??'#3b82f6') ?>15;color:<?= $e($p['department_color']??'#3b82f6') ?>">
+                        <i class="lucide lucide-layers text-[10px]"></i> Específica para: <?= $e($p['department_name']) ?>
+                    </div>
+                <?php endif; ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="text-[11.5px] font-semibold text-ink-700 flex items-center gap-1.5"><i class="lucide lucide-message-square-reply text-[13px] text-emerald-600"></i> Tiempo de primera respuesta</label>

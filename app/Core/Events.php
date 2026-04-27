@@ -23,6 +23,11 @@ class Events
     public const SLA_BREACH       = 'sla.breach';
     public const COMPANY_CREATED  = 'company.created';
     public const KB_PUBLISHED     = 'kb.published';
+    public const TODO_CREATED     = 'todo.created';
+    public const TODO_UPDATED     = 'todo.updated';
+    public const TODO_COMPLETED   = 'todo.completed';
+    public const TODO_DELETED     = 'todo.deleted';
+    public const TODO_REMINDER_SENT = 'todo.reminder_sent';
 
     public static function emit(string $event, int $tenantId, ?string $entity = null, ?int $entityId = null, array $payload = [], ?int $actorUserId = null): void
     {

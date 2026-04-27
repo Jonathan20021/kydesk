@@ -30,6 +30,25 @@ class ReportController extends Controller
              WHERE c.tenant_id=? GROUP BY c.id, c.name, c.color ORDER BY c DESC",
             [$tid]
         );
+
+        $byDepartment = [];
+        if (\App\Core\Plan::has($tenant, 'departments')) {
+            try {
+                $byDepartment = $this->db->all(
+                    "SELECT d.id, d.name, d.color, d.icon,
+                            COUNT(t.id) total,
+                            SUM(CASE WHEN t.status IN ('open','in_progress') THEN 1 ELSE 0 END) AS open_count,
+                            SUM(CASE WHEN t.status IN ('resolved','closed') THEN 1 ELSE 0 END) AS resolved_count,
+                            SUM(CASE WHEN t.sla_breached=1 THEN 1 ELSE 0 END) AS breached,
+                            AVG(TIMESTAMPDIFF(HOUR, t.created_at, COALESCE(t.resolved_at, NOW()))) AS avg_hours
+                     FROM departments d
+                     LEFT JOIN tickets t ON t.department_id = d.id AND t.tenant_id = d.tenant_id
+                     WHERE d.tenant_id=? GROUP BY d.id, d.name, d.color, d.icon
+                     ORDER BY total DESC",
+                    [$tid]
+                );
+            } catch (\Throwable $_e) { /* tabla no existe */ }
+        }
         $agentPerf = $this->db->all(
             "SELECT u.name,
                     COUNT(t.id) total,
@@ -51,6 +70,7 @@ class ReportController extends Controller
             'byPriority' => $byPriority,
             'byChannel' => $byChannel,
             'byCategory' => $byCategory,
+            'byDepartment' => $byDepartment,
             'agentPerf' => $agentPerf,
             'avgResolve' => $avgResolve,
         ]);

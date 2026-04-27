@@ -41,7 +41,7 @@
 
         <div class="card card-pad space-y-3">
             <h3 class="font-display font-bold text-[15px]"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-500 text-white text-[11px] font-bold mr-2">3</span>Condiciones <span class="text-[11.5px] text-ink-400 font-normal">(opcional · todas deben cumplirse)</span></h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-<?= !empty($departments) ? '4' : '3' ?> gap-3">
                 <div>
                     <label class="text-[11.5px] font-semibold text-ink-700">Prioridad</label>
                     <select name="cond_priority" class="input mt-1">
@@ -61,6 +61,17 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <?php if (!empty($departments)): ?>
+                    <div>
+                        <label class="text-[11.5px] font-semibold text-ink-700">Departamento</label>
+                        <select name="cond_department_id" class="input mt-1">
+                            <option value="0">Cualquiera</option>
+                            <?php foreach ($departments as $d): ?>
+                                <option value="<?= (int)$d['id'] ?>"><?= $e($d['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endif; ?>
                 <div>
                     <label class="text-[11.5px] font-semibold text-ink-700">Palabra clave en asunto</label>
                     <input name="cond_keyword" maxlength="80" class="input mt-1" placeholder="Ej: VPN">
@@ -101,6 +112,17 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <?php if (!empty($departments)): ?>
+                    <div>
+                        <label class="text-[11.5px] font-semibold text-ink-700 flex items-center gap-1.5">Enrutar a departamento <span class="text-[9.5px] uppercase tracking-[0.14em] px-1 py-0.5 rounded-full" style="background:#eff6ff;color:#1d4ed8">PRO</span></label>
+                        <select name="act_assign_to_department" class="input mt-1">
+                            <option value="0">— sin cambio —</option>
+                            <?php foreach ($departments as $d): ?>
+                                <option value="<?= (int)$d['id'] ?>"><?= $e($d['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endif; ?>
                 <div>
                     <label class="text-[11.5px] font-semibold text-ink-700">Notificar por email a</label>
                     <input name="act_notify_email" type="email" class="input mt-1" placeholder="alerts@empresa.com">

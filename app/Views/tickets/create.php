@@ -23,7 +23,19 @@ $allowedChannels = Plan::LIMITS[Plan::tenantPlan($tenant)]['channels'] ?? ['port
         <label class="label">Descripción</label>
         <textarea name="description" rows="6" class="input" placeholder="Explica con detalle…"></textarea>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-<?= !empty($departments) ? '4' : '3' ?> gap-4">
+        <?php if (!empty($departments)): ?>
+            <div>
+                <label class="label flex items-center gap-1.5">Departamento <span class="text-[10px] uppercase tracking-[0.14em] px-1.5 py-0.5 rounded-full" style="background:#eff6ff;color:#1d4ed8">PRO</span></label>
+                <select name="department_id" class="input">
+                    <option value="0">— Sin departamento —</option>
+                    <?php foreach ($departments as $d): ?>
+                        <option value="<?= (int)$d['id'] ?>"><?= $e($d['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="text-[10.5px] text-ink-400 mt-1">Asigna automáticamente a un líder del equipo</p>
+            </div>
+        <?php endif; ?>
         <div>
             <label class="label">Categoría</label>
             <select name="category_id" class="input">
