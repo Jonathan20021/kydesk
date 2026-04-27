@@ -1,6 +1,6 @@
 <footer class="border-t border-[#ececef] bg-white mt-20">
-    <div class="max-w-[1240px] mx-auto px-6 py-14 grid grid-cols-1 lg:grid-cols-5 gap-10">
-        <div class="lg:col-span-2">
+    <div class="max-w-[1240px] mx-auto px-4 sm:px-6 py-10 sm:py-14 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 sm:gap-10">
+        <div class="col-span-2 sm:col-span-3 lg:col-span-2">
             <a href="<?= $url('/') ?>" class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-xl bg-brand-500 text-white grid place-items-center font-display font-bold text-[15px]">K</div>
                 <span class="font-display font-bold text-[18px]">Kydesk</span>
@@ -34,7 +34,7 @@
         <?php endforeach; ?>
     </div>
     <div class="border-t border-[#ececef]">
-        <div class="max-w-[1240px] mx-auto px-6 h-12 flex items-center justify-between text-[11.5px] text-ink-400">
+        <div class="max-w-[1240px] mx-auto px-4 sm:px-6 py-3 sm:py-0 sm:h-12 flex flex-col sm:flex-row items-center sm:justify-between gap-2 text-[11.5px] text-ink-400">
             <div>© <?= date('Y') ?> Kydesk Helpdesk</div>
             <div class="flex items-center gap-4">
                 <a href="<?= $url('/privacy') ?>" class="hover:text-ink-900">Privacidad</a>
