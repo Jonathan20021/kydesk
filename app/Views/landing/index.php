@@ -306,6 +306,7 @@
             $bentos = [
                 ['kanban','Tablero Kanban','Drag & drop. Tu flujo, tu forma.','kanban-square','#dbeafe','#1d4ed8'],
                 ['automations','Automatizaciones IA','Reglas que ejecutan acciones solas.','workflow','#f3e8ff','#7e22ce'],
+                ['retainers','Igualas configurables','Contratos recurrentes para soporte, dev, sistemas.','handshake','#ecfdf5','#047857'],
                 ['analytics','Analítica profunda','Métricas que mueven decisiones.','line-chart','#d1fae5','#047857'],
                 ['kb','Conocimiento','Artículos públicos e internos.','book-open','#fef3c7','#b45309'],
                 ['multitenant','Multi-tenant','Aísla cada organización.','building-2','#fce7f3','#be185d'],
@@ -1099,6 +1100,9 @@ function apiDemo() {
             'automations' => 'Automatizaciones IA',
             'sla' => 'SLA + Escalamientos',
             'audit' => 'Auditoría',
+            'departments' => 'Departamentos',
+            'integrations' => 'Integraciones',
+            'retainers' => 'Igualas (contratos recurrentes)',
             'sso' => 'SSO + SAML',
             'custom_branding' => 'Marca personalizada',
         ];

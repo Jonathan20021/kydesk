@@ -31,6 +31,7 @@ $navOps = [
 $navManagement = [
     ['Departamentos','layers','/departments','departments.view','departments'],
     ['Empresas','building-2','/companies','companies.view','companies'],
+    ['Igualas','handshake','/retainers','retainers.view','retainers'],
     ['Activos','server','/assets','assets.view','assets'],
     ['Conocimiento','book-open','/kb','kb.view','kb'],
     ['Reportes','line-chart','/reports','reports.view','reports'],

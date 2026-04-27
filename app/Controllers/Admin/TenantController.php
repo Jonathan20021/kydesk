@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 use App\Core\Helpers;
 use App\Core\License;
 use App\Core\Mailer;
+use App\Core\Plan;
 use App\Core\Tenant as TenantModel;
 
 class TenantController extends AdminController
@@ -415,6 +416,91 @@ class TenantController extends AdminController
             $this->session->flash('success', 'Empresa eliminada definitivamente.');
         }
         $this->redirect('/admin/tenants');
+    }
+
+    public function modules(array $params): void
+    {
+        $this->requireCan('tenants.view');
+        $id = (int)$params['id'];
+        $tenantRow = $this->db->one('SELECT * FROM tenants WHERE id = ?', [$id]);
+        if (!$tenantRow) { $this->session->flash('error', 'Empresa no encontrada.'); $this->redirect('/admin/tenants'); }
+
+        $tenant = new TenantModel($tenantRow);
+        $planSlug = Plan::tenantPlan($tenant);
+        $planFeatures = Plan::FEATURES[$planSlug] ?? [];
+        Plan::clearOverrideCache($id);
+        $overrides = [];
+        try {
+            $rows = $this->db->all('SELECT * FROM tenant_module_overrides WHERE tenant_id = ?', [$id]);
+            foreach ($rows as $r) $overrides[$r['feature']] = $r;
+        } catch (\Throwable $e) { /* tabla puede no existir si no se corrió la migración */ }
+
+        $this->render('admin/tenants/modules', [
+            'title' => 'Módulos · ' . $tenantRow['name'],
+            'pageHeading' => 'Módulos · ' . $tenantRow['name'],
+            't' => $tenantRow,
+            'tenantModel' => $tenant,
+            'planSlug' => $planSlug,
+            'planLabel' => Plan::label($tenant),
+            'planFeatures' => $planFeatures,
+            'catalog' => Plan::MODULE_CATALOG,
+            'overrides' => $overrides,
+            'license' => License::status($tenant),
+        ]);
+    }
+
+    public function modulesUpdate(array $params): void
+    {
+        $this->requireCan('tenants.edit');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $tenantRow = $this->db->one('SELECT * FROM tenants WHERE id = ?', [$id]);
+        if (!$tenantRow) { $this->session->flash('error', 'Empresa no encontrada.'); $this->redirect('/admin/tenants'); }
+
+        $tenant = new TenantModel($tenantRow);
+        $planFeatures = Plan::FEATURES[Plan::tenantPlan($tenant)] ?? [];
+        $catalogKeys = array_keys(Plan::MODULE_CATALOG);
+
+        $states = (array)$this->input('module', []);
+        $reasons = (array)$this->input('reason', []);
+
+        // Aplicar cambios uno por uno
+        foreach ($catalogKeys as $feature) {
+            $state = (string)($states[$feature] ?? 'inherit'); // inherit | on | off
+            $reason = trim((string)($reasons[$feature] ?? ''));
+
+            if ($state === 'inherit') {
+                try {
+                    $this->db->delete('tenant_module_overrides', 'tenant_id = ? AND feature = ?', [$id, $feature]);
+                } catch (\Throwable $e) {}
+                continue;
+            }
+            if (!in_array($state, ['on','off'], true)) continue;
+
+            try {
+                $existing = $this->db->one('SELECT id FROM tenant_module_overrides WHERE tenant_id = ? AND feature = ?', [$id, $feature]);
+                $payload = [
+                    'tenant_id'     => $id,
+                    'feature'       => $feature,
+                    'state'         => $state,
+                    'reason'        => $reason !== '' ? $reason : null,
+                    'set_by_admin'  => $this->superAuth->id(),
+                ];
+                if ($existing) {
+                    $this->db->update('tenant_module_overrides', $payload, 'id = :id', ['id' => (int)$existing['id']]);
+                } else {
+                    $this->db->insert('tenant_module_overrides', $payload);
+                }
+            } catch (\Throwable $e) {
+                $this->session->flash('error', 'No se pudo guardar overrides. ¿Migración aplicada? · ' . $e->getMessage());
+                $this->redirect('/admin/tenants/' . $id . '/modules');
+            }
+        }
+
+        Plan::clearOverrideCache($id);
+        $this->superAuth->log('tenant.modules_update', 'tenant', $id);
+        $this->session->flash('success', 'Módulos del tenant actualizados.');
+        $this->redirect('/admin/tenants/' . $id . '/modules');
     }
 
     public function impersonate(array $params): void

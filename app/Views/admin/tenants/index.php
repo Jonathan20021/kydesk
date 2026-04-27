@@ -94,7 +94,8 @@
                 </td>
                 <td>
                     <div class="flex gap-1">
-                        <a href="<?= $url('/admin/tenants/' . $t['id']) ?>" class="admin-btn admin-btn-soft" style="padding:5px 10px"><i class="lucide lucide-eye text-[13px]"></i></a>
+                        <a href="<?= $url('/admin/tenants/' . $t['id']) ?>" class="admin-btn admin-btn-soft" style="padding:5px 10px" data-tooltip="Ver"><i class="lucide lucide-eye text-[13px]"></i></a>
+                        <a href="<?= $url('/admin/tenants/' . $t['id'] . '/modules') ?>" class="admin-btn admin-btn-soft" style="padding:5px 10px" data-tooltip="Módulos"><i class="lucide lucide-toggle-right text-[13px]"></i></a>
                         <?php if ($t['is_active']): ?>
                             <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/impersonate') ?>" onsubmit="return confirm('¿Acceder como propietario de esta empresa?')">
                                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">

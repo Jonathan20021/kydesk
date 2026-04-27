@@ -660,6 +660,61 @@ include APP_PATH . '/Views/partials/landing_nav.php';
                         <?php endforeach; ?>
                     </div>
 
+                <?php elseif ($mockType === 'retainers'): ?>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                        <?php foreach ([
+                            ['Soporte TI Premium', 'life-buoy', '#7c5cff', 'Acme Corp', 'Mensual', 80, 62, '$899'],
+                            ['Dev Sprint Frontend', 'code-2', '#3b82f6', 'Globex', 'Mensual', 100, 87, '$4,500'],
+                            ['Cloud Ops 24/7', 'cloud', '#0ea5e9', 'Initech', 'Mensual', 30, 18, '$1,200'],
+                        ] as [$nm, $ic, $c, $cl, $cy, $tot, $used, $amt]):
+                            $pct = min(100, ($used / max(1, $tot)) * 100);
+                            $over = $used > $tot;
+                        ?>
+                            <div class="rounded-2xl p-4 bg-white border border-[#ececef]">
+                                <div class="flex items-center gap-2.5 mb-3">
+                                    <div class="w-9 h-9 rounded-xl grid place-items-center" style="background:<?= $c ?>15;color:<?= $c ?>;border:1px solid <?= $c ?>33"><i class="lucide lucide-<?= $ic ?> text-[15px]"></i></div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-display font-bold text-[12.5px] truncate"><?= $nm ?></div>
+                                        <div class="text-[10.5px] text-ink-400"><?= $cl ?> · <?= $cy ?></div>
+                                    </div>
+                                    <span class="font-mono text-[12px] font-bold" style="color:<?= $c ?>"><?= $amt ?></span>
+                                </div>
+                                <div class="flex items-center justify-between text-[10.5px] mb-1">
+                                    <span class="text-ink-500">Horas</span>
+                                    <span class="font-mono font-semibold"><?= $used ?>h / <?= $tot ?>h</span>
+                                </div>
+                                <div style="height:6px;background:#f3f4f6;border-radius:999px;overflow:hidden">
+                                    <div style="height:100%;background:<?= $over ? '#ef4444' : $c ?>;width:<?= $pct ?>%"></div>
+                                </div>
+                                <?php if ($over): ?>
+                                    <div class="text-[10px] text-red-600 mt-1.5 flex items-center gap-1"><i class="lucide lucide-alert-triangle text-[10px]"></i> Excedente: <?= $used - $tot ?>h</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="rounded-2xl p-4 bg-white border border-[#ececef]">
+                        <div class="font-display font-bold text-[12.5px] mb-2 flex items-center justify-between">
+                            <span>Items del contrato · Soporte TI Premium</span>
+                            <span class="text-[11px] text-ink-400">5 líneas · $899/mes</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <?php foreach ([
+                                ['Mesa de servicio L1', 'life-buoy', '#7c5cff', '40h', '$320'],
+                                ['Soporte L2 (incidentes)', 'wrench', '#7c5cff', '20h', '$280'],
+                                ['Administración M365', 'box', '#3b82f6', '15h', '$180'],
+                                ['Licencias Office 365', 'key', '#f59e0b', '20 lic.', '$80'],
+                                ['Reporte mensual ejecutivo', 'line-chart', '#10b981', '1 proy.', '$39'],
+                            ] as [$nm, $ic, $c, $qty, $amt]): ?>
+                                <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:#fafafb">
+                                    <div class="w-7 h-7 rounded-lg grid place-items-center" style="background:<?= $c ?>15;color:<?= $c ?>"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i></div>
+                                    <div class="flex-1 text-[11.5px] font-semibold truncate"><?= $nm ?></div>
+                                    <span class="text-[10.5px] font-mono text-ink-500"><?= $qty ?></span>
+                                    <span class="text-[11px] font-mono font-bold w-14 text-right"><?= $amt ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
                 <?php else: /* inbox default */ ?>
                     <div class="space-y-2 max-w-3xl mx-auto">
                         <?php foreach ([

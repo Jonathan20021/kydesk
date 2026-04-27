@@ -5,10 +5,11 @@ $featureLabels = [
     'audit' => ['Auditoría completa','history','Registro inmutable de cada acción del equipo: quién, qué, cuándo y desde dónde.','#16a34a'],
     'departments' => ['Departamentos','layers','Organiza tu equipo en departamentos con asignación automática de tickets, SLAs propios y reportes independientes.','#3b82f6'],
     'integrations' => ['Integraciones','plug','Conecta Kydesk con Slack, Discord, Telegram, Teams, Zapier y más. Notifica eventos automáticamente.','#0ea5e9'],
+    'retainers' => ['Igualas','handshake','Gestioná contratos recurrentes con empresas y clientes individuales: ciclos de facturación, horas incluidas, consumos y excedentes.','#10b981'],
     'sso' => ['SSO + SAML','key-round','Inicio de sesión único corporativo con SAML 2.0 y aprovisionamiento SCIM.','#ec4899'],
 ];
 [$label, $icon, $desc, $color] = $featureLabels[$feature] ?? [ucfirst($feature), 'lock', 'Disponible en planes superiores', '#7c5cff'];
-$planLabel = ['starter'=>'Starter','free'=>'Starter','pro'=>'Pro','business'=>'Pro','enterprise'=>'Enterprise'][$requiredPlan] ?? 'Pro';
+$planLabel = ['starter'=>'Starter','free'=>'Starter','pro'=>'Pro','business'=>'Business','enterprise'=>'Enterprise'][$requiredPlan] ?? 'Pro';
 ?>
 
 <div class="max-w-3xl mx-auto py-8">

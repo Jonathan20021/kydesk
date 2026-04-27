@@ -13,6 +13,7 @@
             </div>
             <div class="flex flex-col gap-2">
                 <a href="<?= $url('/t/' . $t['slug']) ?>" target="_blank" class="admin-btn admin-btn-soft"><i class="lucide lucide-external-link"></i> Ver workspace</a>
+                <a href="<?= $url('/admin/tenants/' . $t['id'] . '/modules') ?>" class="admin-btn admin-btn-soft"><i class="lucide lucide-toggle-right"></i> Gestionar módulos</a>
                 <?php if ($t['is_active']): ?>
                     <form method="POST" action="<?= $url('/admin/tenants/' . $t['id'] . '/impersonate') ?>" onsubmit="return confirm('¿Acceder como propietario?')">
                         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">

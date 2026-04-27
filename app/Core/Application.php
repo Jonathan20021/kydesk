@@ -161,6 +161,23 @@ class Application
         $r->post('/t/{slug}/roles/{id}', ['App\Controllers\RoleController', 'update']);
         $r->post('/t/{slug}/roles/{id}/delete', ['App\Controllers\RoleController', 'delete']);
 
+        // Igualas (Retainers) — Business / Enterprise
+        $r->get('/t/{slug}/retainers', ['App\Controllers\RetainerController', 'index']);
+        $r->get('/t/{slug}/retainers/settings', ['App\Controllers\RetainerController', 'settings']);
+        $r->post('/t/{slug}/retainers/categories', ['App\Controllers\RetainerController', 'categoryStore']);
+        $r->post('/t/{slug}/retainers/categories/{id}', ['App\Controllers\RetainerController', 'categoryUpdate']);
+        $r->post('/t/{slug}/retainers/categories/{id}/delete', ['App\Controllers\RetainerController', 'categoryDelete']);
+        $r->post('/t/{slug}/retainers/templates', ['App\Controllers\RetainerController', 'templateStore']);
+        $r->post('/t/{slug}/retainers/templates/{id}', ['App\Controllers\RetainerController', 'templateUpdate']);
+        $r->post('/t/{slug}/retainers/templates/{id}/delete', ['App\Controllers\RetainerController', 'templateDelete']);
+        $r->get('/t/{slug}/retainers/create', ['App\Controllers\RetainerController', 'create']);
+        $r->post('/t/{slug}/retainers', ['App\Controllers\RetainerController', 'store']);
+        $r->get('/t/{slug}/retainers/{id}', ['App\Controllers\RetainerController', 'show']);
+        $r->post('/t/{slug}/retainers/{id}', ['App\Controllers\RetainerController', 'update']);
+        $r->post('/t/{slug}/retainers/{id}/delete', ['App\Controllers\RetainerController', 'delete']);
+        $r->post('/t/{slug}/retainers/{id}/consumptions', ['App\Controllers\RetainerController', 'logConsumption']);
+        $r->post('/t/{slug}/retainers/{id}/periods/{periodId}/close', ['App\Controllers\RetainerController', 'closePeriod']);
+
         // Companies
         $r->get('/t/{slug}/companies', ['App\Controllers\CompanyController', 'index']);
         $r->get('/t/{slug}/companies/create', ['App\Controllers\CompanyController', 'create']);
@@ -362,6 +379,8 @@ class Application
         $r->post('/admin/tenants/{id}/license/activate', ['App\Controllers\Admin\TenantController', 'licenseActivate']);
         $r->post('/admin/tenants/{id}/license/extend', ['App\Controllers\Admin\TenantController', 'licenseExtendTrial']);
         $r->post('/admin/tenants/{id}/license/revoke', ['App\Controllers\Admin\TenantController', 'licenseRevoke']);
+        $r->get('/admin/tenants/{id}/modules', ['App\Controllers\Admin\TenantController', 'modules']);
+        $r->post('/admin/tenants/{id}/modules', ['App\Controllers\Admin\TenantController', 'modulesUpdate']);
 
         // Plans
         $r->get('/admin/plans', ['App\Controllers\Admin\PlanController', 'index']);
