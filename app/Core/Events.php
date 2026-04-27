@@ -51,6 +51,11 @@ class Events
             IntegrationDispatcher::dispatch($event, $tenantId, $entity, $entityId, $payload);
         } catch (\Throwable $e) { /* don't break host request */ }
 
+        // 1c) Dispatch to tenant automations (rules engine)
+        try {
+            AutomationDispatcher::dispatch($event, $tenantId, $entity, $entityId, $payload);
+        } catch (\Throwable $e) { /* don't break host request */ }
+
         // 2) Find matching dev_webhooks (by tenant via dev_apps.tenant_id) and deliver
         try {
             $hooks = $db->all(

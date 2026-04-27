@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Events;
 use App\Core\Helpers;
 use App\Core\Tenant;
 use App\Core\Mailer;
@@ -103,6 +104,10 @@ class PortalController extends Controller
 
         // Upsert contacto del solicitante (vinculado a empresa si la hay)
         Helpers::upsertContact($tenant->id, $companyId ?: null, $name, $email, (string)$this->input('phone','') ?: null);
+
+        // Disparar evento → automatizaciones, integraciones, webhooks
+        $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
+        Events::emit(Events::TICKET_CREATED, $tenant->id, 'ticket', $id, $row ?: [], null);
 
         // Notificar al solicitante + buzón del workspace
         try {

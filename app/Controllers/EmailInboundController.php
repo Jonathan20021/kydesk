@@ -359,6 +359,10 @@ class EmailInboundController extends Controller
             ]);
             // Upsert contacto del solicitante
             if ($fromEmail) \App\Core\Helpers::upsertContact((int)$account['tenant_id'], $companyId, $fromName ?: $fromEmail, $fromEmail, null);
+
+            // Disparar evento → automatizaciones, integraciones, webhooks
+            $newTicket = $db->one('SELECT * FROM tickets WHERE id = ?', [$ticketId]);
+            \App\Core\Events::emit(\App\Core\Events::TICKET_CREATED, (int)$account['tenant_id'], 'ticket', $ticketId, $newTicket ?: [], null);
         }
 
         $db->update('email_messages', [

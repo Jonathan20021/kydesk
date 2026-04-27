@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Events;
 use App\Core\Helpers;
 use App\Core\Mailer;
 
@@ -176,6 +177,10 @@ class TicketController extends Controller
 
         // Notificar al solicitante (cliente) y al asignado
         $this->notifyTicketCreated($tenant, $id, $code, $data, $assignedTo);
+
+        // Disparar eventos: integrations, webhooks, automations
+        $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]) ?: $data;
+        Events::emit(Events::TICKET_CREATED, $tenant->id, 'ticket', $id, $row, $this->auth->userId());
 
         $this->session->flash('success', 'Ticket creado con éxito.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
@@ -376,6 +381,12 @@ class TicketController extends Controller
             $this->logAudit('ticket.updated','ticket', $id, $data);
             // Auto CSAT al resolver si está habilitado
             if (($data['status'] ?? null) === 'resolved') $this->maybeTriggerCsat($tenant->id, $id);
+            // Disparar eventos
+            $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
+            Events::emit(Events::TICKET_UPDATED, $tenant->id, 'ticket', $id, ['changes' => array_keys($data), 'ticket' => $row], $this->auth->userId());
+            if (($data['status'] ?? null) === 'resolved') {
+                Events::emit(Events::TICKET_RESOLVED, $tenant->id, 'ticket', $id, $row, $this->auth->userId());
+            }
         }
         $this->session->flash('success','Ticket actualizado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
@@ -412,6 +423,12 @@ class TicketController extends Controller
         $this->db->update('tickets', $data, 'id=? AND tenant_id=?', [$id, $tenant->id]);
         $this->logAudit('ticket.moved','ticket', $id, ['from' => $exists['status'], 'to' => $status]);
         if ($status === 'resolved' && $exists['status'] !== 'resolved') $this->maybeTriggerCsat($tenant->id, $id);
+        // Disparar eventos
+        $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
+        Events::emit(Events::TICKET_UPDATED, $tenant->id, 'ticket', $id, ['changes' => ['status'], 'ticket' => $row], $this->auth->userId());
+        if ($status === 'resolved' && $exists['status'] !== 'resolved') {
+            Events::emit(Events::TICKET_RESOLVED, $tenant->id, 'ticket', $id, $row, $this->auth->userId());
+        }
         $this->json(['ok' => true, 'id' => $id, 'status' => $status]);
     }
 
@@ -429,6 +446,8 @@ class TicketController extends Controller
         if ($assignTo && (!$previous || (int)$previous['assigned_to'] !== $assignTo)) {
             $this->notifyAssignment($tenant, $id, $assignTo);
         }
+        // Disparar evento
+        Events::emit(Events::TICKET_ASSIGNED, $tenant->id, 'ticket', $id, ['ticket_id' => $id, 'user_id' => $assignTo], $this->auth->userId());
         $this->session->flash('success','Ticket asignado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
     }
@@ -491,6 +510,8 @@ class TicketController extends Controller
             'is_internal' => 1,
         ]);
         $this->logAudit('ticket.escalated','ticket', $id, ['to_level'=>$newLevel,'to_user'=>$toUser]);
+        $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
+        Events::emit(Events::TICKET_ESCALATED, $tenant->id, 'ticket', $id, ['from_level' => (int)$ticket['escalation_level'], 'to_level' => $newLevel, 'ticket' => $row], $this->auth->userId());
         $this->session->flash('success','Ticket escalado a nivel N' . ($newLevel + 1));
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
     }
@@ -503,6 +524,7 @@ class TicketController extends Controller
         $id = (int)$params['id'];
         $this->db->delete('tickets', 'id=? AND tenant_id=?', [$id, $tenant->id]);
         $this->logAudit('ticket.deleted','ticket',$id);
+        Events::emit(Events::TICKET_DELETED, $tenant->id, 'ticket', $id, ['id' => $id], $this->auth->userId());
         $this->session->flash('success','Ticket eliminado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets');
     }
