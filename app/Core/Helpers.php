@@ -11,6 +11,54 @@ class Helpers
         return trim($t, '-');
     }
 
+    /**
+     * Match a requester email to a company in the tenant.
+     * Strategy:
+     *   1) Match against contacts.email (exact)
+     *   2) Match domain (after @) against companies.website
+     *   3) Match domain against existing contacts in the same domain
+     */
+    public static function findCompanyByEmail(int $tenantId, ?string $email): ?int
+    {
+        $email = trim((string)$email);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return null;
+        $app = Application::get();
+        $db = $app->db;
+
+        // Skip generic providers
+        $domain = strtolower(substr(strrchr($email, '@'), 1));
+        if ($domain === '') return null;
+        $generics = ['gmail.com','yahoo.com','hotmail.com','outlook.com','live.com','icloud.com','me.com','aol.com','proton.me','protonmail.com','msn.com','ymail.com','mail.com','gmx.com','zoho.com'];
+
+        // 1) Exact contact match
+        try {
+            $cid = $db->val('SELECT company_id FROM contacts WHERE tenant_id=? AND LOWER(email)=? AND company_id IS NOT NULL LIMIT 1', [$tenantId, strtolower($email)]);
+            if ($cid) return (int)$cid;
+        } catch (\Throwable $e) {}
+
+        if (in_array($domain, $generics, true)) return null;
+
+        // 2) Match domain against company website
+        try {
+            $cid = $db->val(
+                'SELECT id FROM companies WHERE tenant_id=? AND website LIKE ? LIMIT 1',
+                [$tenantId, '%' . $domain . '%']
+            );
+            if ($cid) return (int)$cid;
+        } catch (\Throwable $e) {}
+
+        // 3) Match domain against any existing contact email in this tenant
+        try {
+            $cid = $db->val(
+                'SELECT company_id FROM contacts WHERE tenant_id=? AND email LIKE ? AND company_id IS NOT NULL LIMIT 1',
+                [$tenantId, '%@' . $domain]
+            );
+            if ($cid) return (int)$cid;
+        } catch (\Throwable $e) {}
+
+        return null;
+    }
+
     public static function ago(string $datetime): string
     {
         $ts = strtotime($datetime);

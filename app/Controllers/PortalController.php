@@ -64,6 +64,11 @@ class PortalController extends Controller
             $exists = $this->db->one('SELECT id FROM companies WHERE id=? AND tenant_id=?', [$companyId, $tenant->id]);
             if (!$exists) $companyId = 0;
         }
+        // Auto-detect company by requester email domain if not selected
+        if (!$companyId) {
+            $auto = Helpers::findCompanyByEmail($tenant->id, $email);
+            if ($auto) $companyId = $auto;
+        }
         $id = $this->db->insert('tickets', [
             'tenant_id' => $tenant->id,
             'code' => 'TMP-' . bin2hex(random_bytes(4)),

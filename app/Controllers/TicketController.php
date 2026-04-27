@@ -51,7 +51,7 @@ class TicketController extends Controller
         );
 
         $categories = $this->db->all('SELECT id, name, color FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
-        $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name', [$tenant->id]);
         $departments = $hasDepts ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
 
         $counts = [
@@ -100,7 +100,7 @@ class TicketController extends Controller
         $tenant = $this->requireTenant($params['slug']);
         $this->requireCan('tickets.create');
         $categories = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
-        $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name', [$tenant->id]);
         $companies = $this->db->all('SELECT id, name FROM companies WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $departments = $this->hasDepartments() ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
         $this->render('tickets/create', ['title'=>'Nuevo ticket','categories'=>$categories,'technicians'=>$technicians,'companies'=>$companies,'departments'=>$departments]);
@@ -126,6 +126,13 @@ class TicketController extends Controller
 
         $deptId = ((int)$this->input('department_id',0)) ?: null;
         $assignedTo = ((int)$this->input('assigned_to',0)) ?: null;
+        $companyId = ((int)$this->input('company_id',0)) ?: null;
+        $reqEmail = (string)$this->input('requester_email', $this->auth->user()['email']);
+        // Auto-detect company by requester email domain if not selected
+        if (!$companyId) {
+            $auto = Helpers::findCompanyByEmail($tenant->id, $reqEmail);
+            if ($auto) $companyId = $auto;
+        }
 
         // Auto-asignar al líder del departamento si se eligió dept y no se asignó técnico
         if ($deptId && !$assignedTo && $this->hasDepartments()) {
@@ -145,12 +152,12 @@ class TicketController extends Controller
             'subject'   => $subject,
             'description' => (string)$this->input('description',''),
             'category_id' => ((int)$this->input('category_id',0)) ?: null,
-            'company_id' => ((int)$this->input('company_id',0)) ?: null,
+            'company_id' => $companyId,
             'priority'  => (string)$this->input('priority','medium'),
             'status'    => 'open',
             'channel'   => $channel,
             'requester_name'  => (string)$this->input('requester_name', $this->auth->user()['name']),
-            'requester_email' => (string)$this->input('requester_email', $this->auth->user()['email']),
+            'requester_email' => $reqEmail,
             'requester_phone' => (string)$this->input('requester_phone',''),
             'assigned_to' => $assignedTo,
             'created_by'  => $this->auth->userId(),
@@ -159,11 +166,63 @@ class TicketController extends Controller
         ];
         if ($this->hasDepartments()) $data['department_id'] = $deptId;
         $id = $this->db->insert('tickets', $data);
-        $this->db->update('tickets', ['code' => Helpers::ticketCode($tenant->id, $id)], 'id=?', [$id]);
+        $code = Helpers::ticketCode($tenant->id, $id);
+        $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
 
         $this->logAudit('ticket.created', 'ticket', $id, ['subject' => $subject]);
+
+        // Notificar al solicitante (cliente) y al asignado
+        $this->notifyTicketCreated($tenant, $id, $code, $data, $assignedTo);
+
         $this->session->flash('success', 'Ticket creado con éxito.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
+    }
+
+    /** Envía emails al crear un ticket: confirmación al solicitante y aviso al asignado. */
+    protected function notifyTicketCreated(\App\Core\Tenant $tenant, int $id, string $code, array $data, ?int $assignedTo): void
+    {
+        try {
+            $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+            $publicUrl = $appUrl . '/portal/' . $tenant->slug . '/ticket/' . $data['public_token'];
+            $internalUrl = $appUrl . '/t/' . $tenant->slug . '/tickets/' . $id;
+            $mailer = new Mailer();
+            $subject = $data['subject'];
+            $description = (string)($data['description'] ?? '');
+            $reqName = $data['requester_name'] ?: 'Cliente';
+            $reqEmail = $data['requester_email'] ?? '';
+
+            // 1) Confirmación al solicitante
+            if ($reqEmail && filter_var($reqEmail, FILTER_VALIDATE_EMAIL)) {
+                $inner = '<p>Hola <strong>' . htmlspecialchars($reqName) . '</strong>,</p>'
+                    . '<p>Recibimos tu solicitud y la registramos como ticket <strong>' . htmlspecialchars($code) . '</strong> en <strong>' . htmlspecialchars($tenant->name) . '</strong>.</p>'
+                    . '<p><strong>Asunto:</strong> ' . htmlspecialchars($subject) . '</p>'
+                    . ($description !== '' ? '<blockquote style="border-left:3px solid #7c5cff;padding:10px 14px;margin:14px 0;background:#f4f5f8;color:#3a3946;white-space:pre-wrap;">' . nl2br(htmlspecialchars($description)) . '</blockquote>' : '')
+                    . '<p>Te avisaremos por email cuando haya una respuesta. Podés ver el estado en cualquier momento desde el botón de abajo.</p>';
+                $mailer->send(
+                    ['email' => $reqEmail, 'name' => $reqName],
+                    '[' . $code . '] ' . $subject . ' · Ticket recibido',
+                    Mailer::template('Tu ticket fue creado · ' . $tenant->name, $inner, 'Ver mi ticket', $publicUrl)
+                );
+            }
+
+            // 2) Aviso al agente asignado
+            if ($assignedTo) {
+                $agent = $this->db->one('SELECT name, email FROM users WHERE id=? AND tenant_id=? AND is_active=1', [$assignedTo, $tenant->id]);
+                if ($agent && filter_var($agent['email'], FILTER_VALIDATE_EMAIL)) {
+                    $priorityBadge = strtoupper((string)$data['priority']);
+                    $inner = '<p>Hola <strong>' . htmlspecialchars($agent['name']) . '</strong>,</p>'
+                        . '<p>Se te asignó un ticket nuevo en <strong>' . htmlspecialchars($tenant->name) . '</strong>.</p>'
+                        . '<p><strong>' . htmlspecialchars($code) . '</strong> · ' . htmlspecialchars($subject) . ' · Prioridad <strong>' . htmlspecialchars($priorityBadge) . '</strong></p>'
+                        . '<p><strong>Solicitante:</strong> ' . htmlspecialchars($reqName) . ($reqEmail ? ' &lt;' . htmlspecialchars($reqEmail) . '&gt;' : '') . '</p>'
+                        . ($description !== '' ? '<blockquote style="border-left:3px solid #7c5cff;padding:10px 14px;margin:14px 0;background:#f4f5f8;color:#3a3946;white-space:pre-wrap;">' . nl2br(htmlspecialchars($description)) . '</blockquote>' : '');
+                    $mailer->send(
+                        ['email' => $agent['email'], 'name' => $agent['name']],
+                        '[' . $code . '] Asignado a vos · ' . $subject,
+                        Mailer::template('Ticket asignado a vos', $inner, 'Abrir ticket', $internalUrl)
+                    );
+                }
+            }
+        } catch (\Throwable $e) { /* swallow */ }
     }
 
     public function show(array $params): void
@@ -210,7 +269,7 @@ class TicketController extends Controller
             [$id]
         );
         $categories = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
-        $technicians = $this->db->all('SELECT id, name, email FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $technicians = $this->db->all('SELECT id, name, email, is_technician FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name', [$tenant->id]);
         $departments = $hasDepts ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
         $relatedArticles = $this->db->all(
             "SELECT id, title, slug, excerpt FROM kb_articles WHERE tenant_id=? AND status='published' ORDER BY views DESC LIMIT 3",
@@ -357,10 +416,38 @@ class TicketController extends Controller
         $this->validateCsrf();
         $id = (int)$params['id'];
         $assignTo = ((int)$this->input('assigned_to',0)) ?: null;
+        $previous = $this->db->one('SELECT assigned_to FROM tickets WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
         $this->db->update('tickets', ['assigned_to' => $assignTo], 'id=? AND tenant_id=?', [$id, $tenant->id]);
         $this->logAudit('ticket.assigned','ticket', $id, ['assigned_to'=>$assignTo]);
+        // Avisar al nuevo asignado si cambió
+        if ($assignTo && (!$previous || (int)$previous['assigned_to'] !== $assignTo)) {
+            $this->notifyAssignment($tenant, $id, $assignTo);
+        }
         $this->session->flash('success','Ticket asignado.');
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
+    }
+
+    /** Email al agente cuando un ticket existente le es asignado. */
+    protected function notifyAssignment(\App\Core\Tenant $tenant, int $ticketId, int $userId): void
+    {
+        try {
+            $tk = $this->db->one('SELECT * FROM tickets WHERE id=? AND tenant_id=?', [$ticketId, $tenant->id]);
+            $agent = $this->db->one('SELECT name, email FROM users WHERE id=? AND tenant_id=? AND is_active=1', [$userId, $tenant->id]);
+            if (!$tk || !$agent || !filter_var($agent['email'], FILTER_VALIDATE_EMAIL)) return;
+            $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+            $url = $appUrl . '/t/' . $tenant->slug . '/tickets/' . $ticketId;
+            $description = (string)($tk['description'] ?? '');
+            $inner = '<p>Hola <strong>' . htmlspecialchars($agent['name']) . '</strong>,</p>'
+                . '<p>Se te asignó el ticket <strong>' . htmlspecialchars($tk['code']) . '</strong> en <strong>' . htmlspecialchars($tenant->name) . '</strong>.</p>'
+                . '<p><strong>Asunto:</strong> ' . htmlspecialchars($tk['subject']) . ' · Prioridad <strong>' . strtoupper(htmlspecialchars($tk['priority'])) . '</strong></p>'
+                . ($tk['requester_name'] ? '<p><strong>Solicitante:</strong> ' . htmlspecialchars($tk['requester_name']) . ($tk['requester_email'] ? ' &lt;' . htmlspecialchars($tk['requester_email']) . '&gt;' : '') . '</p>' : '')
+                . ($description !== '' ? '<blockquote style="border-left:3px solid #7c5cff;padding:10px 14px;margin:14px 0;background:#f4f5f8;color:#3a3946;white-space:pre-wrap;">' . nl2br(htmlspecialchars(mb_substr($description, 0, 600))) . '</blockquote>' : '');
+            (new Mailer())->send(
+                ['email' => $agent['email'], 'name' => $agent['name']],
+                '[' . $tk['code'] . '] Asignado a vos · ' . $tk['subject'],
+                Mailer::template('Ticket asignado a vos', $inner, 'Abrir ticket', $url)
+            );
+        } catch (\Throwable $e) { /* swallow */ }
     }
 
     public function escalate(array $params): void

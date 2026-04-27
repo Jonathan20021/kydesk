@@ -3,7 +3,7 @@ $tierConfig = ['enterprise'=>['Enterprise','badge-purple'],'premium'=>['Premium'
 [$tl,$tcl] = $tierConfig[$c['tier']] ?? ['—','badge-gray']; ?>
 
 <?php
-$publicPortalCreate = ($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '') . $url('/portal/' . $slug . '/new?company=' . (int)$c['id']);
+$publicPortalCreate = $url('/portal/' . $slug . '/new?company=' . (int)$c['id']);
 $internalCreate = $url('/t/' . $slug . '/tickets/create?company_id=' . (int)$c['id']);
 ?>
 
