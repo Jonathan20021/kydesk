@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 
+use App\Core\Attachments;
 use App\Core\Controller;
 use App\Core\Events;
 use App\Core\Helpers;
@@ -170,6 +171,9 @@ class TicketController extends Controller
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
 
+        // Procesar attachments adjuntos al crear
+        Attachments::persistFromInput('attachments', $tenant->id, (int)$id);
+
         // Upsert contacto del solicitante (vinculado a empresa si la hay)
         Helpers::upsertContact($tenant->id, $companyId, $data['requester_name'], $reqEmail, $data['requester_phone'] ?: null);
 
@@ -268,6 +272,16 @@ class TicketController extends Controller
              WHERE cm.ticket_id = ? ORDER BY cm.created_at ASC",
             [$id]
         );
+        // Attachments del ticket (los del cuerpo principal y los de cada comment)
+        $attachments = $this->db->all(
+            'SELECT id, comment_id, filename, original_name, mime, size, created_at FROM ticket_attachments WHERE ticket_id = ? AND tenant_id = ? ORDER BY created_at ASC',
+            [$id, $tenant->id]
+        );
+        $attachmentsByComment = ['main' => []];
+        foreach ($attachments as $a) {
+            if (!empty($a['comment_id'])) $attachmentsByComment[(int)$a['comment_id']][] = $a;
+            else $attachmentsByComment['main'][] = $a;
+        }
         $escalations = $this->db->all(
             "SELECT e.*, uf.name AS from_name, ut.name AS to_name
              FROM ticket_escalations e
@@ -301,6 +315,8 @@ class TicketController extends Controller
             'title' => $ticket['code'] . ' — ' . $ticket['subject'],
             'ticket' => $ticket,
             'comments' => $comments,
+            'attachments' => $attachments,
+            'attachmentsByComment' => $attachmentsByComment,
             'escalations' => $escalations,
             'categories' => $categories,
             'technicians' => $technicians,
@@ -322,7 +338,7 @@ class TicketController extends Controller
 
         $u = $this->auth->user();
         $isInternal = (int)($this->input('is_internal',0) ? 1 : 0);
-        $this->db->insert('ticket_comments', [
+        $commentId = $this->db->insert('ticket_comments', [
             'tenant_id' => $tenant->id,
             'ticket_id' => $id,
             'user_id'   => $u['id'],
@@ -331,6 +347,8 @@ class TicketController extends Controller
             'body'      => $body,
             'is_internal' => $isInternal,
         ]);
+        // Attachments del comentario
+        Attachments::persistFromInput('attachments', $tenant->id, $id, (int)$commentId);
         // Primer response_at si no existe
         $this->db->run("UPDATE tickets SET updated_at = NOW(), first_response_at = COALESCE(first_response_at, NOW()) WHERE id = ?", [$id]);
 

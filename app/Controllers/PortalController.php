@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 
+use App\Core\Attachments;
 use App\Core\Controller;
 use App\Core\Events;
 use App\Core\Helpers;
@@ -102,11 +103,15 @@ class PortalController extends Controller
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
 
+        // Procesar attachments del solicitante
+        $attachIds = Attachments::persistFromInput('attachments', $tenant->id, (int)$id);
+
         // Upsert contacto del solicitante (vinculado a empresa si la hay)
         Helpers::upsertContact($tenant->id, $companyId ?: null, $name, $email, (string)$this->input('phone','') ?: null);
 
         // Disparar evento → automatizaciones, integraciones, webhooks
         $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
+        if ($row && !empty($attachIds)) $row['attachments_count'] = count($attachIds);
         Events::emit(Events::TICKET_CREATED, $tenant->id, 'ticket', $id, $row ?: [], null);
 
         // Notificar al solicitante + buzón del workspace
@@ -115,9 +120,11 @@ class PortalController extends Controller
             $publicUrl = $appUrl . '/portal/' . $tenant->slug . '/ticket/' . $token;
             $mailer = new Mailer();
 
+            $attachLine = !empty($attachIds) ? '<p><strong>Adjuntos:</strong> ' . count($attachIds) . ' archivo(s) recibido(s).</p>' : '';
             $innerReq = '<p>Hola <strong>' . htmlspecialchars($name) . '</strong>,</p>'
                 . '<p>Recibimos tu solicitud y la registramos con el código <strong>' . htmlspecialchars($code) . '</strong>.</p>'
                 . '<p><strong>Asunto:</strong> ' . htmlspecialchars($subject) . '</p>'
+                . $attachLine
                 . '<p>Te enviaremos actualizaciones a este correo. También puedes seguir el progreso desde el enlace.</p>';
             $mailer->send(
                 ['email' => $email, 'name' => $name],
@@ -133,6 +140,7 @@ class PortalController extends Controller
                     . '<p><strong>De:</strong> ' . htmlspecialchars($name) . ' &lt;' . htmlspecialchars($email) . '&gt;</p>'
                     . '<p><strong>Asunto:</strong> ' . htmlspecialchars($subject) . '</p>'
                     . '<p><strong>Prioridad:</strong> ' . htmlspecialchars((string)$this->input('priority','medium')) . '</p>'
+                    . (!empty($attachIds) ? '<p><strong>Adjuntos:</strong> ' . count($attachIds) . ' archivo(s)</p>' : '')
                     . '<hr><p style="white-space:pre-wrap;">' . nl2br(htmlspecialchars($body)) . '</p>';
                 $mailer->send(
                     $support,
@@ -167,11 +175,27 @@ class PortalController extends Controller
             [$ticket['id']]
         );
 
+        // Attachments públicos: del ticket + de comentarios públicos solamente
+        $attachments = $this->db->all(
+            "SELECT a.id, a.comment_id, a.filename, a.original_name, a.mime, a.size, a.created_at
+             FROM ticket_attachments a
+             LEFT JOIN ticket_comments c ON c.id = a.comment_id
+             WHERE a.ticket_id = ? AND a.tenant_id = ? AND (a.comment_id IS NULL OR c.is_internal = 0)
+             ORDER BY a.created_at ASC",
+            [$ticket['id'], $tenant->id]
+        );
+        $attachmentsByComment = ['main' => []];
+        foreach ($attachments as $a) {
+            if (!empty($a['comment_id'])) $attachmentsByComment[(int)$a['comment_id']][] = $a;
+            else $attachmentsByComment['main'][] = $a;
+        }
+
         $this->render('portal/show', [
             'title' => $ticket['code'] . ' · ' . $tenant->name,
             'tenant' => $tenant,
             'ticket' => $ticket,
             'comments' => $comments,
+            'attachmentsByComment' => $attachmentsByComment,
             'showPoweredFooter' => true,
         ], 'public');
     }
@@ -215,7 +239,7 @@ class PortalController extends Controller
         if (!$ticket) $this->redirect('/portal/' . $tenant->slug);
         $body = trim((string)$this->input('body'));
         if ($body === '') $this->redirect('/portal/' . $tenant->slug . '/ticket/' . $params['token']);
-        $this->db->insert('ticket_comments', [
+        $commentId = $this->db->insert('ticket_comments', [
             'tenant_id' => $tenant->id,
             'ticket_id' => $ticket['id'],
             'author_name' => $ticket['requester_name'],
@@ -223,6 +247,7 @@ class PortalController extends Controller
             'body' => $body,
             'is_internal' => 0,
         ]);
+        Attachments::persistFromInput('attachments', (int)$tenant->id, (int)$ticket['id'], (int)$commentId);
         $this->db->update('tickets', ['updated_at' => date('Y-m-d H:i:s'), 'status' => $ticket['status'] === 'closed' ? 'open' : $ticket['status']], 'id=?', ['id' => $ticket['id']]);
 
         try {

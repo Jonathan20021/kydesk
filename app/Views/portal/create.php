@@ -82,7 +82,7 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="<?= $url('/portal/' . $t->slug . '/new') ?>" @submit="submitting=true" class="rounded-3xl bg-white border border-[#ececef] overflow-hidden" style="box-shadow:0 30px 60px -20px rgba(<?= $rgbStr ?>,.18)">
+            <form method="POST" action="<?= $url('/portal/' . $t->slug . '/new') ?>" @submit="submitting=true" enctype="multipart/form-data" class="rounded-3xl bg-white border border-[#ececef] overflow-hidden" style="box-shadow:0 30px 60px -20px rgba(<?= $rgbStr ?>,.18)">
                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                 <?php if (!empty($company)): ?>
                     <input type="hidden" name="company_id" value="<?= (int)$company['id'] ?>">
@@ -183,6 +183,37 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
                             </p>
                             <span class="text-[11px] text-ink-400" x-text="(form.description?.length || 0) + ' caracteres'"></span>
                         </div>
+                    </div>
+
+                    <!-- Attachments -->
+                    <div x-data="{files: []}">
+                        <label class="label flex items-center gap-1.5">
+                            <i class="lucide lucide-paperclip text-[12px]"></i> Adjuntos <span class="text-[10.5px] text-ink-400 font-normal">(opcional · hasta 10 archivos · 25 MB c/u)</span>
+                        </label>
+                        <label class="block cursor-pointer rounded-2xl border-2 border-dashed transition" style="border-color:#e5e7eb"
+                               :class="files.length > 0 ? 'border-solid' : ''"
+                               onmouseover="this.style.borderColor='<?= $e($brand) ?>'" onmouseout="this.style.borderColor=files.length>0?'<?= $e($brand) ?>':'#e5e7eb'">
+                            <input type="file" name="attachments[]" multiple class="sr-only"
+                                @change="files = Array.from($event.target.files)">
+                            <div x-show="files.length === 0" class="text-center py-6 px-4">
+                                <i class="lucide lucide-upload-cloud text-[28px]" style="color:#9ca3af"></i>
+                                <div class="text-[13px] mt-2 font-semibold text-ink-700">Click o arrastrá tus archivos aquí</div>
+                                <div class="text-[11.5px] text-ink-400 mt-0.5">Imágenes, PDF, Word, Excel, ZIP — máx 25 MB cada uno</div>
+                            </div>
+                            <div x-show="files.length > 0" x-cloak class="p-3 space-y-1.5">
+                                <template x-for="(f, i) in files" :key="i">
+                                    <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[#fafafb]">
+                                        <i class="lucide text-[14px]" :class="f.type.startsWith('image/') ? 'lucide-image' : (f.type === 'application/pdf' ? 'lucide-file-text' : 'lucide-file')" style="color:#6b6b78"></i>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-[12.5px] font-semibold truncate" x-text="f.name"></div>
+                                            <div class="text-[10.5px] text-ink-400" x-text="(f.size < 1024*1024 ? Math.round(f.size/1024) + ' KB' : (f.size/(1024*1024)).toFixed(1) + ' MB')"></div>
+                                        </div>
+                                        <span x-show="f.size > 26214400" class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#fee2e2;color:#b91c1c">Excede 25 MB</span>
+                                    </div>
+                                </template>
+                                <button type="button" @click="files = []; $root.querySelector('input[type=file]').value = ''" class="text-[11px] text-ink-500 hover:text-ink-900 mt-1">Quitar todos</button>
+                            </div>
+                        </label>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

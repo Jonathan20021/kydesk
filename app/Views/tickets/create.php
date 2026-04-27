@@ -13,7 +13,7 @@ $allowedChannels = Plan::LIMITS[Plan::tenantPlan($tenant)]['channels'] ?? ['port
     <p class="text-[13px] text-ink-400">Los campos con * son obligatorios</p>
 </div>
 
-<form method="POST" action="<?= $url('/t/' . $slug . '/tickets') ?>" class="card card-pad space-y-5 max-w-3xl">
+<form method="POST" action="<?= $url('/t/' . $slug . '/tickets') ?>" enctype="multipart/form-data" class="card card-pad space-y-5 max-w-3xl" x-data="{files:[]}">
     <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
     <div>
         <label class="label">Asunto *</label>
@@ -85,6 +85,29 @@ $allowedChannels = Plan::LIMITS[Plan::tenantPlan($tenant)]['channels'] ?? ['port
             </select>
         </div>
     <?php endif; ?>
+
+    <div>
+        <label class="label flex items-center gap-1.5">
+            <i class="lucide lucide-paperclip text-[12px]"></i> Adjuntos <span class="text-[10.5px] text-ink-400 font-normal">(opcional · hasta 10 archivos · 25 MB c/u)</span>
+        </label>
+        <label class="block cursor-pointer rounded-2xl border-2 border-dashed transition" style="border-color:#e5e7eb">
+            <input type="file" name="attachments[]" multiple class="sr-only" @change="files = Array.from($event.target.files)">
+            <div x-show="files.length === 0" class="text-center py-5 px-4">
+                <i class="lucide lucide-upload-cloud text-[24px]" style="color:#9ca3af"></i>
+                <div class="text-[12.5px] mt-1.5 font-semibold text-ink-700">Click o arrastrá archivos</div>
+                <div class="text-[11px] text-ink-400">Imágenes, PDF, Word, Excel, ZIP</div>
+            </div>
+            <div x-show="files.length > 0" x-cloak class="p-3 space-y-1">
+                <template x-for="(f, i) in files" :key="i">
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#fafafb]">
+                        <i class="lucide text-[13px]" :class="f.type.startsWith('image/') ? 'lucide-image' : (f.type === 'application/pdf' ? 'lucide-file-text' : 'lucide-file')" style="color:#6b6b78"></i>
+                        <div class="flex-1 min-w-0 text-[12px] font-semibold truncate" x-text="f.name"></div>
+                        <span class="text-[10.5px] text-ink-400" x-text="(f.size < 1024*1024 ? Math.round(f.size/1024) + ' KB' : (f.size/(1024*1024)).toFixed(1) + ' MB')"></span>
+                    </div>
+                </template>
+            </div>
+        </label>
+    </div>
     <div class="flex justify-end gap-2 pt-4 border-t border-[#ececef]">
         <a href="<?= $url('/t/' . $slug . '/tickets') ?>" class="btn btn-outline btn-sm">Cancelar</a>
         <button class="btn btn-primary btn-sm"><i class="lucide lucide-send"></i> Crear ticket</button>

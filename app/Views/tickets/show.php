@@ -1,4 +1,4 @@
-<?php use App\Core\Helpers; use App\Core\Plan; $slug = $tenant->slug; $t = $ticket;
+<?php use App\Core\Attachments; use App\Core\Helpers; use App\Core\Plan; $slug = $tenant->slug; $t = $ticket;
 $priColor = ['urgent'=>'#ef4444','high'=>'#f59e0b','medium'=>'#7c5cff','low'=>'#9ca3af'];
 $hasSla = Plan::has($tenant, 'sla');
 $ageHours = max(1, round((time() - strtotime($t['created_at'])) / 3600));
@@ -96,6 +96,37 @@ $sentimentMap = [
         <div class="relative mt-6 pt-6 border-t border-[#ececef]">
             <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-ink-400 mb-2.5">Descripción</div>
             <div class="text-[14px] leading-relaxed whitespace-pre-wrap text-ink-700"><?= $e($t['description']) ?></div>
+        </div>
+    <?php endif; ?>
+
+    <?php
+    $mainAttachments = $attachmentsByComment['main'] ?? [];
+    if (!empty($mainAttachments)): ?>
+        <div class="relative mt-6 pt-6 border-t border-[#ececef]">
+            <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-ink-400 mb-3 flex items-center gap-1.5">
+                <i class="lucide lucide-paperclip text-[12px]"></i> Adjuntos del solicitante (<?= count($mainAttachments) ?>)
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                <?php foreach ($mainAttachments as $a):
+                    $url2 = Attachments::publicUrl($a['filename']);
+                    $isImage = str_starts_with($a['mime'], 'image/');
+                    $icon = Attachments::iconFor($a['mime']);
+                ?>
+                    <a href="<?= $e($url2) ?>" target="_blank" rel="noopener" class="card card-pad hover:shadow-md transition group" style="text-decoration:none;color:inherit;padding:10px">
+                        <?php if ($isImage): ?>
+                            <div class="aspect-video rounded-lg overflow-hidden bg-[#fafafb] mb-2">
+                                <img src="<?= $e($url2) ?>" alt="<?= $e($a['original_name']) ?>" loading="lazy" class="w-full h-full object-cover">
+                            </div>
+                        <?php else: ?>
+                            <div class="aspect-video rounded-lg bg-brand-50 grid place-items-center mb-2">
+                                <i class="lucide lucide-<?= $icon ?> text-[28px] text-brand-600"></i>
+                            </div>
+                        <?php endif; ?>
+                        <div class="text-[11.5px] font-semibold truncate"><?= $e($a['original_name']) ?></div>
+                        <div class="text-[10px] text-ink-400"><?= Attachments::humanSize((int)$a['size']) ?></div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
     <?php endif; ?>
 
@@ -229,6 +260,7 @@ $sentimentMap = [
                     $mine = (int)$c['user_id'] === $auth->userId();
                     $color = Helpers::colorFor($c['user_email'] ?? $c['author_email'] ?? '');
                     $bubbleClass = $c['is_internal'] ? 'chat-bubble-internal' : ($mine ? 'chat-bubble-mine' : 'chat-bubble-other');
+                    $cAtt = $attachmentsByComment[(int)$c['id']] ?? [];
                 ?>
                     <div class="chat-row <?= $mine?'mine':'' ?>">
                         <div class="avatar avatar-md" style="background:<?= $color ?>;color:white"><?= Helpers::initials($c['user_name'] ?? $c['author_name'] ?? 'U') ?></div>
@@ -236,6 +268,21 @@ $sentimentMap = [
                             <div class="chat-bubble <?= $bubbleClass ?>">
                                 <?php if ($c['is_internal']): ?><div class="flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.08em] mb-1.5 text-amber-700"><i class="lucide lucide-lock text-[10px]"></i> Nota interna</div><?php endif; ?>
                                 <div class="whitespace-pre-wrap"><?= $e($c['body']) ?></div>
+                                <?php if (!empty($cAtt)): ?>
+                                    <div class="mt-2.5 pt-2.5 border-t border-black/10 flex flex-wrap gap-1.5">
+                                        <?php foreach ($cAtt as $a):
+                                            $url2 = Attachments::publicUrl($a['filename']);
+                                            $isImage = str_starts_with($a['mime'], 'image/');
+                                            $icon = Attachments::iconFor($a['mime']);
+                                        ?>
+                                            <a href="<?= $e($url2) ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-[11.5px] px-2 py-1 rounded-lg" style="background:rgba(0,0,0,.06);color:inherit;text-decoration:none">
+                                                <i class="lucide lucide-<?= $icon ?> text-[12px]"></i>
+                                                <span class="truncate max-w-[180px]"><?= $e($a['original_name']) ?></span>
+                                                <span class="opacity-60 text-[10px]"><?= Attachments::humanSize((int)$a['size']) ?></span>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div class="chat-meta"><?= $e($c['user_name'] ?? $c['author_name'] ?? '—') ?> · <?= Helpers::ago($c['created_at']) ?></div>
                         </div>
@@ -243,7 +290,7 @@ $sentimentMap = [
                 <?php endforeach; ?>
             </div>
             <?php if ($auth->can('tickets.comment')): ?>
-                <form method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . $t['id'] . '/comment') ?>" class="border-t border-[#ececef]" x-data="{internal:false}">
+                <form method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . $t['id'] . '/comment') ?>" enctype="multipart/form-data" class="border-t border-[#ececef]" x-data="{internal:false, files:[]}">
                     <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
 
                     <?php if ($aiAvailable): ?>
@@ -291,6 +338,19 @@ $sentimentMap = [
 
                     <div class="p-5 pt-3">
                         <textarea name="body" required rows="3" placeholder="Escribe tu respuesta…" class="input" :class="internal && '!bg-amber-50 !border-amber-300'"></textarea>
+
+                        <!-- Lista de archivos seleccionados -->
+                        <div x-show="files.length > 0" x-cloak class="mt-2 flex flex-wrap gap-1.5">
+                            <template x-for="(f, i) in files" :key="i">
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] bg-brand-50 text-brand-700 border border-brand-200">
+                                    <i class="lucide text-[11px]" :class="f.type.startsWith('image/') ? 'lucide-image' : (f.type === 'application/pdf' ? 'lucide-file-text' : 'lucide-file')"></i>
+                                    <span class="truncate max-w-[160px]" x-text="f.name"></span>
+                                    <span class="text-[10px] text-ink-400" x-text="(f.size < 1024*1024 ? Math.round(f.size/1024) + ' KB' : (f.size/(1024*1024)).toFixed(1) + ' MB')"></span>
+                                    <button type="button" @click.prevent="files.splice(i, 1); /* nota: input se reset cuando se reseleccionan */" class="text-ink-400 hover:text-rose-600"><i class="lucide lucide-x text-[11px]"></i></button>
+                                </div>
+                            </template>
+                        </div>
+
                         <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
                             <div class="flex items-center gap-3">
                                 <label class="flex items-center gap-2 text-[12.5px] cursor-pointer">
@@ -300,7 +360,11 @@ $sentimentMap = [
                                 <span class="text-[11px] text-ink-400 hidden sm:inline">⌘ + Enter para enviar</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="button" class="btn btn-outline btn-xs"><i class="lucide lucide-paperclip text-[12px]"></i> Adjuntar</button>
+                                <label class="btn btn-outline btn-xs cursor-pointer">
+                                    <i class="lucide lucide-paperclip text-[12px]"></i>
+                                    <span x-text="files.length === 0 ? 'Adjuntar' : files.length + ' archivo' + (files.length === 1 ? '' : 's')"></span>
+                                    <input type="file" name="attachments[]" multiple class="hidden" @change="files = Array.from($event.target.files)">
+                                </label>
                                 <button class="btn btn-primary btn-sm"><i class="lucide lucide-send"></i> Enviar</button>
                             </div>
                         </div>
