@@ -35,21 +35,23 @@
         </div>
         <?php
         $featureLabels = [
-            'tickets' => 'Tickets',
+            'tickets' => 'Sistema de tickets completo',
             'kb' => 'Base de conocimiento',
-            'notes' => 'Notas',
-            'todos' => 'Tareas',
-            'companies' => 'Empresas',
-            'assets' => 'Activos',
-            'reports' => 'Reportes',
-            'users' => 'Usuarios',
-            'roles' => 'Roles',
-            'settings' => 'Ajustes',
-            'automations' => 'Automatizaciones IA',
+            'notes' => 'Notas internas',
+            'todos' => 'Gestión de tareas',
+            'companies' => 'Empresas y contactos',
+            'assets' => 'Inventario de activos',
+            'reports' => 'Reportes y métricas',
+            'users' => 'Gestión de usuarios',
+            'roles' => 'Roles y permisos',
+            'settings' => 'Ajustes personalizables',
+            'automations' => 'Automatizaciones con IA',
             'sla' => 'SLA + Escalamientos',
-            'audit' => 'Auditoría',
-            'sso' => 'SSO + SAML',
-            'custom_branding' => 'Marca personalizada',
+            'audit' => 'Auditoría completa',
+            'departments' => 'Departamentos y enrutamiento',
+            'integrations' => 'Integraciones (Slack, Discord, Teams, +9)',
+            'sso' => 'SSO + SAML 2.0',
+            'custom_branding' => 'Marca personalizada (white-label)',
         ];
         $plansList = $plans ?? [];
         $cols = max(2, min(4, count($plansList) ?: 3));

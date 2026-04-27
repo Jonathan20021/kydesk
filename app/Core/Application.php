@@ -196,6 +196,16 @@ class Application
         // Audit
         $r->get('/t/{slug}/audit', ['App\Controllers\AuditController', 'index']);
 
+        // Integraciones (PRO+)
+        $r->get('/t/{slug}/integrations', ['App\Controllers\IntegrationController', 'index']);
+        $r->get('/t/{slug}/integrations/{provider}', ['App\Controllers\IntegrationController', 'configure']);
+        $r->post('/t/{slug}/integrations/{provider}', ['App\Controllers\IntegrationController', 'store']);
+        $r->get('/t/{slug}/integrations/{provider}/{id}', ['App\Controllers\IntegrationController', 'configure']);
+        $r->post('/t/{slug}/integrations/{provider}/{id}', ['App\Controllers\IntegrationController', 'update']);
+        $r->post('/t/{slug}/integrations/{provider}/{id}/toggle', ['App\Controllers\IntegrationController', 'toggle']);
+        $r->post('/t/{slug}/integrations/{provider}/{id}/test', ['App\Controllers\IntegrationController', 'test']);
+        $r->post('/t/{slug}/integrations/{provider}/{id}/delete', ['App\Controllers\IntegrationController', 'delete']);
+
         // Reportes
         $r->get('/t/{slug}/reports', ['App\Controllers\ReportController', 'index']);
 
@@ -413,6 +423,8 @@ class Application
         $r->get('/admin/settings', ['App\Controllers\Admin\SettingsController', 'index']);
         $r->post('/admin/settings', ['App\Controllers\Admin\SettingsController', 'update']);
         $r->post('/admin/settings/test-email', ['App\Controllers\Admin\SettingsController', 'testEmail']);
+        $r->get('/admin/integration-limits', ['App\Controllers\Admin\IntegrationLimitsController', 'index']);
+        $r->post('/admin/integration-limits', ['App\Controllers\Admin\IntegrationLimitsController', 'update']);
 
         // Support
         $r->get('/admin/support', ['App\Controllers\Admin\SupportController', 'index']);

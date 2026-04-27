@@ -37,6 +37,7 @@ $navManagement = [
 ];
 $navAdmin = [
     ['Automatizaciones','workflow','/automations','automations.view','automations'],
+    ['Integraciones','plug','/integrations','integrations.view','integrations'],
     ['SLA','gauge','/sla','sla.view','sla'],
     ['Auditoría','history','/audit','audit.view','audit'],
     ['Usuarios','users','/users','users.view','users'],

@@ -16,8 +16,10 @@ $availableFeatures = [
     'automations' => 'Automatizaciones',
     'sla' => 'SLA',
     'audit' => 'Auditoría',
-    'sso' => 'SSO',
-    'custom_branding' => 'Branding personalizado',
+    'departments' => 'Departamentos',
+    'integrations' => 'Integraciones (Slack, Discord, etc.)',
+    'sso' => 'SSO + SAML',
+    'custom_branding' => 'Marca personalizada',
 ];
 ?>
 <form method="POST" action="<?= $url($action) ?>" class="max-w-3xl">

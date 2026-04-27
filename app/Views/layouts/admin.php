@@ -43,6 +43,7 @@ $nav = [
         ['Reportes','bar-chart-3','/reports','reports.view'],
         ['Auditoría','history','/audit','reports.view'],
         ['Super Admins','shield','/super-admins','super_admins.view'],
+        ['Integraciones','plug','/integration-limits','settings.view'],
         ['Ajustes','settings','/settings','settings.view'],
     ],
 ];

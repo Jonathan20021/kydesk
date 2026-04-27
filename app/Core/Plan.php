@@ -6,9 +6,9 @@ class Plan
     public const FEATURES = [
         'starter'    => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings'],
         'free'       => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings'],
-        'pro'        => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments'],
-        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments'],
-        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','sso','custom_branding'],
+        'pro'        => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations'],
+        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations'],
+        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','sso','custom_branding'],
     ];
 
     public const PLAN_RANK = ['starter'=>1,'free'=>1,'pro'=>2,'business'=>2,'enterprise'=>3];
