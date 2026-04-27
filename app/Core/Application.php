@@ -454,6 +454,10 @@ class Application
         $r->post('/admin/login', ['App\Controllers\Admin\AuthController', 'login']);
         $r->post('/admin/logout', ['App\Controllers\Admin\AuthController', 'logout']);
         $r->get('/admin/logout', ['App\Controllers\Admin\AuthController', 'logout']);
+        $r->get('/admin/forgot', ['App\Controllers\Admin\AuthController', 'showForgot']);
+        $r->post('/admin/forgot', ['App\Controllers\Admin\AuthController', 'forgot']);
+        $r->get('/admin/reset/{token}', ['App\Controllers\Admin\AuthController', 'showReset']);
+        $r->post('/admin/reset/{token}', ['App\Controllers\Admin\AuthController', 'reset']);
         $r->get('/admin/profile', ['App\Controllers\Admin\AuthController', 'profile']);
         $r->post('/admin/profile', ['App\Controllers\Admin\AuthController', 'updateProfile']);
 

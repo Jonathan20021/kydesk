@@ -34,7 +34,10 @@
                     </div>
                 </div>
                 <div x-data="{show:false}">
-                    <label class="block text-[12px] font-semibold mb-1.5" style="color:rgba(255,255,255,.7)">Contraseña</label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-[12px] font-semibold" style="color:rgba(255,255,255,.7)">Contraseña</label>
+                        <a href="<?= $url('/admin/forgot') ?>" class="text-[11.5px] font-semibold transition" style="color:#c4b5fd" onmouseover="this.style.color='#e9d5ff'" onmouseout="this.style.color='#c4b5fd'">¿Olvidaste tu contraseña?</a>
+                    </div>
                     <div class="relative">
                         <i class="lucide lucide-lock text-[15px] absolute left-4 top-1/2 -translate-y-1/2" style="color:rgba(255,255,255,.4)"></i>
                         <input name="password" :type="show?'text':'password'" required class="w-full h-12 pl-11 pr-12 rounded-xl text-[14px] outline-none transition" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:white" onfocus="this.style.borderColor='#a78bfa';this.style.boxShadow='0 0 0 3px rgba(124,92,255,.22)'" onblur="this.style.borderColor='rgba(255,255,255,.1)';this.style.boxShadow='none'">
