@@ -357,6 +357,8 @@ class EmailInboundController extends Controller
                 'assigned_to'      => $account['auto_assign_to'] ?? null,
                 'public_token'     => $token,
             ]);
+            // Upsert contacto del solicitante
+            if ($fromEmail) \App\Core\Helpers::upsertContact((int)$account['tenant_id'], $companyId, $fromName ?: $fromEmail, $fromEmail, null);
         }
 
         $db->update('email_messages', [

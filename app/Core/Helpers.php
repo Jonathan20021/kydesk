@@ -12,6 +12,38 @@ class Helpers
     }
 
     /**
+     * Crear o actualizar un contacto a partir de un solicitante de ticket.
+     * Devuelve el id del contacto.
+     */
+    public static function upsertContact(int $tenantId, ?int $companyId, string $name, string $email, ?string $phone = null): ?int
+    {
+        $email = trim($email);
+        $name = trim($name);
+        if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) return null;
+        $app = Application::get();
+        $db = $app->db;
+
+        try {
+            $existing = $db->one('SELECT id, company_id, name, phone FROM contacts WHERE tenant_id=? AND LOWER(email)=? LIMIT 1', [$tenantId, strtolower($email)]);
+            if ($existing) {
+                $update = [];
+                if (!$existing['company_id'] && $companyId) $update['company_id'] = $companyId;
+                if (empty($existing['phone']) && !empty($phone)) $update['phone'] = $phone;
+                if (empty($existing['name']) || strtolower($existing['name']) === strtolower($email)) $update['name'] = $name;
+                if ($update) $db->update('contacts', $update, 'id = :id', ['id' => (int)$existing['id']]);
+                return (int)$existing['id'];
+            }
+            return (int)$db->insert('contacts', [
+                'tenant_id'  => $tenantId,
+                'company_id' => $companyId,
+                'name'       => $name,
+                'email'      => $email,
+                'phone'      => $phone ?: null,
+            ]);
+        } catch (\Throwable $e) { return null; }
+    }
+
+    /**
      * Match a requester email to a company in the tenant.
      * Strategy:
      *   1) Match against contacts.email (exact)

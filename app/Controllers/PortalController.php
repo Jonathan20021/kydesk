@@ -32,10 +32,24 @@ class PortalController extends Controller
         $categories = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $companyId = (int)($_GET['company'] ?? 0);
         $company = null;
+        $contacts = [];
         if ($companyId > 0) {
             $company = $this->db->one('SELECT id, name, industry FROM companies WHERE id=? AND tenant_id=?', [$companyId, $tenant->id]);
+            if ($company) {
+                $contacts = $this->db->all(
+                    'SELECT id, name, email, phone, title FROM contacts WHERE tenant_id=? AND company_id=? AND email IS NOT NULL ORDER BY name LIMIT 100',
+                    [$tenant->id, (int)$company['id']]
+                );
+            }
         }
-        $this->render('portal/create', ['title' => 'Crear ticket · ' . $tenant->name, 'tenant' => $tenant, 'categories' => $categories, 'company' => $company, 'showPoweredFooter' => true], 'public');
+        $this->render('portal/create', [
+            'title' => 'Crear ticket · ' . $tenant->name,
+            'tenant' => $tenant,
+            'categories' => $categories,
+            'company' => $company,
+            'contacts' => $contacts,
+            'showPoweredFooter' => true,
+        ], 'public');
     }
 
     public function store(array $params): void
@@ -86,6 +100,9 @@ class PortalController extends Controller
         ]);
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
+
+        // Upsert contacto del solicitante (vinculado a empresa si la hay)
+        Helpers::upsertContact($tenant->id, $companyId ?: null, $name, $email, (string)$this->input('phone','') ?: null);
 
         // Notificar al solicitante + buzón del workspace
         try {

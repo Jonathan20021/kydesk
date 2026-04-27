@@ -169,6 +169,9 @@ class TicketController extends Controller
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
 
+        // Upsert contacto del solicitante (vinculado a empresa si la hay)
+        Helpers::upsertContact($tenant->id, $companyId, $data['requester_name'], $reqEmail, $data['requester_phone'] ?: null);
+
         $this->logAudit('ticket.created', 'ticket', $id, ['subject' => $subject]);
 
         // Notificar al solicitante (cliente) y al asignado
@@ -287,6 +290,8 @@ class TicketController extends Controller
             }
         } catch (\Throwable $e) { /* ignore */ }
 
+        $companies = $this->db->all('SELECT id, name FROM companies WHERE tenant_id=? ORDER BY name', [$tenant->id]);
+
         $this->render('tickets/show', [
             'title' => $ticket['code'] . ' — ' . $ticket['subject'],
             'ticket' => $ticket,
@@ -295,6 +300,7 @@ class TicketController extends Controller
             'categories' => $categories,
             'technicians' => $technicians,
             'departments' => $departments,
+            'companies' => $companies,
             'relatedArticles' => $relatedArticles,
             'macros' => $macros,
         ]);
@@ -356,11 +362,11 @@ class TicketController extends Controller
         $id = (int)$params['id'];
 
         $data = [];
-        $editable = ['status','priority','category_id','subject','description','tags'];
+        $editable = ['status','priority','category_id','subject','description','tags','company_id'];
         if ($this->hasDepartments()) $editable[] = 'department_id';
         foreach ($editable as $f) {
             $v = $this->input($f, null);
-            if ($v !== null) $data[$f] = in_array($f, ['category_id','department_id'], true) ? (((int)$v) ?: null) : $v;
+            if ($v !== null) $data[$f] = in_array($f, ['category_id','department_id','company_id'], true) ? (((int)$v) ?: null) : $v;
         }
         if (($data['status'] ?? null) === 'resolved') $data['resolved_at'] = date('Y-m-d H:i:s');
         if (($data['status'] ?? null) === 'closed')   $data['closed_at']   = date('Y-m-d H:i:s');

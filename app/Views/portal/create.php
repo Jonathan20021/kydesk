@@ -98,6 +98,35 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
                         </div>
                     </div>
 
+                    <?php if (!empty($contacts)): ?>
+                        <!-- Contact picker (existing contacts of the company) -->
+                        <div class="rounded-2xl p-4" style="background:<?= $e($brand) ?>0a;border:1px dashed <?= $e($brand) ?>40">
+                            <div class="flex items-center gap-2 mb-2.5">
+                                <i class="lucide lucide-users text-[14px]" style="color:<?= $e($brand) ?>"></i>
+                                <div class="text-[11.5px] font-bold uppercase tracking-[0.12em]" style="color:<?= $e($brand) ?>">¿Ya nos contactaste antes?</div>
+                            </div>
+                            <p class="text-[12px] text-ink-500 mb-3">Selecciona tu nombre para autocompletar el formulario, o escribe tus datos manualmente.</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <?php foreach ($contacts as $ct): ?>
+                                    <button type="button"
+                                        @click="pickContact(<?= htmlspecialchars(json_encode([
+                                            'name' => $ct['name'],
+                                            'email' => $ct['email'],
+                                            'phone' => $ct['phone'] ?? '',
+                                        ]), ENT_QUOTES) ?>)"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold bg-white border transition hover:-translate-y-0.5"
+                                        style="border-color:<?= $e($brand) ?>40;color:<?= $e($brand) ?>">
+                                        <i class="lucide lucide-user-check text-[12px]"></i>
+                                        <?= $e($ct['name']) ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                            <p x-show="form.name && form.email" class="text-[11.5px] mt-3 inline-flex items-center gap-1" style="color:#16a34a">
+                                <i class="lucide lucide-check-circle text-[12px]"></i> Datos cargados desde contacto existente
+                            </p>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="label">Nombre <span class="text-rose-500">*</span></label>
@@ -302,6 +331,11 @@ function ticketForm() {
         },
         next() { if (this.canAdvance() && this.step < 2) { this.step++; window.scrollTo({top:0,behavior:'smooth'}); } },
         prev() { if (this.step > 0) { this.step--; window.scrollTo({top:0,behavior:'smooth'}); } },
+        pickContact(c) {
+            if (c.name) this.form.name = c.name;
+            if (c.email) this.form.email = c.email;
+            if (c.phone) this.form.phone = c.phone;
+        },
     };
 }
 </script>

@@ -248,13 +248,37 @@ $statusMeta = ['open'=>['Abierto','#3b82f6','#dbeafe'],'in_progress'=>['En progr
                     ['mail','Email', $t['requester_email'] ?? '—'],
                     ['phone','Teléfono', $t['requester_phone'] ?? '—'],
                     ['radio','Canal', ucfirst($t['channel'])],
-                    ['building','Empresa', $t['company_name'] ?? '—'],
                 ] as [$ic,$l,$v]): ?>
                     <div class="flex items-start justify-between gap-3">
                         <dt class="text-ink-400 inline-flex items-center gap-2"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i> <?= $l ?></dt>
                         <dd class="font-medium text-right truncate min-w-0"><?= $e($v) ?></dd>
                     </div>
                 <?php endforeach; ?>
+                <!-- Empresa con link / inline action si está vacía -->
+                <div class="flex items-start justify-between gap-3" x-data="{linkOpen:false}">
+                    <dt class="text-ink-400 inline-flex items-center gap-2"><i class="lucide lucide-building-2 text-[12px]"></i> Empresa</dt>
+                    <dd class="font-medium text-right min-w-0">
+                        <?php if (!empty($t['company_name']) && !empty($t['company_id'])): ?>
+                            <a href="<?= $url('/t/' . $slug . '/companies/' . (int)$t['company_id']) ?>" class="text-brand-700 hover:underline inline-flex items-center gap-1"><?= $e($t['company_name']) ?> <i class="lucide lucide-arrow-up-right text-[10px]"></i></a>
+                        <?php elseif ($auth->can('tickets.edit')): ?>
+                            <button type="button" @click="linkOpen = !linkOpen" class="text-[12px] text-brand-700 font-semibold inline-flex items-center gap-1"><i class="lucide lucide-link-2 text-[12px]"></i> Vincular empresa</button>
+                            <div x-show="linkOpen" x-cloak class="mt-2 text-left">
+                                <form method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . $t['id'] . '/update') ?>" class="flex gap-1">
+                                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                    <select name="company_id" class="input" style="height:32px;font-size:12px;padding:0 8px;min-width:160px">
+                                        <option value="0">— Empresa —</option>
+                                        <?php foreach ($companies ?? [] as $co): ?>
+                                            <option value="<?= (int)$co['id'] ?>"><?= $e($co['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button class="btn btn-primary btn-xs" style="padding:0 10px;height:32px"><i class="lucide lucide-check text-[12px]"></i></button>
+                                </form>
+                            </div>
+                        <?php else: ?>
+                            <span class="text-ink-400">—</span>
+                        <?php endif; ?>
+                    </dd>
+                </div>
                 <div class="flex items-start justify-between gap-3">
                     <dt class="text-ink-400 inline-flex items-center gap-2"><i class="lucide lucide-folder text-[12px]"></i> Categoría</dt>
                     <dd>
