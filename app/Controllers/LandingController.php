@@ -244,7 +244,7 @@ class LandingController extends Controller
             ],
             'mockup' => 'integrations',
             'faqs' => [
-                ['¿Cuántas integraciones puedo tener?','Pro: 5. Business: 15. Enterprise: ilimitadas. Configurable desde super admin.'],
+                ['¿Cuántas integraciones puedo tener?','Pro: 5. Business: 15. Enterprise: ilimitadas. Los límites se ajustan según tu plan.'],
                 ['¿Cómo manejo los errores?','Cada integración tiene log de los últimos 200 envíos con HTTP status, latencia y respuesta.'],
                 ['¿Puedo pausar sin borrar?','Sí. Toggle activar/pausar conserva la configuración para reactivar cuando quieras.'],
                 ['¿Hay botón de prueba?','Sí. Cada integración tiene un botón "Probar" que envía un ping de test con latencia visible.'],

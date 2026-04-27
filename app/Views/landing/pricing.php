@@ -124,7 +124,7 @@
                 </div>
             <?php endforeach; ?>
             <?php if (empty($plansList)): ?>
-                <div class="md:col-span-3 text-center py-16 text-ink-400">No hay planes activos. Configura planes en el panel super admin.</div>
+                <div class="md:col-span-3 text-center py-16 text-ink-400">Estamos preparando los planes — vuelve pronto.</div>
             <?php endif; ?>
         </div>
 

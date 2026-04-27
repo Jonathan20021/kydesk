@@ -105,6 +105,416 @@ include APP_PATH . '/Views/partials/landing_nav.php';
     </div>
 </section>
 
+<?php if ($featureKey === 'integrations'): ?>
+
+<!-- ════════════════════ INTEGRATIONS · DASHBOARD MOCKUP ════════════════════ -->
+<section class="py-24" style="background:linear-gradient(180deg,#fafafb,white)">
+    <style>
+        .ifx-mock { position:relative; max-width:1180px; margin:0 auto; border-radius:24px; overflow:hidden; box-shadow:0 60px 120px -30px rgba(22,21,27,.18); border:1px solid #ececef; background:white; }
+        .ifx-mock-bar { display:flex; align-items:center; gap:8px; padding:12px 16px; background:#f9fafb; border-bottom:1px solid #ececef; }
+        .ifx-mock-dot { width:11px; height:11px; border-radius:50%; }
+        .ifx-mock-url { flex:1; text-align:center; font-family:'Geist Mono',monospace; font-size:11.5px; color:#8e8e9a; display:inline-flex; justify-content:center; align-items:center; gap:6px; }
+        .ifx-mock-body { display:grid; grid-template-columns:220px 1fr; min-height:580px; }
+        @media (max-width:900px) { .ifx-mock-body { grid-template-columns:1fr; } .ifx-mock-side { display:none; } }
+        .ifx-mock-side { background:#fafbfc; border-right:1px solid #ececef; padding:16px 12px; }
+        .ifx-mock-side-title { font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#8e8e9a; padding:6px 10px; }
+        .ifx-mock-side-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:9px; font-size:13px; color:#3d3d49; cursor:pointer; transition:background .15s; }
+        .ifx-mock-side-item:hover { background:white; }
+        .ifx-mock-side-item.active { background:#0ea5e91a; color:#0369a1; font-weight:600; position:relative; }
+        .ifx-mock-side-item.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:18px; border-radius:0 3px 3px 0; background:#0ea5e9; }
+        .ifx-mock-side-item .badge { margin-left:auto; font-size:10.5px; font-weight:600; color:#8e8e9a; padding:1px 7px; border-radius:999px; background:#f3f4f6; }
+
+        .ifx-mock-main { padding:24px 28px; background:white; }
+        .ifx-mock-hero { padding:18px 22px; border-radius:18px; background:linear-gradient(135deg,#fff,#f3f0ff); border:1px solid #ececef; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .ifx-mock-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px; }
+        .ifx-mock-stat { padding:14px; border-radius:14px; border:1px solid #ececef; background:white; }
+        .ifx-mock-stat-label { font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#8e8e9a; }
+        .ifx-mock-stat-value { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:22px; color:#16151b; margin-top:4px; letter-spacing:-.02em; }
+
+        .ifx-mock-section-h { display:flex; align-items:center; justify-content:space-between; margin:22px 0 12px; }
+        .ifx-mock-section-h h4 { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:13.5px; color:#16151b; }
+        .ifx-mock-section-h .pill { font-size:10px; font-weight:600; padding:3px 9px; border-radius:999px; background:#f3f0ff; color:#5a3aff; }
+
+        .ifx-mock-row { display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:14px; border:1px solid #ececef; transition:all .15s; cursor:pointer; }
+        .ifx-mock-row + .ifx-mock-row { margin-top:8px; }
+        .ifx-mock-row:hover { border-color:#0ea5e950; background:#f9fbff; }
+        .ifx-mock-row-icon { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; flex-shrink:0; }
+        .ifx-mock-row-name { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:13px; color:#16151b; }
+        .ifx-mock-row-meta { font-size:11px; color:#8e8e9a; margin-top:1px; }
+        .ifx-mock-row-status { display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:999px; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+        .ifx-mock-row-status::before { content:''; width:6px; height:6px; border-radius:50%; background:#16a34a; box-shadow:0 0 8px #16a34a; animation:ifx-pulse 1.6s ease-in-out infinite; }
+        @keyframes ifx-pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+    </style>
+
+    <div class="max-w-[1240px] mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] mb-3" style="color:<?= $f['color'] ?>">EL MARKETPLACE EN ACCIÓN</div>
+            <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3rem);text-wrap:balance">Tu panel de integraciones</h2>
+            <p class="mt-4 text-[15px] text-ink-500 max-w-xl mx-auto">Cada integración es una conexión viva — ves su salud, último evento entregado, errores y latencia en tiempo real.</p>
+        </div>
+
+        <div class="ifx-mock">
+            <div class="ifx-mock-bar">
+                <span class="ifx-mock-dot" style="background:#ff5f57"></span>
+                <span class="ifx-mock-dot" style="background:#febc2e"></span>
+                <span class="ifx-mock-dot" style="background:#28c840"></span>
+                <div class="ifx-mock-url"><i class="lucide lucide-lock text-[10px]"></i> kydesk.kyrosrd.com / acme / integrations</div>
+            </div>
+            <div class="ifx-mock-body">
+                <aside class="ifx-mock-side">
+                    <div class="ifx-mock-side-title">General</div>
+                    <div class="ifx-mock-side-item"><i class="lucide lucide-layout-dashboard text-[14px] text-ink-400"></i> Dashboard</div>
+                    <div class="ifx-mock-side-item"><i class="lucide lucide-inbox text-[14px] text-ink-400"></i> Tickets <span class="badge">42</span></div>
+                    <div class="ifx-mock-side-item"><i class="lucide lucide-list-checks text-[14px] text-ink-400"></i> Tareas</div>
+                    <div class="ifx-mock-side-title mt-3">Administración</div>
+                    <div class="ifx-mock-side-item"><i class="lucide lucide-workflow text-[14px] text-ink-400"></i> Automatizaciones</div>
+                    <div class="ifx-mock-side-item active"><i class="lucide lucide-plug text-[14px]"></i> Integraciones <span class="badge" style="background:#0ea5e91a;color:#0369a1">5</span></div>
+                    <div class="ifx-mock-side-item"><i class="lucide lucide-gauge text-[14px] text-ink-400"></i> SLA</div>
+                    <div class="ifx-mock-side-item"><i class="lucide lucide-users text-[14px] text-ink-400"></i> Usuarios</div>
+                </aside>
+                <div class="ifx-mock-main">
+                    <div class="ifx-mock-hero">
+                        <div>
+                            <div class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400 mb-1.5">PRO · 12 integraciones</div>
+                            <div class="font-display font-extrabold text-[22px] tracking-[-0.025em]">Conecta con tu stack</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Uso del plan</div>
+                            <div class="font-display font-extrabold text-[20px]">5 <span class="text-ink-400 font-normal text-[13px]">/ 15</span></div>
+                        </div>
+                    </div>
+
+                    <div class="ifx-mock-stats">
+                        <div class="ifx-mock-stat" style="border-top:3px solid #7c5cff">
+                            <div class="ifx-mock-stat-label">Instaladas</div>
+                            <div class="ifx-mock-stat-value">5</div>
+                        </div>
+                        <div class="ifx-mock-stat" style="border-top:3px solid #16a34a">
+                            <div class="ifx-mock-stat-label">Activas</div>
+                            <div class="ifx-mock-stat-value">5</div>
+                        </div>
+                        <div class="ifx-mock-stat" style="border-top:3px solid #0ea5e9">
+                            <div class="ifx-mock-stat-label">Eventos</div>
+                            <div class="ifx-mock-stat-value">1,247</div>
+                        </div>
+                        <div class="ifx-mock-stat" style="border-top:3px solid #f59e0b">
+                            <div class="ifx-mock-stat-label">Errores</div>
+                            <div class="ifx-mock-stat-value">0</div>
+                        </div>
+                    </div>
+
+                    <div class="ifx-mock-section-h">
+                        <h4>Integraciones activas</h4>
+                        <span class="pill">5 conectadas</span>
+                    </div>
+
+                    <?php foreach ([
+                        ['Slack #soporte','slack','#4A154B','842 envíos · hace 12s','active'],
+                        ['Discord #alertas','message-square','#5865F2','331 envíos · hace 2m','active'],
+                        ['Telegram @kydesk','send','#0088CC','58 envíos · hace 1h','active'],
+                        ['Zapier · Notion CRM','zap','#FF4A00','12 envíos · hace 4h','active'],
+                        ['Email alertas@acme.com','mail','#0EA5E9','4 envíos · hace 6h','active'],
+                    ] as [$nm,$ic,$cl,$mt,$st]): ?>
+                        <div class="ifx-mock-row">
+                            <div class="ifx-mock-row-icon" style="background:<?= $cl ?>15;color:<?= $cl ?>;border:1px solid <?= $cl ?>30"><i class="lucide lucide-<?= $ic ?> text-[14px]"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="ifx-mock-row-name"><?= $nm ?></div>
+                                <div class="ifx-mock-row-meta"><?= $mt ?></div>
+                            </div>
+                            <div class="ifx-mock-row-status">activa</div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════ TERMINAL · LIVE EVENT LOG ════════════════════ -->
+<section class="py-24" style="background:#0a0913;color:white;position:relative;overflow:hidden">
+    <style>
+        .ifx-term-bg::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 20%,rgba(124,92,255,.18),transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(14,165,233,.12),transparent 60%); }
+        .ifx-term { position:relative; max-width:980px; margin:0 auto; border-radius:18px; overflow:hidden; background:#0d0c14; border:1px solid rgba(255,255,255,.1); box-shadow:0 40px 90px -20px rgba(124,92,255,.3); }
+        .ifx-term-bar { display:flex; align-items:center; gap:8px; padding:11px 14px; background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.08); }
+        .ifx-term-title { font-family:'Geist Mono',monospace; font-size:11.5px; color:rgba(255,255,255,.55); margin-left:auto; margin-right:auto; }
+        .ifx-term-title .ifx-status { display:inline-flex; align-items:center; gap:6px; }
+        .ifx-term-title .ifx-status::before { content:''; width:7px; height:7px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981; animation:ifx-pulse-2 1.4s ease-in-out infinite; }
+        @keyframes ifx-pulse-2 { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.85); } }
+
+        .ifx-term-body { padding:22px 24px; font-family:'Geist Mono',monospace; font-size:12.5px; line-height:1.85; min-height:380px; max-height:480px; overflow:hidden; position:relative; mask-image:linear-gradient(180deg,transparent 0%,black 12%,black 88%,transparent 100%); -webkit-mask-image:linear-gradient(180deg,transparent 0%,black 12%,black 88%,transparent 100%); }
+        .ifx-term-body .scroll { animation:ifx-term-scroll 40s linear infinite; }
+        @keyframes ifx-term-scroll { 0% { transform:translateY(0); } 100% { transform:translateY(-50%); } }
+        .ifx-line { display:flex; gap:10px; align-items:baseline; }
+        .ifx-time { color:rgba(255,255,255,.35); flex-shrink:0; }
+        .ifx-tag { padding:1px 8px; border-radius:5px; font-size:10.5px; font-weight:700; flex-shrink:0; }
+        .ifx-tag-info  { background:rgba(14,165,233,.18); color:#60a5fa; border:1px solid rgba(14,165,233,.4); }
+        .ifx-tag-ok    { background:rgba(16,185,129,.18); color:#34d399; border:1px solid rgba(16,185,129,.4); }
+        .ifx-tag-warn  { background:rgba(245,158,11,.18); color:#fbbf24; border:1px solid rgba(245,158,11,.4); }
+        .ifx-tag-evt   { background:rgba(124,92,255,.18); color:#a78bfa; border:1px solid rgba(124,92,255,.4); }
+        .ifx-text { color:rgba(255,255,255,.78); }
+        .ifx-arr { color:#a78bfa; }
+        .ifx-prov { color:#fbbf24; font-weight:600; }
+        .ifx-ok { color:#34d399; font-weight:600; }
+        .ifx-ms { color:rgba(255,255,255,.4); }
+    </style>
+    <div class="ifx-term-bg absolute inset-0"></div>
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] mb-3" style="color:#0ea5e9">LIVE EVENT LOG</div>
+            <h2 class="display-xl text-white" style="font-size:clamp(1.8rem,3vw + 1rem,2.6rem);text-wrap:balance">Cada disparo registrado.<br><span class="ix2-grad" style="background:linear-gradient(120deg,#a78bfa,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent">Auditable y observable.</span></h2>
+            <p class="mt-4 text-[14.5px]" style="color:rgba(255,255,255,.6)">Historial por integración con HTTP status, latencia y excerpt de respuesta. Errores nunca silenciosos.</p>
+        </div>
+
+        <div class="ifx-term">
+            <div class="ifx-term-bar">
+                <span class="w-3 h-3 rounded-full" style="background:#ff5f57"></span>
+                <span class="w-3 h-3 rounded-full" style="background:#febc2e"></span>
+                <span class="w-3 h-3 rounded-full" style="background:#28c840"></span>
+                <div class="ifx-term-title"><span class="ifx-status">events.dispatcher · live</span></div>
+            </div>
+            <div class="ifx-term-body">
+                <div class="scroll">
+                    <?php
+                    $logEntries = [
+                        ['14:32:08', 'EVENT', 'evt', 'ticket.created',  'Slack #soporte',         'OK', '142ms'],
+                        ['14:32:08', 'INFO',  'info','POST',             'hooks.slack.com/...',    'HTTP 200', '142ms'],
+                        ['14:32:09', 'EVENT', 'evt', 'ticket.created',  'Discord #alertas',       'OK', '88ms'],
+                        ['14:32:09', 'EVENT', 'evt', 'ticket.created',  'Telegram @kydesk_bot',   'OK', '210ms'],
+                        ['14:32:11', 'EVENT', 'evt', 'comment.created', 'Slack #soporte',         'OK', '125ms'],
+                        ['14:33:42', 'EVENT', 'evt', 'sla.breach',      'Slack #soporte-urgente', 'OK', '98ms'],
+                        ['14:33:42', 'EVENT', 'evt', 'sla.breach',      'Pushover · Marco',       'OK', '342ms'],
+                        ['14:33:42', 'EVENT', 'evt', 'sla.breach',      'Zapier · Notion',        'OK', '218ms'],
+                        ['14:35:14', 'EVENT', 'evt', 'ticket.assigned', 'Discord #alertas',       'OK', '92ms'],
+                        ['14:36:01', 'EVENT', 'evt', 'ticket.resolved', 'Slack #soporte',         'OK', '110ms'],
+                        ['14:36:02', 'EVENT', 'evt', 'ticket.resolved', 'Email alertas@acme.com', 'OK', '88ms'],
+                        ['14:38:25', 'INFO',  'info','HMAC',             'Webhook firmado SHA256', 'OK', '—'],
+                        ['14:38:26', 'EVENT', 'evt', 'ticket.escalated','Microsoft Teams',        'OK', '156ms'],
+                        ['14:39:11', 'EVENT', 'evt', 'comment.created', 'Slack #soporte',         'OK', '132ms'],
+                        ['14:40:03', 'EVENT', 'evt', 'todo.completed',  'Telegram @kydesk_bot',   'OK', '198ms'],
+                    ];
+                    // Render twice for seamless infinite loop
+                    for ($pass = 0; $pass < 2; $pass++):
+                        foreach ($logEntries as [$t, $tag, $tagCls, $event, $prov, $resp, $ms]): ?>
+                            <div class="ifx-line">
+                                <span class="ifx-time"><?= $t ?></span>
+                                <span class="ifx-tag <?= $tag === 'EVENT' ? 'ifx-tag-evt' : ($tag === 'INFO' ? 'ifx-tag-info' : 'ifx-tag-warn') ?>"><?= $tag ?></span>
+                                <span class="ifx-text"><?= $event ?></span>
+                                <span class="ifx-arr">→</span>
+                                <span class="ifx-prov"><?= $prov ?></span>
+                                <span class="ifx-tag ifx-tag-ok"><?= $resp ?></span>
+                                <span class="ifx-ms"><?= $ms ?></span>
+                            </div>
+                        <?php endforeach;
+                    endfor; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════ FULL PROVIDER GALLERY ════════════════════ -->
+<section class="py-24">
+    <style>
+        .ifx-cat-tab { padding:7px 16px; border-radius:999px; font-size:12.5px; font-weight:600; background:white; border:1px solid #ececef; color:#6b6b78; cursor:pointer; transition:all .15s; }
+        .ifx-cat-tab:hover { border-color:#0ea5e9; color:#0ea5e9; }
+        .ifx-cat-tab.active { background:#16151b; color:white; border-color:#16151b; }
+        .ifx-prov-card { padding:22px; border-radius:18px; background:white; border:1px solid #ececef; transition:all .25s cubic-bezier(.2,.9,.3,1); cursor:default; position:relative; overflow:hidden; }
+        .ifx-prov-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,var(--clr,#7c5cff)0d,transparent 60%); opacity:0; transition:opacity .25s; }
+        .ifx-prov-card:hover { transform:translateY(-4px); border-color:var(--clr,#7c5cff); box-shadow:0 20px 40px -16px var(--clr,#7c5cff)40; }
+        .ifx-prov-card:hover::before { opacity:1; }
+        .ifx-prov-icon { position:relative; width:48px; height:48px; border-radius:14px; display:grid; place-items:center; }
+        .ifx-prov-cat { position:relative; font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#8e8e9a; margin-top:14px; }
+        .ifx-prov-name { position:relative; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:15px; color:#16151b; margin-top:3px; letter-spacing:-.01em; }
+        .ifx-prov-desc { position:relative; font-size:12.5px; color:#6b6b78; margin-top:6px; line-height:1.5; }
+        .ifx-prov-link { position:relative; display:inline-flex; align-items:center; gap:5px; margin-top:12px; font-size:11.5px; font-weight:600; opacity:0; transform:translateX(-4px); transition:all .25s; color:var(--clr,#7c5cff); }
+        .ifx-prov-card:hover .ifx-prov-link { opacity:1; transform:translateX(0); }
+    </style>
+    <div class="max-w-[1240px] mx-auto px-6" x-data="{cat:'all'}">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+            <div>
+                <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] mb-2" style="color:<?= $f['color'] ?>">12 PROVEEDORES LISTOS</div>
+                <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3rem);text-wrap:balance">Catálogo completo de integraciones</h2>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button @click="cat='all'" :class="cat==='all'?'active':''" class="ifx-cat-tab">Todas</button>
+                <button @click="cat='chat'" :class="cat==='chat'?'active':''" class="ifx-cat-tab"><i class="lucide lucide-message-square text-[12px]"></i> Chat</button>
+                <button @click="cat='automation'" :class="cat==='automation'?'active':''" class="ifx-cat-tab"><i class="lucide lucide-workflow text-[12px]"></i> Automatización</button>
+                <button @click="cat='devops'" :class="cat==='devops'?'active':''" class="ifx-cat-tab"><i class="lucide lucide-code-2 text-[12px]"></i> DevOps</button>
+                <button @click="cat='notify'" :class="cat==='notify'?'active':''" class="ifx-cat-tab"><i class="lucide lucide-bell text-[12px]"></i> Notify</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <?php
+            $providers = [
+                ['Slack',          'slack',          '#4A154B', 'chat',       'Chat',          'Notifica a un canal con attachments coloreados según evento'],
+                ['Discord',        'message-square', '#5865F2', 'chat',       'Chat',          'Embeds ricos con fields, color, timestamp y avatar'],
+                ['Telegram',       'send',           '#0088CC', 'chat',       'Chat',          'Bot con sendMessage HTML a canales, grupos o chats privados'],
+                ['Microsoft Teams','users-2',        '#5059C9', 'chat',       'Chat',          'MessageCard adaptativa con facts y theme color por evento'],
+                ['Mattermost',     'message-circle', '#0058CC', 'chat',       'Chat',          'Alternativa open-source · payload compatible Slack'],
+                ['Rocket.Chat',    'rocket',         '#F5455C', 'chat',       'Chat',          'Plataforma enterprise · Incoming Webhook nativo'],
+                ['Zapier',         'zap',            '#FF4A00', 'automation', 'Automatización','Conecta con miles de apps via Zaps · Catch Hook'],
+                ['n8n',            'workflow',       '#EA4B71', 'automation', 'Automatización','Workflows open-source self-hosted con webhook node'],
+                ['Make',           'cpu',            '#6D00CC', 'automation', 'Automatización','Escenarios visuales drag & drop (ex-Integromat)'],
+                ['Webhook',        'webhook',        '#0ea5e9', 'devops',     'DevOps',        'POST/PUT/PATCH JSON con HMAC-SHA256 opcional'],
+                ['Email',          'mail',           '#0EA5E9', 'notify',     'Notify',        'Reenvía eventos a un email vía Resend con HTML branded'],
+                ['Pushover',       'bell',           '#249DF1', 'notify',     'Notify',        'Push a tu móvil con prioridad configurable (silenciosa→emergencia)'],
+            ];
+            foreach ($providers as [$name, $icon, $color, $cat, $catLbl, $desc]): ?>
+                <div class="ifx-prov-card" style="--clr:<?= $color ?>" x-show="cat==='all' || cat==='<?= $cat ?>'" x-transition>
+                    <div class="ifx-prov-icon" style="background:<?= $color ?>15;color:<?= $color ?>;border:1px solid <?= $color ?>30">
+                        <i class="lucide lucide-<?= $icon ?> text-[20px]"></i>
+                    </div>
+                    <div class="ifx-prov-cat"><?= $catLbl ?></div>
+                    <div class="ifx-prov-name"><?= $name ?></div>
+                    <div class="ifx-prov-desc"><?= $desc ?></div>
+                    <span class="ifx-prov-link">Configurar <i class="lucide lucide-arrow-right text-[11px]"></i></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════ EVENT TYPES ════════════════════ -->
+<section class="py-24" style="background:linear-gradient(180deg,#fafafb,white)">
+    <div class="max-w-[1240px] mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] mb-3" style="color:<?= $f['color'] ?>">12 EVENTOS DISPARADORES</div>
+            <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3rem);text-wrap:balance">Todo lo que pasa, lo notificas</h2>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-[1100px] mx-auto">
+            <?php foreach ([
+                ['ticket.created',   'Ticket creado',         'inbox',          '#3b82f6'],
+                ['ticket.updated',   'Ticket actualizado',    'pencil',         '#7c5cff'],
+                ['ticket.assigned',  'Ticket asignado',       'user-check',     '#7c5cff'],
+                ['ticket.resolved',  'Ticket resuelto',       'check-circle-2', '#16a34a'],
+                ['ticket.escalated', 'Ticket escalado',       'trending-up',    '#ef4444'],
+                ['ticket.deleted',   'Ticket eliminado',      'trash-2',        '#6b7280'],
+                ['comment.created',  'Comentario nuevo',      'message-circle', '#0ea5e9'],
+                ['sla.breach',       'SLA vencido',           'alert-triangle', '#dc2626'],
+                ['company.created',  'Empresa creada',        'building-2',     '#0ea5e9'],
+                ['kb.published',     'Artículo publicado',    'book-open',      '#16a34a'],
+                ['todo.created',     'Tarea creada',          'list-checks',    '#3b82f6'],
+                ['todo.completed',   'Tarea completada',      'check',          '#16a34a'],
+            ] as [$key, $label, $icon, $color]): ?>
+                <div class="rounded-2xl p-4 bg-white border border-[#ececef] hover:border-[<?= $color ?>] hover:shadow-md transition cursor-default" style="--c:<?= $color ?>">
+                    <div class="w-9 h-9 rounded-xl grid place-items-center mb-3" style="background:<?= $color ?>15;color:<?= $color ?>"><i class="lucide lucide-<?= $icon ?> text-[15px]"></i></div>
+                    <div class="font-display font-bold text-[12.5px] text-ink-900"><?= $label ?></div>
+                    <code class="text-[10.5px] font-mono text-ink-400 mt-0.5 block truncate" title="<?= $key ?>"><?= $key ?></code>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════ PLAYBOOKS ════════════════════ -->
+<section class="py-24">
+    <style>
+        .ifx-pb-card { position:relative; padding:24px; border-radius:20px; background:white; border:1px solid #ececef; transition:all .3s; overflow:hidden; }
+        .ifx-pb-card:hover { border-color:#7c5cff; box-shadow:0 24px 50px -16px rgba(124,92,255,.25); }
+        .ifx-pb-flow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; padding:12px 14px; border-radius:12px; background:#fafbfc; border:1px solid #ececef; }
+        .ifx-pb-trigger { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:8px; background:#fef3c7; color:#92400e; font-size:11.5px; font-weight:700; }
+        .ifx-pb-arrow { color:#b8b8c4; font-size:13px; }
+        .ifx-pb-action { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:8px; background:white; border:1px solid; font-size:11.5px; font-weight:600; }
+    </style>
+    <div class="max-w-[1240px] mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] mb-3" style="color:<?= $f['color'] ?>">PLAYBOOKS REALES</div>
+            <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3rem);text-wrap:balance">Casos de uso que funcionan hoy</h2>
+            <p class="mt-4 text-[14.5px] text-ink-500">Combinaciones probadas que tu equipo puede armar en 3 minutos.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <?php
+            $playbooks = [
+                [
+                    'title' => 'Tickets urgentes al canal de guardia',
+                    'desc'  => 'Cualquier ticket con prioridad urgente notifica al canal #guardia y dispara push al líder de soporte.',
+                    'icon'  => 'siren',
+                    'color' => '#ef4444',
+                    'trigger' => ['ticket.created · priority:urgent', 'zap'],
+                    'actions' => [
+                        ['Slack #guardia', '#4A154B', 'slack'],
+                        ['Pushover · Marco', '#249DF1', 'bell'],
+                    ],
+                ],
+                [
+                    'title' => 'SLA en riesgo → escalamiento',
+                    'desc'  => 'Cuando un ticket está a 80% del SLA, alerta al supervisor y crea card en Notion via Zapier.',
+                    'icon'  => 'gauge',
+                    'color' => '#f59e0b',
+                    'trigger' => ['sla.breach', 'alert-triangle'],
+                    'actions' => [
+                        ['Discord #alerta', '#5865F2', 'message-square'],
+                        ['Zapier → Notion', '#FF4A00', 'zap'],
+                    ],
+                ],
+                [
+                    'title' => 'Resolución → CSAT survey',
+                    'desc'  => 'Al resolver un ticket, n8n dispara una encuesta de satisfacción y guarda en hoja de Google Sheets.',
+                    'icon'  => 'star',
+                    'color' => '#16a34a',
+                    'trigger' => ['ticket.resolved', 'check-circle-2'],
+                    'actions' => [
+                        ['n8n workflow', '#EA4B71', 'workflow'],
+                        ['Email cliente', '#0EA5E9', 'mail'],
+                    ],
+                ],
+                [
+                    'title' => 'Comentarios públicos del cliente',
+                    'desc'  => 'Cada vez que el cliente responde por el portal público, el equipo se entera en Slack al instante.',
+                    'icon'  => 'message-square-quote',
+                    'color' => '#7c5cff',
+                    'trigger' => ['comment.created · public', 'message-circle'],
+                    'actions' => [
+                        ['Slack #equipo', '#4A154B', 'slack'],
+                    ],
+                ],
+                [
+                    'title' => 'Daily digest a Teams',
+                    'desc'  => 'Make (Integromat) consume el log diario y postea un resumen ejecutivo al canal General de Microsoft Teams.',
+                    'icon'  => 'newspaper',
+                    'color' => '#5059C9',
+                    'trigger' => ['todo.completed', 'check'],
+                    'actions' => [
+                        ['Make scenario', '#6D00CC', 'cpu'],
+                        ['Teams · General', '#5059C9', 'users-2'],
+                    ],
+                ],
+                [
+                    'title' => 'Empresa nueva → CRM',
+                    'desc'  => 'Crear empresa en Kydesk dispara webhook a tu CRM (Salesforce, HubSpot, custom) para sincronizar.',
+                    'icon'  => 'building-2',
+                    'color' => '#0ea5e9',
+                    'trigger' => ['company.created', 'building-2'],
+                    'actions' => [
+                        ['Webhook firmado', '#0ea5e9', 'webhook'],
+                    ],
+                ],
+            ];
+            foreach ($playbooks as $pb): ?>
+                <div class="ifx-pb-card">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-xl grid place-items-center" style="background:<?= $pb['color'] ?>15;color:<?= $pb['color'] ?>;border:1px solid <?= $pb['color'] ?>30"><i class="lucide lucide-<?= $pb['icon'] ?> text-[16px]"></i></div>
+                        <h3 class="font-display font-extrabold text-[14.5px] tracking-[-0.015em]"><?= $e($pb['title']) ?></h3>
+                    </div>
+                    <p class="text-[12.5px] text-ink-500 leading-relaxed"><?= $e($pb['desc']) ?></p>
+                    <div class="ifx-pb-flow">
+                        <span class="ifx-pb-trigger"><i class="lucide lucide-<?= $pb['trigger'][1] ?> text-[11px]"></i> <?= $e($pb['trigger'][0]) ?></span>
+                        <?php foreach ($pb['actions'] as [$lbl, $col, $ic]): ?>
+                            <span class="ifx-pb-arrow"><i class="lucide lucide-arrow-right"></i></span>
+                            <span class="ifx-pb-action" style="border-color:<?= $col ?>40;color:<?= $col ?>"><i class="lucide lucide-<?= $ic ?> text-[11px]"></i> <?= $e($lbl) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<?php else: /* GENERIC MOCKUP for other features */ ?>
+
 <!-- MOCKUP showcase -->
 <section class="py-24">
     <div class="max-w-[1240px] mx-auto px-6">
@@ -274,6 +684,8 @@ include APP_PATH . '/Views/partials/landing_nav.php';
         </div>
     </div>
 </section>
+
+<?php endif; /* end /features/integrations conditional vs generic mockup */ ?>
 
 <!-- FAQ -->
 <section class="py-20">

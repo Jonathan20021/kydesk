@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="text-center mt-6 text-[12.5px] text-slate-500">
-            <a href="<?= $url('/') ?>" class="hover:text-slate-300">¿Buscas el helpdesk?</a> · <a href="<?= $url('/admin') ?>" class="hover:text-slate-300">Admin</a>
+            <a href="<?= $url('/') ?>" class="hover:text-slate-300">¿Buscas el helpdesk?</a>
         </div>
     </div>
 </div>

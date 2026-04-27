@@ -352,6 +352,409 @@
     </div>
 </section>
 
+<!-- ========== INTEGRATIONS SECTION (super animada · v2) ========== -->
+<section id="integrations" class="ix2-section">
+    <style>
+        .ix2-section { position:relative; padding:140px 0 160px; overflow:hidden; background:#0a0913; color:white; isolation:isolate; }
+        .ix2-bg { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+        .ix2-bg::before { content:''; position:absolute; inset:0; background:
+            radial-gradient(ellipse 80% 60% at 20% 0%, rgba(124,92,255,.18), transparent 60%),
+            radial-gradient(ellipse 70% 50% at 80% 100%, rgba(217,70,239,.15), transparent 60%),
+            radial-gradient(ellipse 60% 50% at 50% 50%, rgba(14,165,233,.08), transparent 70%);
+        }
+        .ix2-grid { position:absolute; inset:0; opacity:.06; background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px); background-size:80px 80px; mask-image:radial-gradient(ellipse 60% 50% at center,black,transparent 75%); -webkit-mask-image:radial-gradient(ellipse 60% 50% at center,black,transparent 75%); }
+        .ix2-noise { position:absolute; inset:0; opacity:.018; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+        .ix2-stars { position:absolute; inset:0; }
+        .ix2-stars span { position:absolute; width:2px; height:2px; border-radius:50%; background:white; opacity:0; animation:ix2-twinkle 4s ease-in-out infinite; }
+        @keyframes ix2-twinkle { 0%,100% { opacity:0; transform:scale(.5); } 50% { opacity:.8; transform:scale(1); } }
+
+        /* HEADER */
+        .ix2-eyebrow { display:inline-flex; align-items:center; gap:10px; padding:7px 18px; border-radius:999px; background:linear-gradient(135deg,rgba(124,92,255,.12),rgba(217,70,239,.08)); border:1px solid rgba(124,92,255,.25); backdrop-filter:blur(12px); font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.92); }
+        .ix2-eyebrow-dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 14px #10b981; animation:ix2-dot 2s ease-in-out infinite; }
+        @keyframes ix2-dot { 0%,100% { box-shadow:0 0 0 0 rgba(16,185,129,.7); } 50% { box-shadow:0 0 0 10px rgba(16,185,129,0); } }
+
+        .ix2-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:clamp(2.2rem,4vw + 1rem,4rem); letter-spacing:-.04em; line-height:1.02; text-wrap:balance; }
+        .ix2-grad { background:linear-gradient(120deg,#a78bfa 0%,#d946ef 35%,#f0abfc 60%,#7c5cff 100%); background-size:300% 300%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:ix2-grad 8s ease-in-out infinite; }
+        @keyframes ix2-grad { 0%,100% { background-position:0% 50%; } 50% { background-position:100% 50%; } }
+        .ix2-sub { font-size:16px; color:rgba(255,255,255,.62); line-height:1.65; max-width:620px; margin:24px auto 0; }
+
+        /* SHOWCASE - left source / center connectors / right notifications */
+        .ix2-showcase { position:relative; margin:90px auto 0; max-width:1180px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:32px; align-items:center; }
+        @media (max-width:1024px) { .ix2-showcase { grid-template-columns:1fr; gap:48px; max-width:640px; } }
+
+        /* SOURCE CARD (Kydesk event) */
+        .ix2-source { position:relative; }
+        .ix2-source-card { position:relative; padding:22px; border-radius:22px; background:linear-gradient(135deg,#16151b,#1a1825); border:1px solid rgba(124,92,255,.3); box-shadow:0 30px 80px -20px rgba(124,92,255,.4), inset 0 1px 0 rgba(255,255,255,.05); overflow:hidden; }
+        .ix2-source-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(124,92,255,.08),transparent 50%); pointer-events:none; }
+        .ix2-source-head { display:flex; align-items:center; gap:10px; margin-bottom:14px; position:relative; }
+        .ix2-source-logo { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#7c5cff,#d946ef); display:grid; place-items:center; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; color:white; font-size:18px; box-shadow:0 8px 16px -4px rgba(124,92,255,.5); }
+        .ix2-source-meta { font-size:10.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.5); }
+        .ix2-source-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14.5px; color:white; }
+        .ix2-source-event { display:inline-flex; align-items:center; gap:6px; margin-top:4px; padding:3px 10px; border-radius:999px; background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.4); font-family:'Geist Mono',monospace; font-size:11px; color:#34d399; }
+        .ix2-source-event::before { content:''; width:6px; height:6px; border-radius:50%; background:#10b981; animation:ix2-dot 1.5s ease-in-out infinite; }
+        .ix2-payload { margin-top:14px; padding:14px; border-radius:12px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.06); font-family:'Geist Mono',monospace; font-size:11.5px; line-height:1.7; color:rgba(255,255,255,.82); position:relative; overflow:hidden; }
+        .ix2-payload .k { color:#a78bfa; }
+        .ix2-payload .s { color:#86efac; }
+        .ix2-payload .n { color:#fcd34d; }
+        .ix2-payload-cursor { display:inline-block; width:6px; height:13px; background:#a78bfa; vertical-align:text-bottom; animation:ix2-cursor 1s steps(2) infinite; margin-left:1px; }
+        @keyframes ix2-cursor { 50% { opacity:0; } }
+
+        .ix2-source-floats { position:absolute; inset:-30px; pointer-events:none; }
+        .ix2-float-pill { position:absolute; padding:5px 11px; border-radius:999px; backdrop-filter:blur(12px); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); font-size:10.5px; font-weight:600; color:rgba(255,255,255,.85); display:inline-flex; align-items:center; gap:6px; animation:ix2-float-up 8s ease-in-out infinite; }
+        .ix2-float-pill:nth-child(1) { top:-10px; right:20px; animation-delay:0s; }
+        .ix2-float-pill:nth-child(2) { bottom:0; right:-15px; animation-delay:2s; }
+        .ix2-float-pill:nth-child(3) { top:30%; left:-20px; animation-delay:4s; }
+        @keyframes ix2-float-up { 0%,100% { transform:translateY(0); opacity:.7; } 50% { transform:translateY(-12px); opacity:1; } }
+
+        /* CONNECTOR (center) */
+        .ix2-connector { position:relative; height:100%; min-height:380px; display:flex; align-items:center; justify-content:center; }
+        .ix2-connector svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+        .ix2-pipe { fill:none; stroke:url(#ix2-pipeGrad); stroke-width:2; stroke-linecap:round; }
+        .ix2-pipe-bg { fill:none; stroke:rgba(255,255,255,.06); stroke-width:2; stroke-linecap:round; stroke-dasharray:4 6; }
+        .ix2-spark { fill:#a78bfa; filter:drop-shadow(0 0 8px #a78bfa) drop-shadow(0 0 14px rgba(167,139,250,.6)); }
+        .ix2-hub { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:96px; height:96px; border-radius:24px; background:radial-gradient(circle at 30% 30%,#a78bfa,#7c5cff 50%,#5b21b6 100%); display:grid; place-items:center; box-shadow:0 20px 50px -10px rgba(124,92,255,.55), inset 0 2px 0 rgba(255,255,255,.2); animation:ix2-hub 4s ease-in-out infinite; z-index:10; }
+        .ix2-hub::before, .ix2-hub::after { content:''; position:absolute; inset:0; border-radius:24px; border:2px solid rgba(167,139,250,.6); animation:ix2-hub-ripple 3s ease-out infinite; }
+        .ix2-hub::after { animation-delay:1.5s; }
+        @keyframes ix2-hub { 0%,100% { transform:translate(-50%,-50%) scale(1); } 50% { transform:translate(-50%,-50%) scale(1.04); } }
+        @keyframes ix2-hub-ripple { 0% { transform:scale(1); opacity:.7; } 100% { transform:scale(1.8); opacity:0; } }
+        .ix2-hub i { color:white; font-size:36px; }
+        .ix2-hub-label { position:absolute; top:calc(100% + 14px); left:50%; transform:translateX(-50%); font-family:'Geist Mono',monospace; font-size:11px; color:rgba(255,255,255,.55); white-space:nowrap; }
+
+        /* NOTIFICATIONS (right) — stacked cards */
+        .ix2-notifs { display:flex; flex-direction:column; gap:14px; position:relative; }
+        .ix2-notif { padding:16px 18px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); backdrop-filter:blur(14px); position:relative; overflow:hidden; transform-origin:left center; animation:ix2-notif-in 1s cubic-bezier(.2,.9,.3,1.2) backwards; }
+        .ix2-notif:nth-child(1) { animation-delay:.1s; }
+        .ix2-notif:nth-child(2) { animation-delay:.4s; }
+        .ix2-notif:nth-child(3) { animation-delay:.7s; }
+        .ix2-notif::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+        @keyframes ix2-notif-in { 0% { transform:translateX(40px); opacity:0; } 100% { transform:translateX(0); opacity:1; } }
+        .ix2-notif:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.18); }
+        .ix2-notif-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+        .ix2-notif-icon { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; flex-shrink:0; }
+        .ix2-notif-app { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:12.5px; color:white; }
+        .ix2-notif-time { font-size:10.5px; color:rgba(255,255,255,.4); margin-left:auto; }
+        .ix2-notif-msg { font-size:12.5px; color:rgba(255,255,255,.78); line-height:1.55; }
+        .ix2-notif-msg strong { color:white; font-weight:700; }
+        .ix2-notif-tags { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+        .ix2-notif-tag { font-size:10px; padding:2px 7px; border-radius:6px; background:rgba(255,255,255,.06); color:rgba(255,255,255,.65); font-family:'Geist Mono',monospace; }
+
+        /* MARQUEE - infinite scroll of providers */
+        .ix2-marquee-wrap { margin-top:90px; position:relative; padding:24px 0; border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); overflow:hidden; }
+        .ix2-marquee-wrap::before, .ix2-marquee-wrap::after { content:''; position:absolute; top:0; bottom:0; width:120px; z-index:2; pointer-events:none; }
+        .ix2-marquee-wrap::before { left:0; background:linear-gradient(90deg,#0a0913,transparent); }
+        .ix2-marquee-wrap::after { right:0; background:linear-gradient(-90deg,#0a0913,transparent); }
+        .ix2-marquee { display:flex; gap:48px; width:max-content; animation:ix2-scroll 40s linear infinite; }
+        .ix2-marquee:hover { animation-play-state:paused; }
+        @keyframes ix2-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+        .ix2-mq-item { display:inline-flex; align-items:center; gap:10px; padding:10px 18px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); transition:all .25s; flex-shrink:0; }
+        .ix2-mq-item:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.18); transform:translateY(-2px); }
+        .ix2-mq-item-icon { width:24px; height:24px; border-radius:6px; display:grid; place-items:center; flex-shrink:0; }
+        .ix2-mq-item-name { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:13px; color:rgba(255,255,255,.92); white-space:nowrap; }
+
+        /* PROVIDER GRID with 3D tilt feel */
+        .ix2-grid-cards { margin-top:80px; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; max-width:1180px; margin-left:auto; margin-right:auto; perspective:1200px; }
+        .ix2-card { position:relative; padding:22px; border-radius:20px; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(20px); transition:transform .35s cubic-bezier(.2,.9,.3,1), border-color .25s, background .25s; overflow:hidden; transform-style:preserve-3d; }
+        .ix2-card::before { content:''; position:absolute; inset:0; border-radius:20px; padding:1px; background:linear-gradient(135deg,transparent 30%,var(--ix-glow,#7c5cff) 50%,transparent 70%); -webkit-mask:linear-gradient(white,white) content-box,linear-gradient(white,white); -webkit-mask-composite:xor; mask-composite:exclude; opacity:0; transition:opacity .3s; pointer-events:none; }
+        .ix2-card::after { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center,var(--ix-glow,#7c5cff)20,transparent 50%); opacity:0; transition:opacity .35s; pointer-events:none; }
+        .ix2-card:hover { transform:translateY(-6px) rotateX(2deg); border-color:transparent; background:rgba(255,255,255,.04); }
+        .ix2-card:hover::before, .ix2-card:hover::after { opacity:1; }
+        .ix2-card-icon { position:relative; width:48px; height:48px; border-radius:14px; display:grid; place-items:center; margin-bottom:14px; }
+        .ix2-card-cat { position:relative; font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:4px; }
+        .ix2-card-name { position:relative; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:15.5px; color:white; letter-spacing:-.01em; }
+        .ix2-card-desc { position:relative; font-size:12px; color:rgba(255,255,255,.55); line-height:1.5; margin-top:6px; }
+        .ix2-card-status { position:absolute; top:18px; right:18px; display:inline-flex; align-items:center; gap:5px; font-size:10px; color:rgba(16,185,129,.9); font-weight:700; }
+        .ix2-card-status::before { content:''; width:6px; height:6px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981; }
+
+        /* STATS STRIP */
+        .ix2-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:1px; margin-top:60px; padding:0; border-radius:24px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); backdrop-filter:blur(14px); max-width:880px; margin-left:auto; margin-right:auto; overflow:hidden; }
+        .ix2-stat { padding:28px 24px; text-align:center; background:rgba(10,9,19,.5); position:relative; }
+        .ix2-stat-value { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:38px; letter-spacing:-.03em; line-height:1; }
+        .ix2-stat-value.grad { background:linear-gradient(135deg,#a78bfa,#d946ef,#f0abfc); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .ix2-stat-label { font-size:11.5px; color:rgba(255,255,255,.55); margin-top:6px; }
+
+        /* CTA */
+        .ix2-cta-row { text-align:center; margin-top:48px; }
+        .ix2-cta { display:inline-flex; align-items:center; gap:10px; padding:14px 30px; border-radius:14px; background:linear-gradient(135deg,#7c5cff,#a78bfa,#d946ef); background-size:200% 200%; color:white; font-weight:600; font-size:14px; box-shadow:0 18px 40px -10px rgba(124,92,255,.6), inset 0 1px 0 rgba(255,255,255,.2); transition:transform .25s, box-shadow .25s, background-position .8s; text-decoration:none; }
+        .ix2-cta:hover { transform:translateY(-2px); background-position:100% 50%; box-shadow:0 22px 50px -8px rgba(124,92,255,.85); }
+
+        /* Mobile tweaks */
+        @media (max-width:1024px) {
+            .ix2-connector { min-height:140px; }
+            .ix2-hub { width:78px; height:78px; }
+            .ix2-hub i { font-size:30px; }
+        }
+        @media (max-width:640px) {
+            .ix2-section { padding:90px 0 110px; }
+            .ix2-source-card { padding:18px; }
+            .ix2-stats { grid-template-columns:repeat(2, 1fr); }
+            .ix2-stat-value { font-size:28px; }
+        }
+    </style>
+
+    <div class="ix2-bg">
+        <div class="ix2-grid"></div>
+        <div class="ix2-noise"></div>
+        <div class="ix2-stars">
+            <?php for ($i = 0; $i < 30; $i++):
+                $top = rand(0, 100); $left = rand(0, 100); $delay = rand(0, 40) / 10;
+            ?>
+                <span style="top:<?= $top ?>%;left:<?= $left ?>%;animation-delay:<?= $delay ?>s"></span>
+            <?php endfor; ?>
+        </div>
+    </div>
+
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+
+        <!-- HEADER -->
+        <div class="text-center reveal" data-reveal>
+            <div class="ix2-eyebrow">
+                <span class="ix2-eyebrow-dot"></span>
+                <span>Marketplace · 12+ proveedores en vivo</span>
+            </div>
+            <h2 class="ix2-title mt-7">
+                Cada evento de Kydesk,<br>
+                <span class="ix2-grad">en tu stack favorito</span>.
+            </h2>
+            <p class="ix2-sub">
+                Cuando algo pasa en tu helpdesk — un ticket, un SLA, una resolución — Kydesk lo dispara automáticamente a Slack, Discord, Teams, Zapier y 8 plataformas más. Sin escribir código, en tiempo real.
+            </p>
+        </div>
+
+        <!-- LIVE EVENT FLOW -->
+        <div class="ix2-showcase reveal" data-reveal>
+
+            <!-- LEFT: Source -->
+            <div class="ix2-source">
+                <div class="ix2-source-card">
+                    <div class="ix2-source-head">
+                        <div class="ix2-source-logo">K</div>
+                        <div class="flex-1">
+                            <div class="ix2-source-meta">Kydesk · Helpdesk</div>
+                            <div class="ix2-source-title">Nuevo ticket creado</div>
+                        </div>
+                    </div>
+                    <div class="ix2-source-event">ticket.created</div>
+                    <div class="ix2-payload">
+                        <div>{</div>
+                        <div>&nbsp;&nbsp;<span class="k">"code"</span>: <span class="s">"TKT-1042"</span>,</div>
+                        <div>&nbsp;&nbsp;<span class="k">"subject"</span>: <span class="s">"VPN se desconecta"</span>,</div>
+                        <div>&nbsp;&nbsp;<span class="k">"priority"</span>: <span class="s">"high"</span>,</div>
+                        <div>&nbsp;&nbsp;<span class="k">"requester"</span>: <span class="s">"maria@acme.com"</span><span class="ix2-payload-cursor"></span></div>
+                        <div>}</div>
+                    </div>
+                </div>
+                <div class="ix2-source-floats">
+                    <span class="ix2-float-pill"><i class="lucide lucide-check text-emerald-400 text-[10px]"></i> Webhook firmado</span>
+                    <span class="ix2-float-pill"><i class="lucide lucide-zap text-amber-400 text-[10px]"></i> 38ms</span>
+                    <span class="ix2-float-pill"><i class="lucide lucide-shield text-blue-400 text-[10px]"></i> HMAC SHA256</span>
+                </div>
+            </div>
+
+            <!-- CENTER: Connector with traveling particles -->
+            <div class="ix2-connector">
+                <svg viewBox="0 0 360 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="ix2-pipeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#7c5cff" stop-opacity="0.1"/>
+                            <stop offset="50%" stop-color="#a78bfa" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#d946ef" stop-opacity="0.3"/>
+                        </linearGradient>
+                        <radialGradient id="ix2-sparkGrad">
+                            <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+                            <stop offset="60%" stop-color="#a78bfa" stop-opacity=".9"/>
+                            <stop offset="100%" stop-color="#7c5cff" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Pipe backgrounds (dashed) -->
+                    <path class="ix2-pipe-bg" d="M 0 80 Q 90 80 180 190"/>
+                    <path class="ix2-pipe-bg" d="M 0 190 Q 90 190 180 190"/>
+                    <path class="ix2-pipe-bg" d="M 0 300 Q 90 300 180 190"/>
+
+                    <path class="ix2-pipe-bg" d="M 180 190 Q 270 80 360 80"/>
+                    <path class="ix2-pipe-bg" d="M 180 190 Q 270 190 360 190"/>
+                    <path class="ix2-pipe-bg" d="M 180 190 Q 270 300 360 300"/>
+
+                    <!-- Active pipes with gradient -->
+                    <path class="ix2-pipe" d="M 0 80 Q 90 80 180 190"/>
+                    <path class="ix2-pipe" d="M 0 190 Q 90 190 180 190"/>
+                    <path class="ix2-pipe" d="M 0 300 Q 90 300 180 190"/>
+                    <path class="ix2-pipe" d="M 180 190 Q 270 80 360 80"/>
+                    <path class="ix2-pipe" d="M 180 190 Q 270 190 360 190"/>
+                    <path class="ix2-pipe" d="M 180 190 Q 270 300 360 300"/>
+
+                    <!-- Traveling particles (in/out) -->
+                    <circle class="ix2-spark" r="4">
+                        <animateMotion dur="2s" repeatCount="indefinite" begin="0s" path="M 0 80 Q 90 80 180 190"/>
+                    </circle>
+                    <circle class="ix2-spark" r="4">
+                        <animateMotion dur="2s" repeatCount="indefinite" begin=".7s" path="M 0 190 Q 90 190 180 190"/>
+                    </circle>
+                    <circle class="ix2-spark" r="4">
+                        <animateMotion dur="2s" repeatCount="indefinite" begin="1.3s" path="M 0 300 Q 90 300 180 190"/>
+                    </circle>
+
+                    <circle class="ix2-spark" r="3.5">
+                        <animateMotion dur="1.8s" repeatCount="indefinite" begin=".3s" path="M 180 190 Q 270 80 360 80"/>
+                    </circle>
+                    <circle class="ix2-spark" r="3.5">
+                        <animateMotion dur="1.8s" repeatCount="indefinite" begin="1s" path="M 180 190 Q 270 190 360 190"/>
+                    </circle>
+                    <circle class="ix2-spark" r="3.5">
+                        <animateMotion dur="1.8s" repeatCount="indefinite" begin="1.6s" path="M 180 190 Q 270 300 360 300"/>
+                    </circle>
+                </svg>
+                <div class="ix2-hub">
+                    <i class="lucide lucide-plug"></i>
+                    <div class="ix2-hub-label">events.dispatch()</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Notifications -->
+            <div class="ix2-notifs">
+                <!-- Slack -->
+                <div class="ix2-notif" style="--ix-glow:#4A154B">
+                    <div class="ix2-notif-head">
+                        <div class="ix2-notif-icon" style="background:#4A154B;color:white"><i class="lucide lucide-slack text-[14px]"></i></div>
+                        <div>
+                            <div class="ix2-notif-app">Slack <span style="color:rgba(255,255,255,.4);font-weight:500">· #soporte-urgente</span></div>
+                        </div>
+                        <div class="ix2-notif-time">ahora</div>
+                    </div>
+                    <div class="ix2-notif-msg">🎫 <strong>Nuevo ticket [TKT-1042]</strong> · VPN se desconecta</div>
+                    <div class="ix2-notif-tags">
+                        <span class="ix2-notif-tag">priority: high</span>
+                        <span class="ix2-notif-tag">maria@acme.com</span>
+                    </div>
+                </div>
+
+                <!-- Discord -->
+                <div class="ix2-notif" style="--ix-glow:#5865F2">
+                    <div class="ix2-notif-head">
+                        <div class="ix2-notif-icon" style="background:#5865F2;color:white"><i class="lucide lucide-message-square text-[14px]"></i></div>
+                        <div>
+                            <div class="ix2-notif-app">Discord <span style="color:rgba(255,255,255,.4);font-weight:500">· #alertas</span></div>
+                        </div>
+                        <div class="ix2-notif-time">ahora</div>
+                    </div>
+                    <div class="ix2-notif-msg">📢 <strong>Embed entregado</strong> con título, descripción y campos automáticos.</div>
+                    <div class="ix2-notif-tags">
+                        <span class="ix2-notif-tag">embed</span>
+                        <span class="ix2-notif-tag">color: #3b82f6</span>
+                    </div>
+                </div>
+
+                <!-- Telegram -->
+                <div class="ix2-notif" style="--ix-glow:#0088CC">
+                    <div class="ix2-notif-head">
+                        <div class="ix2-notif-icon" style="background:#0088CC;color:white"><i class="lucide lucide-send text-[14px]"></i></div>
+                        <div>
+                            <div class="ix2-notif-app">Telegram <span style="color:rgba(255,255,255,.4);font-weight:500">· @kydesk_bot</span></div>
+                        </div>
+                        <div class="ix2-notif-time">ahora</div>
+                    </div>
+                    <div class="ix2-notif-msg">📲 Push enviado al chat con HTML formatting y disable preview.</div>
+                    <div class="ix2-notif-tags">
+                        <span class="ix2-notif-tag">parse_mode: HTML</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MARQUEE -->
+        <div class="ix2-marquee-wrap reveal" data-reveal>
+            <div class="ix2-marquee">
+                <?php
+                $marqueeItems = [
+                    ['Slack',          'slack',          '#4A154B'],
+                    ['Discord',        'message-square', '#5865F2'],
+                    ['Telegram',       'send',           '#0088CC'],
+                    ['Microsoft Teams','users-2',        '#5059C9'],
+                    ['Zapier',         'zap',            '#FF4A00'],
+                    ['n8n',            'workflow',       '#EA4B71'],
+                    ['Make',           'cpu',            '#6D00CC'],
+                    ['Webhook',        'webhook',        '#0ea5e9'],
+                    ['Email',          'mail',           '#0EA5E9'],
+                    ['Pushover',       'bell',           '#249DF1'],
+                    ['Mattermost',     'message-circle', '#0058CC'],
+                    ['Rocket.Chat',    'rocket',         '#F5455C'],
+                ];
+                // Render twice for seamless loop
+                for ($pass = 0; $pass < 2; $pass++):
+                    foreach ($marqueeItems as [$name, $icon, $color]): ?>
+                        <div class="ix2-mq-item">
+                            <div class="ix2-mq-item-icon" style="background:<?= $color ?>20"><i class="lucide lucide-<?= $icon ?> text-[12px]" style="color:<?= $color ?>"></i></div>
+                            <span class="ix2-mq-item-name"><?= $name ?></span>
+                        </div>
+                    <?php endforeach;
+                endfor; ?>
+            </div>
+        </div>
+
+        <!-- PROVIDER CARDS GRID -->
+        <div class="ix2-grid-cards reveal-stagger" data-reveal>
+            <?php
+            $grid = [
+                ['Slack',          'slack',          '#4A154B', 'Chat',          'Notifica a un canal con attachments coloreados'],
+                ['Discord',        'message-square', '#5865F2', 'Chat',          'Embeds ricos con fields, color y timestamp'],
+                ['Telegram',       'send',           '#0088CC', 'Chat',          'Bot con sendMessage HTML a canales o grupos'],
+                ['Microsoft Teams','users-2',        '#5059C9', 'Chat',          'MessageCard adaptativa con theme color'],
+                ['Zapier',         'zap',            '#FF4A00', 'Automation',    'Conecta con miles de apps via Zaps'],
+                ['n8n',            'workflow',       '#EA4B71', 'Automation',    'Workflows open-source self-hosted'],
+                ['Make',           'cpu',            '#6D00CC', 'Automation',    'Escenarios visuales drag & drop'],
+                ['Webhook',        'webhook',        '#0ea5e9', 'DevOps',        'POST/PUT/PATCH con HMAC opcional'],
+            ];
+            foreach ($grid as [$name, $icon, $color, $cat, $desc]): ?>
+                <div class="ix2-card" style="--ix-glow:<?= $color ?>">
+                    <div class="ix2-card-status">activo</div>
+                    <div class="ix2-card-icon" style="background:<?= $color ?>22; border:1px solid <?= $color ?>50">
+                        <i class="lucide lucide-<?= $icon ?> text-[20px]" style="color:<?= $color ?>"></i>
+                    </div>
+                    <div class="ix2-card-cat"><?= $cat ?></div>
+                    <div class="ix2-card-name"><?= $name ?></div>
+                    <div class="ix2-card-desc"><?= $desc ?></div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- STATS -->
+        <div class="ix2-stats reveal" data-reveal>
+            <div class="ix2-stat">
+                <div class="ix2-stat-value grad">12+</div>
+                <div class="ix2-stat-label">Proveedores listos</div>
+            </div>
+            <div class="ix2-stat">
+                <div class="ix2-stat-value grad">12</div>
+                <div class="ix2-stat-label">Eventos disparadores</div>
+            </div>
+            <div class="ix2-stat">
+                <div class="ix2-stat-value grad">&lt;2 min</div>
+                <div class="ix2-stat-label">Setup desde la UI</div>
+            </div>
+            <div class="ix2-stat">
+                <div class="ix2-stat-value grad">∞</div>
+                <div class="ix2-stat-label">En Enterprise</div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="ix2-cta-row reveal" data-reveal>
+            <a href="<?= $url('/features/integrations') ?>" class="ix2-cta">
+                <i class="lucide lucide-plug text-[15px]"></i>
+                Explorar marketplace completo
+                <i class="lucide lucide-arrow-right text-[15px]"></i>
+            </a>
+            <div class="mt-5 inline-flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px]" style="color:rgba(255,255,255,.5)">
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> Disponible desde Pro</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> Configuración 100% UI</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> Logs y métricas en vivo</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> HMAC firmado</span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ========== API SECTION (rediseñada) ========== -->
 <section id="api" class="apx-section">
     <!-- Decorative background -->
@@ -740,7 +1143,7 @@ function apiDemo() {
                 </div>
             <?php endforeach; ?>
             <?php if (empty($homePlans)): ?>
-                <div class="md:col-span-3 text-center py-12 text-ink-400">No hay planes activos. Configurá planes desde el panel super admin.</div>
+                <div class="md:col-span-3 text-center py-12 text-ink-400">Estamos preparando los planes — vuelve pronto.</div>
             <?php endif; ?>
         </div>
 

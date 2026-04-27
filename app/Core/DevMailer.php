@@ -183,7 +183,7 @@ class DevMailer
                . ($reference ? '<li>Referencia bancaria: <code>' . htmlspecialchars($reference) . '</code></li>' : '')
                . '<li>Proof ID: <code>#' . $proofId . '</code></li>'
                . '</ul>'
-               . '<p>Verifica el depósito en tu cuenta de Banco Popular y aprueba o rechaza desde el panel super admin.</p>';
+               . '<p>Verifica el depósito en la cuenta bancaria y aprueba o rechaza desde el panel interno.</p>';
 
         $opts = [];
         if ($filePath && is_file($filePath)) {
