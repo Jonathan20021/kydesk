@@ -75,8 +75,9 @@ class DashboardController extends Controller
                     AVG(TIMESTAMPDIFF(MINUTE, t.created_at, COALESCE(t.first_response_at, NOW()))) AS avg_response
              FROM users u
              LEFT JOIN tickets t ON t.assigned_to = u.id AND t.tenant_id = u.tenant_id
-             WHERE u.tenant_id = ? AND u.is_technician = 1
+             WHERE u.tenant_id = ? AND u.is_active = 1
              GROUP BY u.id, u.name, u.email
+             HAVING total > 0
              ORDER BY resolved DESC LIMIT 5",
             [$tid]
         );

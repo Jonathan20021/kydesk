@@ -38,7 +38,7 @@ class DepartmentController extends Controller
         ];
 
         $technicians = $this->db->all(
-            'SELECT id, name, email, title FROM users WHERE tenant_id=? AND is_technician=1 AND is_active=1 ORDER BY name',
+            'SELECT id, name, email, title, is_technician FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name',
             [$tenant->id]
         );
 
@@ -79,10 +79,10 @@ class DepartmentController extends Controller
         );
 
         $availableAgents = $this->db->all(
-            "SELECT u.id, u.name, u.email, u.title FROM users u
-             WHERE u.tenant_id=? AND u.is_technician=1 AND u.is_active=1
+            "SELECT u.id, u.name, u.email, u.title, u.is_technician FROM users u
+             WHERE u.tenant_id=? AND u.is_active=1
                AND u.id NOT IN (SELECT user_id FROM department_users WHERE department_id=?)
-             ORDER BY u.name",
+             ORDER BY u.is_technician DESC, u.name",
             [$tenant->id, $id]
         );
 
@@ -107,7 +107,7 @@ class DepartmentController extends Controller
         ];
 
         $technicians = $this->db->all(
-            'SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 AND is_active=1 ORDER BY name',
+            'SELECT id, name, is_technician FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name',
             [$tenant->id]
         );
 

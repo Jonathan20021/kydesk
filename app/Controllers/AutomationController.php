@@ -27,7 +27,7 @@ class AutomationController extends Controller
         $tenant = $this->requireTenant($params['slug']); $this->requireFeature('automations');
         $this->requireCan('automations.edit');
         $categories = $this->db->all('SELECT id, name FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
-        $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_technician=1 ORDER BY name', [$tenant->id]);
+        $technicians = $this->db->all('SELECT id, name, is_technician FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name', [$tenant->id]);
         $departments = [];
         if (\App\Core\Plan::has($tenant, 'departments')) {
             try {
