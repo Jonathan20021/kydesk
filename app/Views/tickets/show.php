@@ -5,6 +5,24 @@ $ageHours = max(1, round((time() - strtotime($t['created_at'])) / 3600));
 $firstResp = $t['first_response_at'] ? round((strtotime($t['first_response_at']) - strtotime($t['created_at'])) / 60) : null;
 $statusMeta = ['open'=>['Abierto','#3b82f6','#dbeafe'],'in_progress'=>['En progreso','#f59e0b','#fef3c7'],'on_hold'=>['En espera','#6b7280','#f3f4f6'],'resolved'=>['Resuelto','#16a34a','#d1fae5'],'closed'=>['Cerrado','#6b7280','#f3f4f6']];
 [$stLabel, $stColor, $stBg] = $statusMeta[$t['status']] ?? ['—','#6b7280','#f3f4f6'];
+
+// IA Asistente — solo Enterprise + asignado por super admin
+$aiAvailable = false;
+$aiCfg = null;
+if (Plan::has($tenant, 'ai_assist')) {
+    try {
+        $aiCfg = $app->db->one('SELECT * FROM ai_settings WHERE tenant_id = ?', [$tenant->id]);
+        if ($aiCfg && (int)$aiCfg['is_assigned'] === 1 && (int)$aiCfg['is_enabled'] === 1 && (int)$aiCfg['used_this_month'] < (int)$aiCfg['monthly_quota']) {
+            $aiAvailable = true;
+        }
+    } catch (\Throwable $_e) {}
+}
+$sentimentMap = [
+    'positive' => ['#16a34a', '#d1fae5', 'smile', 'Positivo'],
+    'neutral'  => ['#6b7280', '#f3f4f6', 'meh', 'Neutral'],
+    'negative' => ['#dc2626', '#fee2e2', 'frown', 'Negativo'],
+    'urgent'   => ['#dc2626', '#fee2e2', 'alert-triangle', 'Urgente'],
+];
 ?>
 
 <a href="<?= $url('/t/' . $slug . '/tickets') ?>" class="inline-flex items-center gap-1.5 text-[12.5px] text-ink-500 hover:text-ink-900 transition"><i class="lucide lucide-arrow-left text-[13px]"></i> Volver a tickets</a>
@@ -80,6 +98,107 @@ $statusMeta = ['open'=>['Abierto','#3b82f6','#dbeafe'],'in_progress'=>['En progr
             <div class="text-[14px] leading-relaxed whitespace-pre-wrap text-ink-700"><?= $e($t['description']) ?></div>
         </div>
     <?php endif; ?>
+
+    <?php if ($aiAvailable || !empty($t['ai_summary']) || !empty($t['ai_sentiment'])): ?>
+        <!-- AI panel: muestra resumen/sentiment guardados + botones de acción -->
+        <div class="relative mt-6 pt-6 border-t border-[#ececef]"
+             x-data="aiPanel(<?= (int)$t['id'] ?>, <?= htmlspecialchars(json_encode([
+                 'summary' => $t['ai_summary'] ?? null,
+                 'sentiment' => $t['ai_sentiment'] ?? null,
+             ]), ENT_QUOTES) ?>)">
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] flex items-center gap-1.5" style="color:#7c5cff">
+                    <i class="lucide lucide-sparkles text-[12px]"></i> IA Asistente
+                    <span class="badge badge-purple" style="font-size:9.5px">Powered by Claude</span>
+                </div>
+                <?php if ($aiAvailable): ?>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" @click="run('summarize')" :disabled="loading" class="text-[11.5px] font-medium px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1.5 disabled:opacity-50" style="border-color:#cdbfff;color:#5a3aff;background:#f3f0ff" onmouseover="this.style.background='#e7e0ff'" onmouseout="this.style.background='#f3f0ff'">
+                            <i class="lucide lucide-file-text text-[11px]"></i> Resumir
+                        </button>
+                        <button type="button" @click="run('sentiment')" :disabled="loading" class="text-[11.5px] font-medium px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1.5 disabled:opacity-50" style="border-color:#cdbfff;color:#5a3aff;background:#f3f0ff" onmouseover="this.style.background='#e7e0ff'" onmouseout="this.style.background='#f3f0ff'">
+                            <i class="lucide lucide-heart-pulse text-[11px]"></i> Sentiment
+                        </button>
+                        <button type="button" @click="run('categorize')" :disabled="loading" class="text-[11.5px] font-medium px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1.5 disabled:opacity-50" style="border-color:#cdbfff;color:#5a3aff;background:#f3f0ff" onmouseover="this.style.background='#e7e0ff'" onmouseout="this.style.background='#f3f0ff'">
+                            <i class="lucide lucide-tag text-[11px]"></i> Clasificar
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Sentiment badge -->
+            <template x-if="state.sentiment">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-bold mb-2.5"
+                     :style="`background:${sentimentMap[state.sentiment]?.bg || '#f3f4f6'};color:${sentimentMap[state.sentiment]?.color || '#6b7280'}`">
+                    <i class="lucide" :class="`lucide-${sentimentMap[state.sentiment]?.icon || 'circle'}`" style="font-size:11px"></i>
+                    <span x-text="sentimentMap[state.sentiment]?.label || state.sentiment"></span>
+                </div>
+            </template>
+
+            <!-- Summary panel -->
+            <template x-if="state.summary">
+                <div class="rounded-2xl p-4 mb-2" style="background:linear-gradient(135deg,#f3f0ff,#fafafb);border:1px solid #cdbfff">
+                    <div class="text-[10px] uppercase font-bold tracking-[0.12em] mb-1" style="color:#5a3aff">Resumen IA</div>
+                    <div class="text-[13.5px] text-ink-700 whitespace-pre-wrap" x-text="state.summary"></div>
+                </div>
+            </template>
+
+            <!-- Generic AI output (categorize, etc.) -->
+            <template x-if="lastOutput && lastAction !== 'summarize' && lastAction !== 'sentiment'">
+                <div class="rounded-2xl p-4" style="background:#fafafb;border:1px solid #ececef">
+                    <div class="text-[10px] uppercase font-bold tracking-[0.12em] text-ink-400 mb-1">Resultado · <span x-text="lastAction"></span></div>
+                    <pre class="text-[12.5px] text-ink-700 whitespace-pre-wrap font-mono" x-text="lastOutput"></pre>
+                </div>
+            </template>
+
+            <!-- Loading / error -->
+            <div x-show="loading" x-cloak class="flex items-center gap-2 text-[12.5px] text-ink-500"><i class="lucide lucide-loader-2 animate-spin text-[13px]"></i> Procesando con IA…</div>
+            <div x-show="error" x-cloak class="text-[12px] text-rose-600 mt-2"><i class="lucide lucide-alert-circle text-[12px]"></i> <span x-text="error"></span></div>
+
+            <?php if (!$aiAvailable && Plan::has($tenant, 'ai_assist')): ?>
+                <p class="text-[11.5px] text-ink-400 mt-2"><i class="lucide lucide-info text-[11px]"></i> IA habilitada pero pausada o sin cuota. Configurá desde <a href="<?= $url('/t/' . $slug . '/ai') ?>" class="text-brand-700 font-semibold">/ai</a>.</p>
+            <?php endif; ?>
+        </div>
+
+        <script>
+        function aiPanel(ticketId, initial) {
+            return {
+                ticketId,
+                state: { summary: initial.summary, sentiment: initial.sentiment },
+                loading: false,
+                error: '',
+                lastOutput: '',
+                lastAction: '',
+                sentimentMap: <?= json_encode($sentimentMap ? array_map(fn($v) => ['color'=>$v[0],'bg'=>$v[1],'icon'=>$v[2],'label'=>$v[3]], $sentimentMap) : []) ?>,
+                run(action) {
+                    if (this.loading) return;
+                    this.loading = true; this.error = ''; this.lastAction = action;
+                    const fd = new FormData();
+                    fd.append('_csrf', '<?= $e($csrf) ?>');
+                    fd.append('action', action);
+                    fd.append('ticket_id', this.ticketId);
+                    fetch('<?= $url("/t/$slug/ai/run") ?>', { method: 'POST', body: fd, headers: {'X-Requested-With':'XMLHttpRequest'} })
+                        .then(r => r.json())
+                        .then(r => {
+                            if (!r.ok) { this.error = r.error || 'Error en la IA'; return; }
+                            this.lastOutput = r.text;
+                            if (action === 'summarize') this.state.summary = r.text;
+                            if (action === 'sentiment') {
+                                try { const j = JSON.parse(r.text); if (j.sentiment) this.state.sentiment = j.sentiment; }
+                                catch(e) {}
+                            }
+                            if (action === 'suggest_reply') {
+                                const ta = document.querySelector('textarea[name="body"]');
+                                if (ta) { ta.value = r.text; ta.focus(); ta.scrollIntoView({behavior:'smooth',block:'center'}); }
+                            }
+                        })
+                        .catch(e => { this.error = 'Error de conexión'; })
+                        .finally(() => { this.loading = false; });
+                }
+            };
+        }
+        </script>
+    <?php endif; ?>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -126,6 +245,29 @@ $statusMeta = ['open'=>['Abierto','#3b82f6','#dbeafe'],'in_progress'=>['En progr
             <?php if ($auth->can('tickets.comment')): ?>
                 <form method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . $t['id'] . '/comment') ?>" class="border-t border-[#ececef]" x-data="{internal:false}">
                     <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+
+                    <?php if ($aiAvailable): ?>
+                        <div class="px-5 pt-4 flex flex-wrap items-center gap-1.5" x-data="{loading:false, error:''}">
+                            <span class="text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-400 mr-1 inline-flex items-center gap-1.5">
+                                <i class="lucide lucide-sparkles text-[11px]" style="color:#7c5cff"></i> IA
+                            </span>
+                            <button type="button" :disabled="loading"
+                                @click="loading=true; error=''; const fd=new FormData(); fd.append('_csrf','<?= $e($csrf) ?>'); fd.append('action','suggest_reply'); fd.append('ticket_id','<?= (int)$t['id'] ?>'); fetch('<?= $url('/t/' . $slug . '/ai/run') ?>',{method:'POST',body:fd,headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(r=>{ loading=false; if(!r.ok){error=r.error||'Error';return;} const ta=$el.closest('form').querySelector('textarea'); if(ta){ta.value=r.text; ta.focus();}}).catch(e=>{loading=false;error='Error de conexión'})"
+                                class="text-[11.5px] font-semibold px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1.5 disabled:opacity-50"
+                                style="border-color:#cdbfff;color:#5a3aff;background:linear-gradient(135deg,#f3f0ff,#faf5ff)">
+                                <i class="lucide lucide-wand-2 text-[12px]" x-show="!loading"></i>
+                                <i class="lucide lucide-loader-2 animate-spin text-[12px]" x-show="loading" x-cloak></i>
+                                <span x-text="loading ? 'Generando…' : 'Sugerir respuesta'"></span>
+                            </button>
+                            <button type="button" :disabled="loading"
+                                @click="loading=true; error=''; const ta=$el.closest('form').querySelector('textarea'); const txt=(ta&&ta.value.trim())||''; if(!txt){error='Escribí algo primero';loading=false;return;} const fd=new FormData(); fd.append('_csrf','<?= $e($csrf) ?>'); fd.append('action','translate'); fd.append('ticket_id','<?= (int)$t['id'] ?>'); fd.append('input',txt); fetch('<?= $url('/t/' . $slug . '/ai/run') ?>',{method:'POST',body:fd,headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(r=>{ loading=false; if(!r.ok){error=r.error||'Error';return;} ta.value=r.text;}).catch(e=>{loading=false;error='Error de conexión'})"
+                                class="text-[11.5px] font-medium px-3 py-1.5 rounded-full border transition inline-flex items-center gap-1.5 disabled:opacity-50"
+                                style="border-color:#cdbfff;color:#5a3aff">
+                                <i class="lucide lucide-languages text-[11px]"></i> Traducir
+                            </button>
+                            <span x-show="error" x-cloak class="text-[11px] text-rose-600" x-text="error"></span>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="px-5 pt-4 flex flex-wrap items-center gap-1.5">
                         <span class="text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-400 mr-1">Plantillas</span>
