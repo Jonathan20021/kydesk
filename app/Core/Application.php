@@ -290,6 +290,43 @@ class Application
         $r->post('/t/{slug}/retainers/{id}/consumptions', ['App\Controllers\RetainerController', 'logConsumption']);
         $r->post('/t/{slug}/retainers/{id}/periods/{periodId}/close', ['App\Controllers\RetainerController', 'closePeriod']);
 
+        // ─────────── MEETINGS / AGENDA (Business+) ───────────
+        $r->get('/t/{slug}/meetings',                          ['App\Controllers\MeetingController', 'index']);
+        $r->get('/t/{slug}/meetings/list',                     ['App\Controllers\MeetingController', 'listAll']);
+        $r->get('/t/{slug}/meetings/calendar',                 ['App\Controllers\MeetingController', 'calendar']);
+        $r->get('/t/{slug}/meetings/types',                    ['App\Controllers\MeetingController', 'typesIndex']);
+        $r->get('/t/{slug}/meetings/types/create',             ['App\Controllers\MeetingController', 'typesCreate']);
+        $r->post('/t/{slug}/meetings/types',                   ['App\Controllers\MeetingController', 'typesStore']);
+        $r->get('/t/{slug}/meetings/types/{id}',               ['App\Controllers\MeetingController', 'typesEdit']);
+        $r->post('/t/{slug}/meetings/types/{id}',              ['App\Controllers\MeetingController', 'typesUpdate']);
+        $r->post('/t/{slug}/meetings/types/{id}/toggle',       ['App\Controllers\MeetingController', 'typesToggle']);
+        $r->post('/t/{slug}/meetings/types/{id}/delete',       ['App\Controllers\MeetingController', 'typesDelete']);
+        $r->get('/t/{slug}/meetings/availability',             ['App\Controllers\MeetingController', 'availability']);
+        $r->post('/t/{slug}/meetings/availability',            ['App\Controllers\MeetingController', 'availabilityUpdate']);
+        $r->post('/t/{slug}/meetings/blocked',                 ['App\Controllers\MeetingController', 'blockedStore']);
+        $r->post('/t/{slug}/meetings/blocked/{id}/delete',     ['App\Controllers\MeetingController', 'blockedDelete']);
+        $r->get('/t/{slug}/meetings/settings',                 ['App\Controllers\MeetingController', 'settings']);
+        $r->post('/t/{slug}/meetings/settings',                ['App\Controllers\MeetingController', 'settingsUpdate']);
+        $r->get('/t/{slug}/meetings/manual',                   ['App\Controllers\MeetingController', 'manualCreate']);
+        $r->post('/t/{slug}/meetings/manual',                  ['App\Controllers\MeetingController', 'manualStore']);
+        $r->get('/t/{slug}/meetings/{id}',                     ['App\Controllers\MeetingController', 'show']);
+        $r->post('/t/{slug}/meetings/{id}',                    ['App\Controllers\MeetingController', 'update']);
+        $r->post('/t/{slug}/meetings/{id}/confirm',            ['App\Controllers\MeetingController', 'confirm']);
+        $r->post('/t/{slug}/meetings/{id}/cancel',             ['App\Controllers\MeetingController', 'cancel']);
+        $r->post('/t/{slug}/meetings/{id}/complete',           ['App\Controllers\MeetingController', 'complete']);
+        $r->post('/t/{slug}/meetings/{id}/no-show',            ['App\Controllers\MeetingController', 'noShow']);
+        $r->post('/t/{slug}/meetings/{id}/delete',             ['App\Controllers\MeetingController', 'delete']);
+
+        // ─────────── BOOKING público (Calendly-style) ───────────
+        $r->get('/book/{slug}',                                              ['App\Controllers\BookingController', 'index']);
+        $r->get('/book/{slug}/confirmation/{token}',                         ['App\Controllers\BookingController', 'confirmation']);
+        $r->get('/book/{slug}/manage/{token}',                               ['App\Controllers\BookingController', 'manage']);
+        $r->post('/book/{slug}/manage/{token}/cancel',                       ['App\Controllers\BookingController', 'cancelByToken']);
+        $r->post('/book/{slug}/manage/{token}/reschedule',                   ['App\Controllers\BookingController', 'rescheduleByToken']);
+        $r->get('/book/{slug}/{type}',                                       ['App\Controllers\BookingController', 'show']);
+        $r->get('/book/{slug}/{type}/slots.json',                            ['App\Controllers\BookingController', 'slots']);
+        $r->post('/book/{slug}/{type}/confirm',                              ['App\Controllers\BookingController', 'store']);
+
         // Companies
         $r->get('/t/{slug}/companies', ['App\Controllers\CompanyController', 'index']);
         $r->get('/t/{slug}/companies/create', ['App\Controllers\CompanyController', 'create']);

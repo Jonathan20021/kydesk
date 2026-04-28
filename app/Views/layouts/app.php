@@ -32,6 +32,7 @@ $navManagement = [
     ['Departamentos','layers','/departments','departments.view','departments'],
     ['Empresas','building-2','/companies','companies.view','companies'],
     ['Igualas','handshake','/retainers','retainers.view','retainers'],
+    ['Reuniones','calendar-clock','/meetings','meetings.view','meetings'],
     ['Time Tracking','timer','/time','time.view','time_tracking'],
     ['Activos','server','/assets','assets.view','assets'],
     ['Conocimiento','book-open','/kb','kb.view','kb'],

@@ -7,8 +7,8 @@ class Plan
         'starter'    => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','custom_fields','csat','status_page','customer_portal'],
         'free'       => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','custom_fields','csat','status_page','customer_portal'],
         'pro'        => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking'],
-        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','reports_builder','itsm'],
-        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','ai_assist','reports_builder','itsm','sso','custom_branding'],
+        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','reports_builder','itsm','meetings'],
+        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','ai_assist','reports_builder','itsm','sso','custom_branding','meetings'],
     ];
 
     /** Catálogo de módulos que el super admin puede gestionar por tenant. */
@@ -41,6 +41,7 @@ class Plan
         'reports_builder'  => ['Reports Builder',   'bar-chart-3',     'Constructor visual de reportes con widgets y filtros.', 'business'],
         'sso'              => ['SSO + SAML',        'key-round',       'Inicio de sesión único corporativo.',    'enterprise'],
         'custom_branding'  => ['Branding propio',   'palette',         'Logos, colores y dominios personalizados.', 'enterprise'],
+        'meetings'         => ['Agenda de reuniones','calendar-clock', 'Página pública estilo Calendly para que clientes reserven citas con tu equipo.', 'business'],
     ];
 
     public const PLAN_RANK = ['starter'=>1,'free'=>1,'pro'=>2,'business'=>2,'enterprise'=>3];
