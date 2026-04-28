@@ -126,44 +126,71 @@ class ReportBuilderController extends Controller
     protected function computeWidget(int $tenantId, string $key, array $filters): array
     {
         $from = $filters['from'] . ' 00:00:00';
-        $to = $filters['to'] . ' 23:59:59';
-        $base = 'WHERE tenant_id = ? AND created_at BETWEEN ? AND ?';
+        $to   = $filters['to']   . ' 23:59:59';
+        // Sin alias para queries simples sobre tickets
+        $baseT = 'WHERE tenant_id = ? AND created_at BETWEEN ? AND ?';
+        // Con alias `t.` para queries con JOIN — evita ambigüedad de columnas comunes (tenant_id)
+        $baseTAlias = 'WHERE t.tenant_id = ? AND t.created_at BETWEEN ? AND ?';
         $args = [$tenantId, $from, $to];
 
         switch ($key) {
             case 'tickets_by_status':
-                $rows = $this->db->all("SELECT status AS label, COUNT(*) AS value FROM tickets $base GROUP BY status", $args);
+                $rows = $this->db->all("SELECT status AS label, COUNT(*) AS value FROM tickets $baseT GROUP BY status", $args);
                 return ['type' => 'donut', 'rows' => $rows];
             case 'tickets_by_priority':
-                $rows = $this->db->all("SELECT priority AS label, COUNT(*) AS value FROM tickets $base GROUP BY priority", $args);
+                $rows = $this->db->all("SELECT priority AS label, COUNT(*) AS value FROM tickets $baseT GROUP BY priority", $args);
                 return ['type' => 'donut', 'rows' => $rows];
             case 'tickets_by_category':
-                $rows = $this->db->all("SELECT IFNULL(c.name, 'Sin categoría') AS label, COUNT(*) AS value FROM tickets t LEFT JOIN ticket_categories c ON c.id = t.category_id $base GROUP BY c.id ORDER BY value DESC LIMIT 10", $args);
+                $rows = $this->db->all(
+                    "SELECT IFNULL(c.name, 'Sin categoría') AS label, COUNT(*) AS value
+                     FROM tickets t LEFT JOIN ticket_categories c ON c.id = t.category_id
+                     $baseTAlias
+                     GROUP BY c.id, c.name ORDER BY value DESC LIMIT 10", $args);
                 return ['type' => 'bar', 'rows' => $rows];
             case 'tickets_by_agent':
-                $rows = $this->db->all("SELECT IFNULL(u.name, 'Sin asignar') AS label, COUNT(*) AS value FROM tickets t LEFT JOIN users u ON u.id = t.assigned_to $base GROUP BY u.id ORDER BY value DESC LIMIT 10", $args);
+                $rows = $this->db->all(
+                    "SELECT IFNULL(u.name, 'Sin asignar') AS label, COUNT(*) AS value
+                     FROM tickets t LEFT JOIN users u ON u.id = t.assigned_to
+                     $baseTAlias
+                     GROUP BY u.id, u.name ORDER BY value DESC LIMIT 10", $args);
                 return ['type' => 'bar', 'rows' => $rows];
             case 'tickets_per_day':
-                $rows = $this->db->all("SELECT DATE(created_at) AS label, COUNT(*) AS value FROM tickets WHERE tenant_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY DATE(created_at) ORDER BY label ASC", [$tenantId]);
+                $rows = $this->db->all(
+                    "SELECT DATE(created_at) AS label, COUNT(*) AS value FROM tickets
+                     WHERE tenant_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                     GROUP BY DATE(created_at) ORDER BY label ASC",
+                    [$tenantId]);
                 return ['type' => 'line', 'rows' => $rows];
             case 'avg_resolution_time':
-                $hours = (float)$this->db->val("SELECT AVG(TIMESTAMPDIFF(MINUTE, created_at, resolved_at) / 60) FROM tickets $base AND resolved_at IS NOT NULL", $args);
+                $hours = (float)$this->db->val(
+                    "SELECT AVG(TIMESTAMPDIFF(MINUTE, created_at, resolved_at) / 60) FROM tickets
+                     $baseT AND resolved_at IS NOT NULL", $args);
                 return ['type' => 'kpi', 'value' => round($hours, 1) . 'h', 'sub' => 'Promedio'];
             case 'sla_compliance':
-                $total = (int)$this->db->val("SELECT COUNT(*) FROM tickets $base", $args);
-                $breached = (int)$this->db->val("SELECT COUNT(*) FROM tickets $base AND sla_breached = 1", $args);
+                $total = (int)$this->db->val("SELECT COUNT(*) FROM tickets $baseT", $args);
+                $breached = (int)$this->db->val("SELECT COUNT(*) FROM tickets $baseT AND sla_breached = 1", $args);
                 $pct = $total > 0 ? round((($total - $breached) / $total) * 100, 1) : 100;
                 return ['type' => 'kpi', 'value' => $pct . '%', 'sub' => "$breached / $total breached"];
             case 'open_tickets':
-                $cnt = (int)$this->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id = ? AND status IN ('open','in_progress','on_hold')", [$tenantId]);
+                $cnt = (int)$this->db->val(
+                    "SELECT COUNT(*) FROM tickets WHERE tenant_id = ? AND status IN ('open','in_progress','on_hold')",
+                    [$tenantId]);
                 return ['type' => 'kpi', 'value' => $cnt, 'sub' => 'Sin resolver'];
             case 'csat_score':
                 try {
-                    $avg = (float)$this->db->val("SELECT AVG(score) FROM csat_surveys WHERE tenant_id = ? AND type = 'csat' AND responded_at BETWEEN ? AND ?", [$tenantId, $from, $to]);
+                    $avg = (float)$this->db->val(
+                        "SELECT AVG(score) FROM csat_surveys WHERE tenant_id = ? AND type = 'csat' AND responded_at BETWEEN ? AND ?",
+                        [$tenantId, $from, $to]);
                     return ['type' => 'kpi', 'value' => $avg > 0 ? round($avg, 2) : '—', 'sub' => 'CSAT (1-5)'];
-                } catch (\Throwable $e) { return ['type' => 'kpi', 'value' => '—', 'sub' => 'No disponible']; }
+                } catch (\Throwable $e) {
+                    return ['type' => 'kpi', 'value' => '—', 'sub' => 'No disponible'];
+                }
             case 'top_companies':
-                $rows = $this->db->all("SELECT IFNULL(c.name, 'Sin empresa') AS label, COUNT(*) AS value FROM tickets t LEFT JOIN companies c ON c.id = t.company_id $base GROUP BY c.id ORDER BY value DESC LIMIT 10", $args);
+                $rows = $this->db->all(
+                    "SELECT IFNULL(c.name, 'Sin empresa') AS label, COUNT(*) AS value
+                     FROM tickets t LEFT JOIN companies c ON c.id = t.company_id
+                     $baseTAlias
+                     GROUP BY c.id, c.name ORDER BY value DESC LIMIT 10", $args);
                 return ['type' => 'table', 'rows' => $rows];
         }
         return ['type' => 'kpi', 'value' => '—'];
