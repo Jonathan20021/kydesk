@@ -164,6 +164,8 @@ window.renderIcons = adminRenderIcons;
         sidebarOpen: false,
         sidebarCollapsed: false,
         userMenu: false,
+        cmd: false,
+        shortcuts: false,
         toggleSidebar(){
             this.sidebarCollapsed = !this.sidebarCollapsed;
             try { localStorage.setItem('kydesk_admin_sidebar_collapsed', this.sidebarCollapsed ? '1' : '0'); } catch(e){}
@@ -171,6 +173,7 @@ window.renderIcons = adminRenderIcons;
         }
     }"
     x-init="sidebarCollapsed = (localStorage.getItem('kydesk_admin_sidebar_collapsed')==='1'); document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed)"
+    @keydown.window.shift.question="shortcuts=true"
     @keydown.window.meta.b.prevent="toggleSidebar()"
     @keydown.window.ctrl.b.prevent="toggleSidebar()">
 
@@ -184,7 +187,7 @@ window.renderIcons = adminRenderIcons;
                     <div class="brand-name">Kydesk</div>
                     <div class="super-brand-meta">Super Admin</div>
                 </div>
-                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="sidebarCollapsed ? 'Expandir menú (Ctrl+B)' : 'Colapsar menú (Ctrl+B)'" aria-label="Alternar menú">
+                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="(sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú') + ' (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'" aria-label="Alternar menú">
                     <i class="lucide lucide-chevrons-left" x-show="!sidebarCollapsed"></i>
                     <i class="lucide lucide-chevrons-right" x-show="sidebarCollapsed" x-cloak></i>
                 </button>
@@ -239,7 +242,7 @@ window.renderIcons = adminRenderIcons;
 
         <div class="main">
             <div class="topbar">
-                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" data-tooltip="Menú (⌘B)">
+                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" :data-tooltip="'Menú (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'">
                     <i class="lucide lucide-menu"></i>
                 </button>
                 <div class="flex-1 min-w-0">
@@ -289,6 +292,139 @@ window.renderIcons = adminRenderIcons;
         </div>
     </div>
 </div>
+
+<!-- Keyboard shortcuts modal (super admin) -->
+<?php
+$adminShortcutGroups = [
+    'Navegación global' => [
+        ['Mostrar / ocultar atajos',     ['?'], ['MOD+/']],
+        ['Colapsar / expandir sidebar',  ['MOD+B']],
+        ['Abrir ajustes',                ['MOD+,']],
+        ['Cerrar modal o popup',         ['ESC']],
+    ],
+    'Ir a (G + letra)' => [
+        ['Dashboard',                    ['G+D']],
+        ['Tenants (empresas)',           ['G+T']],
+        ['Planes',                       ['G+P']],
+        ['Suscripciones',                ['G+S']],
+        ['Facturas',                     ['G+I']],
+        ['Usuarios',                     ['G+U']],
+        ['Reportes',                     ['G+R']],
+        ['Auditoría',                    ['G+A']],
+        ['Changelog',                    ['G+C']],
+        ['Super Admins',                 ['G+H']],
+        ['Ajustes',                      ['G+G']],
+    ],
+    'Formularios' => [
+        ['Submit del formulario activo', ['MOD+RETURN']],
+        ['Cerrar modal',                 ['ESC']],
+    ],
+];
+?>
+<div x-show="shortcuts" x-cloak class="fixed inset-0 z-[60] grid place-items-center p-4" style="background:rgba(15,13,24,.6);backdrop-filter:blur(8px)" @click.self="shortcuts=false" @keydown.escape.window="shortcuts=false" x-transition>
+    <div class="w-full max-w-3xl rounded-3xl overflow-hidden flex flex-col" style="background:white;box-shadow:0 40px 80px -20px rgba(15,13,24,.5);max-height:85vh"
+         x-data="kydeskShortcutsModal()">
+        <div class="px-6 py-5 flex items-center justify-between border-b border-[#ececef]">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl grid place-items-center" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white"><i class="lucide lucide-keyboard text-[18px]"></i></div>
+                <div>
+                    <div class="font-display font-extrabold text-[18px] tracking-[-0.02em]">Atajos de teclado · Super Admin</div>
+                    <div class="text-[11.5px] text-ink-400">Pulsá <kbd class="kbd">?</kbd> en cualquier momento para abrir esto</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="inline-flex items-center rounded-xl p-0.5" style="background:#f3f4f6;border:1px solid #ececef">
+                    <?php foreach (['mac' => 'macOS', 'win' => 'Windows', 'linux' => 'Linux'] as $osKey => $osLabel): ?>
+                        <button type="button" @click="os = '<?= $osKey ?>'"
+                                :class="os === '<?= $osKey ?>' ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-400 hover:text-ink-700'"
+                                class="text-[11.5px] font-semibold px-3 py-1.5 rounded-lg transition">
+                            <?= $osLabel ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+                <button @click="shortcuts=false" class="w-9 h-9 rounded-lg grid place-items-center text-ink-400 hover:bg-bg hover:text-ink-900 transition"><i class="lucide lucide-x text-[16px]"></i></button>
+            </div>
+        </div>
+        <div class="px-6 py-3 border-b border-[#ececef] flex items-center gap-2" style="background:#fafafb">
+            <i class="lucide lucide-search text-ink-400 text-[14px]"></i>
+            <input type="text" x-model="filter" placeholder="Filtrar atajos..." class="flex-1 bg-transparent text-[13px] outline-none border-0 py-1 placeholder-ink-400" @keydown.escape.stop="filter=''">
+            <span x-show="filter" @click="filter=''" class="text-[11px] text-ink-400 cursor-pointer hover:text-ink-700" x-cloak>limpiar</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <?php foreach ($adminShortcutGroups as $group => $items):
+                $groupLabels = array_map(fn($item) => $item[0], $items);
+            ?>
+                <div x-show="groupHasMatches(<?= $e(json_encode($groupLabels)) ?>)">
+                    <div class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400 mb-3"><?= $e($group) ?></div>
+                    <div class="space-y-2.5">
+                        <?php foreach ($items as $item):
+                            $lbl = $item[0];
+                            $combos = array_slice($item, 1);
+                        ?>
+                            <div class="flex items-center justify-between text-[13px]" x-show="matches(<?= $e(json_encode($lbl)) ?>)">
+                                <span class="text-ink-700"><?= $e($lbl) ?></span>
+                                <span class="flex items-center gap-1.5">
+                                    <?php foreach ($combos as $j => $combo): ?>
+                                        <?php if ($j > 0): ?><span class="text-[10px] text-ink-400 mx-0.5">o</span><?php endif; ?>
+                                        <span class="inline-flex items-center gap-0.5">
+                                            <template x-for="k in renderCombo(<?= $e(json_encode($combo)) ?>)">
+                                                <kbd class="kbd" x-text="k"></kbd>
+                                            </template>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="px-6 py-4 flex items-center justify-between flex-wrap gap-2" style="background:#fafafb;border-top:1px solid #ececef">
+            <div class="text-[11.5px] text-ink-400 inline-flex items-center gap-1.5">
+                <i class="lucide lucide-info text-[12px]"></i>
+                Tip: <kbd class="kbd mx-1">G</kbd> seguido de una letra te lleva a cualquier sección
+            </div>
+            <div class="text-[11px] text-ink-400 inline-flex items-center gap-1.5">
+                <i class="lucide lucide-cpu text-[11px]"></i>
+                Detectado: <strong class="text-ink-700" x-text="osLabel()"></strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating help button -->
+<button @click="shortcuts=true" class="fixed bottom-5 right-5 w-11 h-11 rounded-full grid place-items-center transition z-30 hidden lg:grid" style="background:white;border:1px solid #ececef;box-shadow:0 8px 20px -8px rgba(22,21,27,.15);color:#6b6b78" data-tooltip="Atajos de teclado (?)" onmouseover="this.style.color='#7c5cff';this.style.borderColor='#cdbfff'" onmouseout="this.style.color='#6b6b78';this.style.borderColor='#ececef'">
+    <i class="lucide lucide-keyboard text-[16px]"></i>
+</button>
+
+<script>
+function kydeskShortcutsModal() {
+    return {
+        os: (window.KYDESK_OS || 'win'),
+        filter: '',
+        renderCombo(combo) {
+            return (window.KYDESK_RENDER_COMBO || ((c) => c.split('+')))(combo, this.os);
+        },
+        renderKey(key) {
+            const dict = (window.KYDESK_KEYS || {})[this.os] || {};
+            return dict[key.toUpperCase()] || key;
+        },
+        osLabel() {
+            return ({mac: 'macOS', win: 'Windows', linux: 'Linux'})[this.os] || this.os;
+        },
+        matches(label) {
+            const f = (this.filter || '').trim().toLowerCase();
+            if (!f) return true;
+            return label.toLowerCase().includes(f);
+        },
+        groupHasMatches(labels) {
+            const f = (this.filter || '').trim().toLowerCase();
+            if (!f) return true;
+            return labels.some(l => l.toLowerCase().includes(f));
+        },
+    };
+}
+</script>
 
 <script src="<?= $asset('js/app.js') ?>"></script>
 </body>

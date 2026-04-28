@@ -130,7 +130,7 @@ window.renderIcons = kydeskRenderIcons;
             <div class="brand">
                 <div class="brand-logo"><i class="lucide lucide-zap text-base"></i></div>
                 <div class="brand-name">Kydesk</div>
-                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="sidebarCollapsed ? 'Expandir menú (Ctrl+B)' : 'Colapsar menú (Ctrl+B)'" aria-label="Alternar menú">
+                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="(sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú') + ' (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'" aria-label="Alternar menú">
                     <i class="lucide lucide-chevrons-left" x-show="!sidebarCollapsed"></i>
                     <i class="lucide lucide-chevrons-right" x-show="sidebarCollapsed" x-cloak></i>
                 </button>
@@ -227,14 +227,14 @@ window.renderIcons = kydeskRenderIcons;
 
         <div class="main">
             <div class="topbar">
-                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" data-tooltip="Menú (⌘B)">
+                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" :data-tooltip="'Menú (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'">
                     <i class="lucide lucide-menu"></i>
                 </button>
                 <div class="search-pill">
                     <i class="lucide lucide-search"></i>
                     <input @click="cmd=true" placeholder="Buscar tickets, empresas, artículos..." readonly>
                 </div>
-                <button @click="cmd=true" class="icon-btn" data-tooltip="Buscar (⌘K)"><i class="lucide lucide-command"></i></button>
+                <button @click="cmd=true" class="icon-btn" :data-tooltip="'Buscar (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘K' : 'Ctrl+K') + ')'"><i class="lucide lucide-command"></i></button>
                 <div class="relative">
                     <button @click="notifMenu=!notifMenu" class="icon-btn" data-tooltip="Notificaciones"><i class="lucide lucide-bell"></i><span class="dot-notif"></span></button>
                     <div x-show="notifMenu" @click.away="notifMenu=false" x-cloak class="popover absolute right-0 mt-2 z-30 notif-dropdown" x-transition>
@@ -434,47 +434,116 @@ window.renderIcons = kydeskRenderIcons;
 </div>
 
 <!-- Keyboard shortcuts modal -->
+<?php
+// Tabla de atajos. Cada combo usa placeholders MOD/SHIFT/ALT/RETURN/ESC que se renderizan
+// según el SO desde JS (window.KYDESK_RENDER_COMBO).
+$shortcutGroups = [
+    'Navegación global' => [
+        ['Abrir paleta de comandos',       ['MOD+K']],
+        ['Paleta (alt · estilo VSCode)',   ['MOD+SHIFT+P']],
+        ['Mostrar / ocultar atajos',       ['?'], ['MOD+/']],
+        ['Colapsar / expandir sidebar',    ['MOD+B']],
+        ['Abrir ajustes',                  ['MOD+,']],
+        ['Foco en buscador',               ['/']],
+        ['Cerrar modal o popup',           ['ESC']],
+    ],
+    'Ir a (G + letra)' => [
+        ['Dashboard',                      ['G+D']],
+        ['Tickets',                        ['G+T']],
+        ['Tablero Kanban',                 ['G+B']],
+        ['Categorías',                     ['G+C']],
+        ['Notas',                          ['G+N']],
+        ['Tareas',                         ['G+O']],
+        ['Conocimiento (KB)',              ['G+K']],
+        ['Empresas',                       ['G+E']],
+        ['Activos',                        ['G+A']],
+        ['Reuniones',                      ['G+M']],
+        ['Igualas',                        ['G+I']],
+        ['Reportes',                       ['G+R']],
+        ['Usuarios',                       ['G+U']],
+        ['Automatizaciones',               ['G+Y']],
+        ['Integraciones',                  ['G+G']],
+        ['SLA',                            ['G+Q']],
+        ['Custom Fields',                  ['G+F']],
+        ['ITSM',                           ['G+X']],
+        ['Auditoría',                      ['G+L']],
+        ['Ajustes',                        ['G+S']],
+        ['Mi perfil',                      ['G+P']],
+        ['Centro de ayuda',                ['G+H']],
+    ],
+    'Acciones rápidas' => [
+        ['Crear nuevo ticket',             ['C']],
+        ['Asignarme el ticket',            ['A']],
+        ['Resolver ticket',                ['R']],
+        ['Escalar ticket',                 ['E']],
+        ['Abrir menú de macros',           ['M']],
+        ['Enviar respuesta / comentario',  ['MOD+RETURN']],
+    ],
+    'En modales y formularios' => [
+        ['Cerrar modal',                   ['ESC']],
+        ['Submit del formulario activo',   ['MOD+RETURN']],
+        ['Foco en buscador del modal',     ['MOD+K']],
+    ],
+];
+?>
 <div x-show="shortcuts" x-cloak class="fixed inset-0 z-[60] grid place-items-center p-4" style="background:rgba(15,13,24,.6);backdrop-filter:blur(8px)" @click.self="shortcuts=false" @keydown.escape.window="shortcuts=false" x-transition>
-    <div class="w-full max-w-2xl rounded-3xl overflow-hidden" style="background:white;box-shadow:0 40px 80px -20px rgba(15,13,24,.5)">
+    <div class="w-full max-w-3xl rounded-3xl overflow-hidden flex flex-col" style="background:white;box-shadow:0 40px 80px -20px rgba(15,13,24,.5);max-height:85vh"
+         x-data="kydeskShortcutsModal()">
+        <!-- Header -->
         <div class="px-6 py-5 flex items-center justify-between border-b border-[#ececef]">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl grid place-items-center" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white"><i class="lucide lucide-keyboard text-[18px]"></i></div>
                 <div>
                     <div class="font-display font-extrabold text-[18px] tracking-[-0.02em]">Atajos de teclado</div>
-                    <div class="text-[11.5px] text-ink-400">Pulsá <span class="kbd">?</span> en cualquier momento para abrir esto</div>
+                    <div class="text-[11.5px] text-ink-400">Pulsá <kbd class="kbd">?</kbd> o <kbd class="kbd" x-text="renderKey('MOD')"></kbd><kbd class="kbd">/</kbd> para abrir esto</div>
                 </div>
             </div>
-            <button @click="shortcuts=false" class="w-9 h-9 rounded-lg grid place-items-center text-ink-400 hover:bg-bg hover:text-ink-900 transition"><i class="lucide lucide-x text-[16px]"></i></button>
+            <div class="flex items-center gap-2">
+                <!-- OS tabs -->
+                <div class="inline-flex items-center rounded-xl p-0.5" style="background:#f3f4f6;border:1px solid #ececef">
+                    <?php foreach (['mac' => 'macOS', 'win' => 'Windows', 'linux' => 'Linux'] as $osKey => $osLabel): ?>
+                        <button type="button" @click="os = '<?= $osKey ?>'"
+                                :class="os === '<?= $osKey ?>' ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-400 hover:text-ink-700'"
+                                class="text-[11.5px] font-semibold px-3 py-1.5 rounded-lg transition">
+                            <?= $osLabel ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+                <button @click="shortcuts=false" class="w-9 h-9 rounded-lg grid place-items-center text-ink-400 hover:bg-bg hover:text-ink-900 transition"><i class="lucide lucide-x text-[16px]"></i></button>
+            </div>
         </div>
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-            <?php
-            $shortcuts = [
-                'Navegación' => [
-                    ['Buscar / Comando', ['⌘','K']],
-                    ['Atajos de teclado', ['?']],
-                    ['Ir al dashboard', ['G','D']],
-                    ['Ir a tickets', ['G','T']],
-                    ['Ir a tablero', ['G','B']],
-                    ['Ir a notas', ['G','N']],
-                ],
-                'Acciones' => [
-                    ['Nuevo ticket', ['C']],
-                    ['Asignarme', ['A']],
-                    ['Resolver ticket', ['R']],
-                    ['Escalar', ['E']],
-                    ['Enviar respuesta', ['⌘','Enter']],
-                    ['Cerrar modal', ['Esc']],
-                ],
-            ];
-            foreach ($shortcuts as $group => $items): ?>
-                <div>
-                    <div class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400 mb-3"><?= $group ?></div>
+
+        <!-- Search input -->
+        <div class="px-6 py-3 border-b border-[#ececef] flex items-center gap-2" style="background:#fafafb">
+            <i class="lucide lucide-search text-ink-400 text-[14px]"></i>
+            <input type="text" x-model="filter" placeholder="Filtrar atajos..." class="flex-1 bg-transparent text-[13px] outline-none border-0 py-1 placeholder-ink-400" @keydown.escape.stop="filter=''">
+            <span x-show="filter" @click="filter=''" class="text-[11px] text-ink-400 cursor-pointer hover:text-ink-700" x-cloak>limpiar</span>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <?php foreach ($shortcutGroups as $group => $items): ?>
+                <?php
+                    $groupLabels = array_map(fn($item) => $item[0], $items);
+                ?>
+                <div x-show="groupHasMatches(<?= $e(json_encode($groupLabels)) ?>)">
+                    <div class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400 mb-3"><?= $e($group) ?></div>
                     <div class="space-y-2.5">
-                        <?php foreach ($items as [$lbl, $keys]): ?>
-                            <div class="flex items-center justify-between text-[13px]">
-                                <span class="text-ink-700"><?= $lbl ?></span>
-                                <span class="flex items-center gap-1">
-                                    <?php foreach ($keys as $k): ?><kbd class="kbd"><?= $e($k) ?></kbd><?php endforeach; ?>
+                        <?php foreach ($items as $item):
+                            $lbl = $item[0];
+                            $combos = array_slice($item, 1);
+                        ?>
+                            <div class="flex items-center justify-between text-[13px]" x-show="matches(<?= $e(json_encode($lbl)) ?>)">
+                                <span class="text-ink-700"><?= $e($lbl) ?></span>
+                                <span class="flex items-center gap-1.5">
+                                    <?php foreach ($combos as $j => $combo): ?>
+                                        <?php if ($j > 0): ?><span class="text-[10px] text-ink-400 mx-0.5">o</span><?php endif; ?>
+                                        <span class="inline-flex items-center gap-0.5">
+                                            <template x-for="k in renderCombo(<?= $e(json_encode($combo)) ?>)">
+                                                <kbd class="kbd" x-text="k"></kbd>
+                                            </template>
+                                        </span>
+                                    <?php endforeach; ?>
                                 </span>
                             </div>
                         <?php endforeach; ?>
@@ -482,12 +551,50 @@ window.renderIcons = kydeskRenderIcons;
                 </div>
             <?php endforeach; ?>
         </div>
-        <div class="px-6 py-4 flex items-center justify-between" style="background:#fafafb;border-top:1px solid #ececef">
-            <div class="text-[11.5px] text-ink-400 inline-flex items-center gap-1.5"><i class="lucide lucide-info text-[12px]"></i> Algunos atajos están en desarrollo</div>
-            <a href="#" class="text-[12px] font-semibold text-brand-700 inline-flex items-center gap-1">Ver documentación <i class="lucide lucide-arrow-up-right text-[12px]"></i></a>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 flex items-center justify-between flex-wrap gap-2" style="background:#fafafb;border-top:1px solid #ececef">
+            <div class="text-[11.5px] text-ink-400 inline-flex items-center gap-1.5">
+                <i class="lucide lucide-info text-[12px]"></i>
+                Tip: <kbd class="kbd mx-1">G</kbd> seguido de una letra te lleva a cualquier sección
+            </div>
+            <div class="text-[11px] text-ink-400 inline-flex items-center gap-1.5" x-show="autoOs">
+                <i class="lucide lucide-cpu text-[11px]"></i>
+                Detectado: <strong class="text-ink-700" x-text="osLabel()"></strong>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+function kydeskShortcutsModal() {
+    return {
+        os: (window.KYDESK_OS || 'win'),
+        autoOs: true,
+        filter: '',
+        renderCombo(combo) {
+            return (window.KYDESK_RENDER_COMBO || ((c) => c.split('+')))(combo, this.os);
+        },
+        renderKey(key) {
+            const dict = (window.KYDESK_KEYS || {})[this.os] || {};
+            return dict[key.toUpperCase()] || key;
+        },
+        osLabel() {
+            return ({mac: 'macOS', win: 'Windows', linux: 'Linux'})[this.os] || this.os;
+        },
+        matches(label) {
+            const f = (this.filter || '').trim().toLowerCase();
+            if (!f) return true;
+            return label.toLowerCase().includes(f);
+        },
+        groupHasMatches(labels) {
+            const f = (this.filter || '').trim().toLowerCase();
+            if (!f) return true;
+            return labels.some(l => l.toLowerCase().includes(f));
+        },
+    };
+}
+</script>
 
 <!-- Floating help button (bottom-right) -->
 <button @click="shortcuts=true" class="fixed bottom-5 right-5 w-11 h-11 rounded-full grid place-items-center transition z-30 hidden lg:grid" style="background:white;border:1px solid #ececef;box-shadow:0 8px 20px -8px rgba(22,21,27,.15);color:#6b6b78" data-tooltip="Atajos de teclado (?)" onmouseover="this.style.color='#7c5cff';this.style.borderColor='#cdbfff'" onmouseout="this.style.color='#6b6b78';this.style.borderColor='#ececef'">

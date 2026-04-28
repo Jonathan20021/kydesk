@@ -500,7 +500,7 @@ if ($aStatus): ?>
                             <input type="hidden" name="status" value="<?= $v ?>">
                             <input type="hidden" name="priority" value="<?= $e($t['priority']) ?>">
                             <input type="hidden" name="category_id" value="<?= (int)$t['category_id'] ?>">
-                            <button class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold transition" style="<?= $active ? 'background:'.$col.';color:white' : 'background:#f3f4f6;color:#2a2a33' ?>" onmouseover="if(!this.querySelector('input[name=status]') || '<?= $v ?>' !== '<?= $e($t['status']) ?>') this.style.background='<?= $col ?>22'" onmouseout="this.style.background='<?= $active ? $col : '#f3f4f6' ?>'"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i> <?= $lbl ?></button>
+                            <button <?= $v === 'resolved' ? 'data-shortcut="resolve"' : '' ?> class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold transition" style="<?= $active ? 'background:'.$col.';color:white' : 'background:#f3f4f6;color:#2a2a33' ?>" onmouseover="if(!this.querySelector('input[name=status]') || '<?= $v ?>' !== '<?= $e($t['status']) ?>') this.style.background='<?= $col ?>22'" onmouseout="this.style.background='<?= $active ? $col : '#f3f4f6' ?>'"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i> <?= $lbl ?></button>
                         </form>
                     <?php endforeach; ?>
                 </div>
@@ -649,7 +649,7 @@ if ($aStatus): ?>
                     <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-ink-400">Escalamiento</div>
                     <span class="badge badge-rose"><i class="lucide lucide-trending-up text-[10px]"></i> Nivel <?= (int)$t['escalation_level']+1 ?></span>
                 </div>
-                <button @click="open=!open" type="button" class="w-full inline-flex items-center justify-center gap-2 h-10 rounded-xl font-semibold text-[13px]" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;box-shadow:0 8px 20px -6px rgba(239,68,68,.45)" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'"><i class="lucide lucide-arrow-up-right"></i> Escalar</button>
+                <button @click="open=!open" type="button" data-shortcut="escalate" class="w-full inline-flex items-center justify-center gap-2 h-10 rounded-xl font-semibold text-[13px]" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;box-shadow:0 8px 20px -6px rgba(239,68,68,.45)" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'"><i class="lucide lucide-arrow-up-right"></i> Escalar</button>
                 <form x-show="open" x-cloak method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . $t['id'] . '/escalate') ?>" class="mt-3 space-y-2">
                     <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                     <select name="to_user_id" class="input">
