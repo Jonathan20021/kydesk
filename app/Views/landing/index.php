@@ -265,7 +265,7 @@
                 <i class="lucide lucide-sparkles text-[12px]"></i> RELEASE v4.6 · LA MÁS GRANDE HASTA AHORA
             </div>
             <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">10 módulos nuevos.<br><span class="gradient-shift">1 sola actualización.</span></h2>
-            <p class="mt-6 text-[16px] text-ink-500 max-w-2xl mx-auto">Email-to-Ticket, Live Chat, IA con Claude, CSAT/NPS, ITSM, Time Tracking, Status Page, Customer Portal, Reports Builder, Custom Fields. La suite enterprise completa lista para producción.</p>
+            <p class="mt-6 text-[16px] text-ink-500 max-w-2xl mx-auto">Email-to-Ticket, Live Chat, Kyros IA, CSAT/NPS, ITSM, Time Tracking, Status Page, Customer Portal, Reports Builder, Custom Fields. La suite enterprise completa lista para producción.</p>
         </div>
 
         <!-- 10 modules grid -->
@@ -273,7 +273,7 @@
             <?php foreach ([
                 ['email_inbound', 'Email-to-Ticket', 'mail-open', '#0369a1', '#e0f2fe', 'PRO'],
                 ['live_chat', 'Live Chat', 'message-square', '#047857', '#ecfdf5', 'BUSINESS'],
-                ['ai_assist', 'IA Claude', 'sparkles', '#7e22ce', '#f3e8ff', 'ENTERPRISE'],
+                ['ai_assist', 'Kyros IA', 'sparkles', '#7e22ce', '#f3e8ff', 'ENTERPRISE'],
                 ['csat', 'CSAT / NPS', 'smile', '#b45309', '#fef3c7', 'TODOS'],
                 ['itsm', 'ITSM · ITIL', 'workflow', '#0284c7', '#dbeafe', 'BUSINESS'],
                 ['time_tracking', 'Time Tracking', 'timer', '#b91c1c', '#fee2e2', 'PRO'],
@@ -299,8 +299,8 @@
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10.5px] font-bold uppercase tracking-[0.16em]" style="background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)">
                         <i class="lucide lucide-sparkles text-[11px]"></i> ENTERPRISE EXCLUSIVE
                     </div>
-                    <h3 class="font-display font-extrabold text-[28px] md:text-[36px] tracking-[-0.025em] mt-5 leading-tight">IA Asistente con<br>Claude integrado.</h3>
-                    <p class="mt-4 text-[14.5px]" style="color:rgba(255,255,255,.78)">Sugerí respuestas, resumí hilos, auto-categorizá tickets, detectá sentiment y traducí entre idiomas. La API key la maneja Kydesk · vos solo elegís qué acciones usar.</p>
+                    <h3 class="font-display font-extrabold text-[28px] md:text-[36px] tracking-[-0.025em] mt-5 leading-tight">Kyros IA integrada<br>en cada ticket.</h3>
+                    <p class="mt-4 text-[14.5px]" style="color:rgba(255,255,255,.78)">Sugerí respuestas, resumí hilos, auto-categorizá tickets, detectá sentiment y traducí entre idiomas. Todo gestionado por Kydesk · vos solo elegís qué acciones usar.</p>
                     <div class="mt-6 flex flex-wrap gap-2">
                         <?php foreach ([['Sugerir respuesta','message-square-quote'],['Resumir hilo','file-text'],['Auto-categorizar','tag'],['Sentiment','heart-pulse'],['Traducir','languages']] as [$lbl,$ic]): ?>
                             <span class="inline-flex items-center gap-1.5 text-[11.5px] px-2.5 py-1 rounded-full" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.12)"><i class="lucide lucide-<?= $ic ?> text-[11px]"></i> <?= $lbl ?></span>
@@ -389,7 +389,7 @@
             $bentos = [
                 ['email_inbound','Email-to-Ticket','IMAP + forward webhook · threading RFC.','mail-open','#e0f2fe','#0369a1'],
                 ['live_chat','Live Chat','Widget embebible para tu sitio.','message-square','#ecfdf5','#047857'],
-                ['ai_assist','IA con Claude','Sugerir, resumir, sentiment, traducir.','sparkles','#f3e8ff','#7e22ce'],
+                ['ai_assist','Kyros IA','Sugerir, resumir, sentiment, traducir.','sparkles','#f3e8ff','#7e22ce'],
                 ['csat','CSAT / NPS','Encuestas post-resolución con dashboard.','smile','#fef3c7','#b45309'],
                 ['itsm','ITSM · ITIL','Service Catalog, Changes, Approvals.','workflow','#dbeafe','#0284c7'],
                 ['time_tracking','Time Tracking','Cronómetro integrado a Igualas.','timer','#fee2e2','#b91c1c'],
@@ -1200,7 +1200,7 @@ function apiDemo() {
             'live_chat' => 'Live Chat',
             'reports_builder' => 'Reports Builder',
             'itsm' => 'ITSM (ITIL)',
-            'ai_assist' => 'IA Asistente · Claude',
+            'ai_assist' => 'Kyros IA Asistente',
             'sso' => 'SSO + SAML',
             'custom_branding' => 'Marca personalizada',
         ];

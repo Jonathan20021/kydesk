@@ -9,10 +9,10 @@ $pct = $quota > 0 ? min(100, ($used / $quota) * 100) : 0;
 <div class="flex items-end justify-between mb-5 flex-wrap gap-3">
     <div>
         <div class="flex items-center gap-2 mb-1.5">
-            <span class="badge badge-purple"><i class="lucide lucide-sparkles"></i> Powered by Claude · Enterprise</span>
+            <span class="badge badge-purple"><i class="lucide lucide-sparkles"></i> Kyros IA · Enterprise</span>
             <span class="badge badge-gray"><i class="lucide lucide-shield"></i> Gestionada por Kydesk</span>
         </div>
-        <h1 class="font-display font-extrabold text-[28px] tracking-[-0.025em]">IA Asistente</h1>
+        <h1 class="font-display font-extrabold text-[28px] tracking-[-0.025em]">Kyros IA Asistente</h1>
         <p class="text-[13px] text-ink-400">Sugerir respuesta · Resumir · Clasificar · Sentiment · Traducir</p>
     </div>
 </div>

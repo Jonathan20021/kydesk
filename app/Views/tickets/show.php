@@ -201,8 +201,8 @@ if ($aStatus): ?>
              ]), ENT_QUOTES) ?>)">
             <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] flex items-center gap-1.5" style="color:#7c5cff">
-                    <i class="lucide lucide-sparkles text-[12px]"></i> IA Asistente
-                    <span class="badge badge-purple" style="font-size:9.5px">Powered by Claude</span>
+                    <i class="lucide lucide-sparkles text-[12px]"></i> Kyros IA
+                    <span class="badge badge-purple" style="font-size:9.5px">Enterprise</span>
                 </div>
                 <?php if ($aiAvailable): ?>
                     <div class="flex flex-wrap gap-1.5">

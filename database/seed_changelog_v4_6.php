@@ -20,7 +20,7 @@ $entry = [
     'version' => 'v4.6.0',
     'release_type' => 'major',
     'title' => '10 módulos nuevos · La actualización más grande hasta ahora',
-    'summary' => 'Email-to-ticket inbound · Live Chat · IA Claude · CSAT/NPS · ITSM · Time Tracking · Status Page · Customer Portal · Reports Builder · Custom Fields. Enterprise full-stack helpdesk en una sola release.',
+    'summary' => 'Email-to-ticket inbound · Live Chat · Kyros IA · CSAT/NPS · ITSM · Time Tracking · Status Page · Customer Portal · Reports Builder · Custom Fields. Enterprise full-stack helpdesk en una sola release.',
     'hero_pill_label' => '10 módulos nuevos · v4.6 mayor release',
     'is_featured' => 1,
     'is_published' => 1,
@@ -41,7 +41,7 @@ $entry = [
         ['feature', 'Color, mensaje de bienvenida, requerir email, orígenes CORS — todo configurable desde la UI'],
 
         // AI ASSISTANT (Enterprise centralized)
-        ['feature', 'IA Asistente con Claude (Anthropic) — solo plan Enterprise · API key gestionada centralmente por el equipo de Kydesk'],
+        ['feature', 'Kyros IA — solo plan Enterprise · infraestructura gestionada centralmente por el equipo de Kydesk'],
         ['feature', '5 acciones IA: sugerir respuesta, resumir hilo, auto-categorizar, detectar sentiment, traducir'],
         ['feature', 'Super admin: panel /admin/ai con configuración global de provider/API key/modelo, asignación explícita por tenant, control de cuota'],
         ['feature', 'Tenant Enterprise: solo toggle qué acciones usar — sin manejar API keys ni billing del proveedor'],
