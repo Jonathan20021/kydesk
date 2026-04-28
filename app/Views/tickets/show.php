@@ -27,6 +27,68 @@ $sentimentMap = [
 
 <a href="<?= $url('/t/' . $slug . '/tickets') ?>" class="inline-flex items-center gap-1.5 text-[12.5px] text-ink-500 hover:text-ink-900 transition"><i class="lucide lucide-arrow-left text-[13px]"></i> Volver a tickets</a>
 
+<?php
+$aStatus = $t['approval_status'] ?? null;
+$canDecide = ($aStatus === 'pending') && (
+    (!empty($t['approval_user_id']) && (int)$t['approval_user_id'] === (int)$auth->user()['id'])
+    || ($auth->user()['role_slug'] ?? '') === 'owner'
+);
+if ($aStatus): ?>
+    <?php if ($aStatus === 'pending'): ?>
+        <div class="rounded-2xl p-4 mb-3" x-data="{showReject:false}" style="background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1px solid #fcd34d">
+            <div class="flex items-start gap-3 flex-wrap">
+                <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:#f59e0b;color:#fff"><i class="lucide lucide-shield-alert text-[16px]"></i></div>
+                <div class="flex-1 min-w-0">
+                    <div class="font-display font-bold text-[14px] text-ink-900">Esperando aprobación</div>
+                    <div class="text-[12.5px] text-ink-700 mt-0.5">
+                        Esta solicitud llegó del <?= !empty($catalogItem) ? 'servicio <strong>' . $e($catalogItem['name']) . '</strong> del catálogo' : 'catálogo de servicios' ?>
+                        <?php if (!empty($approver)): ?> · aprobador asignado: <strong><?= $e($approver['name']) ?></strong><?php endif; ?>.
+                    </div>
+                </div>
+                <?php if ($canDecide): ?>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <form method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . (int)$t['id'] . '/approve') ?>">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                            <input type="hidden" name="decision" value="approved">
+                            <button class="btn btn-sm" style="background:#16a34a;color:white"><i class="lucide lucide-check"></i> Aprobar</button>
+                        </form>
+                        <button type="button" @click="showReject=!showReject" class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca"><i class="lucide lucide-x"></i> Rechazar</button>
+                    </div>
+                <?php elseif (!empty($approver)): ?>
+                    <div class="text-[11.5px] text-ink-500 self-center">Solo <strong><?= $e($approver['name']) ?></strong> u owner pueden decidir.</div>
+                <?php endif; ?>
+            </div>
+            <?php if ($canDecide): ?>
+                <form x-show="showReject" x-cloak method="POST" action="<?= $url('/t/' . $slug . '/tickets/' . (int)$t['id'] . '/approve') ?>" class="mt-3 pt-3 border-t border-amber-200 space-y-2">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <input type="hidden" name="decision" value="rejected">
+                    <textarea name="reason" rows="2" required class="input" placeholder="Motivo del rechazo (lo verá el solicitante)"></textarea>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="showReject=false" class="btn btn-soft btn-sm">Cancelar</button>
+                        <button class="btn btn-sm" style="background:#dc2626;color:white"><i class="lucide lucide-x"></i> Confirmar rechazo</button>
+                    </div>
+                </form>
+            <?php endif; ?>
+        </div>
+    <?php elseif ($aStatus === 'approved'): ?>
+        <div class="rounded-2xl p-4 mb-3 flex items-start gap-3" style="background:#dcfce7;border:1px solid #86efac">
+            <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:#16a34a;color:#fff"><i class="lucide lucide-check-circle text-[16px]"></i></div>
+            <div class="flex-1 min-w-0">
+                <div class="font-display font-bold text-[14px] text-ink-900">Solicitud aprobada</div>
+                <div class="text-[12.5px] text-ink-700 mt-0.5">Aprobada el <?= $e(date('d M Y · H:i', strtotime((string)$t['approval_decided_at']))) ?></div>
+            </div>
+        </div>
+    <?php elseif ($aStatus === 'rejected'): ?>
+        <div class="rounded-2xl p-4 mb-3 flex items-start gap-3" style="background:#fef2f2;border:1px solid #fecaca">
+            <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:#dc2626;color:#fff"><i class="lucide lucide-x-circle text-[16px]"></i></div>
+            <div class="flex-1 min-w-0">
+                <div class="font-display font-bold text-[14px] text-ink-900">Solicitud rechazada</div>
+                <div class="text-[12.5px] text-ink-700 mt-0.5">Rechazada el <?= $e(date('d M Y · H:i', strtotime((string)$t['approval_decided_at']))) ?></div>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
+
 <!-- HEADER COVER -->
 <div class="relative rounded-[24px] overflow-hidden p-8" style="background:linear-gradient(135deg,#fafafb 0%,#f3f0ff 100%);border:1px solid #ececef">
     <div class="absolute top-0 inset-x-0 h-[3px]" style="background:linear-gradient(90deg,<?= $priColor[$t['priority']] ?? '#7c5cff' ?>,#d946ef,#f59e0b)"></div>

@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\Attachments;
+use App\Core\Catalog;
 use App\Core\Controller;
 use App\Core\Events;
 use App\Core\Helpers;
@@ -32,6 +33,8 @@ class PortalController extends Controller
     {
         $tenant = $this->resolveTenant($params['slug']);
         $categories = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
+        $catalog = Catalog::listPublic($tenant->id);
+        $catalogItemId = (int)($_GET['catalog_item'] ?? 0);
         $companyId = (int)($_GET['company'] ?? 0);
         $company = null;
         $contacts = [];
@@ -50,6 +53,8 @@ class PortalController extends Controller
             'categories' => $categories,
             'company' => $company,
             'contacts' => $contacts,
+            'catalog' => $catalog,
+            'catalogItemId' => $catalogItemId,
             'showPoweredFooter' => true,
         ], 'public');
     }
@@ -85,7 +90,7 @@ class PortalController extends Controller
             $auto = Helpers::findCompanyByEmail($tenant->id, $email);
             if ($auto) $companyId = $auto;
         }
-        $id = $this->db->insert('tickets', [
+        $insertData = [
             'tenant_id' => $tenant->id,
             'code' => 'TMP-' . bin2hex(random_bytes(4)),
             'subject' => $subject,
@@ -99,7 +104,19 @@ class PortalController extends Controller
             'requester_email' => $email,
             'requester_phone' => (string)$this->input('phone',''),
             'public_token' => $token,
-        ]);
+        ];
+
+        // Aplicar item del catálogo si fue elegido (solo público)
+        $catalogItemId = (int)$this->input('catalog_item_id', 0);
+        $catalogItem = $catalogItemId ? Catalog::findItem($tenant->id, $catalogItemId, true) : null;
+        $pendingApproval = false;
+        if ($catalogItem) {
+            $built = Catalog::buildTicketFields($catalogItem, $insertData);
+            $insertData = $built['data'];
+            $pendingApproval = $built['pending_approval'];
+        }
+
+        $id = $this->db->insert('tickets', $insertData);
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
 
@@ -113,6 +130,11 @@ class PortalController extends Controller
         $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
         if ($row && !empty($attachIds)) $row['attachments_count'] = count($attachIds);
         Events::emit(Events::TICKET_CREATED, $tenant->id, 'ticket', $id, $row ?: [], null);
+
+        // Si requiere aprobación, notificar al aprobador
+        if ($pendingApproval && $catalogItem && $row) {
+            Catalog::notifyApprover($tenant, $catalogItem, $row);
+        }
 
         // Notificar al solicitante + buzón del workspace
         try {

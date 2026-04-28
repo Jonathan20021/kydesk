@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\Attachments;
+use App\Core\Catalog;
 use App\Core\Controller;
 use App\Core\Events;
 use App\Core\Helpers;
@@ -333,6 +334,8 @@ class CompanyPortalController extends Controller
         $user = $this->requirePortalUser($tenant);
         $company = $this->requireCompany($tenant, $user);
         $cats = $this->db->all('SELECT * FROM ticket_categories WHERE tenant_id=? ORDER BY name', [$tenant->id]);
+        $catalog = Catalog::listForCompany($tenant->id);
+        $catalogItemId = (int)($_GET['catalog_item'] ?? 0);
 
         $contacts = [];
         if (!empty($user['is_company_manager'])) {
@@ -343,13 +346,15 @@ class CompanyPortalController extends Controller
         }
 
         $this->render('company_portal/ticket_new', [
-            'title'        => 'Nuevo ticket · ' . $company['name'],
-            'tenantPublic' => $tenant,
-            'portalUser'   => $user,
-            'company'      => $company,
-            'cats'         => $cats,
-            'contacts'     => $contacts,
-            'nav'          => 'tickets',
+            'title'         => 'Nuevo ticket · ' . $company['name'],
+            'tenantPublic'  => $tenant,
+            'portalUser'    => $user,
+            'company'       => $company,
+            'cats'          => $cats,
+            'contacts'      => $contacts,
+            'catalog'       => $catalog,
+            'catalogItemId' => $catalogItemId,
+            'nav'           => 'tickets',
         ], 'public');
     }
 
@@ -394,7 +399,7 @@ class CompanyPortalController extends Controller
         }
 
         $token = bin2hex(random_bytes(16));
-        $id = $this->db->insert('tickets', [
+        $insertData = [
             'tenant_id'        => $tenant->id,
             'code'             => 'TMP-' . bin2hex(random_bytes(4)),
             'subject'          => $subject,
@@ -409,7 +414,19 @@ class CompanyPortalController extends Controller
             'requester_phone'  => $reqPhone ?: null,
             'portal_user_id'   => (int)$user['id'],
             'public_token'     => $token,
-        ]);
+        ];
+
+        // Aplicar catálogo si fue elegido
+        $catalogItemId = (int)$this->input('catalog_item_id', 0);
+        $catalogItem = $catalogItemId ? Catalog::findItem($tenant->id, $catalogItemId) : null;
+        $pendingApproval = false;
+        if ($catalogItem) {
+            $built = Catalog::buildTicketFields($catalogItem, $insertData);
+            $insertData = $built['data'];
+            $pendingApproval = $built['pending_approval'];
+        }
+
+        $id = $this->db->insert('tickets', $insertData);
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
 
@@ -419,6 +436,10 @@ class CompanyPortalController extends Controller
         $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]);
         if ($row && !empty($attachIds)) $row['attachments_count'] = count($attachIds);
         Events::emit(Events::TICKET_CREATED, $tenant->id, 'ticket', $id, $row ?: [], null);
+
+        if ($pendingApproval && $catalogItem && $row) {
+            Catalog::notifyApprover($tenant, $catalogItem, $row);
+        }
 
         // Notificar buzón interno
         try {
@@ -440,7 +461,11 @@ class CompanyPortalController extends Controller
             }
         } catch (\Throwable $e) { /* ignore */ }
 
-        $this->session->flash('success', 'Ticket ' . $code . ' creado correctamente.');
+        if ($pendingApproval) {
+            $this->session->flash('success', 'Ticket ' . $code . ' creado · Esperando aprobación del responsable. Te avisaremos por email cuando se decida.');
+        } else {
+            $this->session->flash('success', 'Ticket ' . $code . ' creado correctamente.');
+        }
         $this->redirect('/portal/' . $tenant->slug . '/company/tickets/' . $id);
     }
 

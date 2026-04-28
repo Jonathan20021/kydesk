@@ -76,9 +76,56 @@ class ItsmController extends Controller
             'requires_approval' => (int)($this->input('requires_approval') ? 1 : 0),
             'approver_user_id'  => ((int)$this->input('approver_user_id', 0)) ?: null,
             'is_active'         => 1,
+            'is_public'         => (int)($this->input('is_public') ? 1 : 0),
             'sort_order'        => (int)$this->input('sort_order', 0),
         ]);
         $this->session->flash('success','Item del catálogo creado.');
+        $this->redirect('/t/' . $tenant->slug . '/itsm');
+    }
+
+    public function catalogUpdate(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('itsm');
+        $this->requireCan('itsm.create');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $item = $this->db->one('SELECT id FROM service_catalog_items WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if (!$item) $this->redirect('/t/' . $tenant->slug . '/itsm');
+
+        $name = trim((string)$this->input('name',''));
+        if ($name === '') { $this->session->flash('error','Nombre requerido.'); $this->redirect('/t/' . $tenant->slug . '/itsm'); }
+
+        $this->db->update('service_catalog_items', [
+            'category_id'       => ((int)$this->input('category_id', 0)) ?: null,
+            'department_id'     => ((int)$this->input('department_id', 0)) ?: null,
+            'name'              => $name,
+            'description'       => (string)$this->input('description','') ?: null,
+            'icon'              => (string)$this->input('icon','package') ?: 'package',
+            'color'             => preg_match('/^#[0-9a-fA-F]{6}$/', (string)$this->input('color','#7c5cff')) ? (string)$this->input('color') : '#7c5cff',
+            'sla_minutes'       => ((int)$this->input('sla_minutes', 0)) ?: null,
+            'requires_approval' => (int)($this->input('requires_approval') ? 1 : 0),
+            'approver_user_id'  => ((int)$this->input('approver_user_id', 0)) ?: null,
+            'is_active'         => (int)($this->input('is_active') ? 1 : 0),
+            'is_public'         => (int)($this->input('is_public') ? 1 : 0),
+            'sort_order'        => (int)$this->input('sort_order', 0),
+        ], 'id=? AND tenant_id=?', [$id, $tenant->id]);
+        $this->session->flash('success', 'Item actualizado.');
+        $this->redirect('/t/' . $tenant->slug . '/itsm');
+    }
+
+    public function catalogToggleVisibility(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('itsm');
+        $this->requireCan('itsm.create');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $item = $this->db->one('SELECT * FROM service_catalog_items WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if ($item) {
+            $this->db->update('service_catalog_items', ['is_public' => $item['is_public'] ? 0 : 1], 'id=?', [$id]);
+            $this->session->flash('success', $item['is_public'] ? 'Item ocultado del portal público.' : 'Item visible en portal público.');
+        }
         $this->redirect('/t/' . $tenant->slug . '/itsm');
     }
 

@@ -51,6 +51,46 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
             <p class="mt-4 text-[15px] text-ink-500 max-w-lg mx-auto leading-relaxed">Te respondemos en menos de 24 horas por email. Mientras tanto recibirás un link único para seguir tu caso.</p>
         </div>
 
+        <?php if (!empty($catalog)): ?>
+            <!-- Service catalog (optional) -->
+            <div x-data="catalogPicker()" class="mb-7">
+                <div class="rounded-3xl p-5 sm:p-6" style="background:linear-gradient(135deg,#fff,rgba(<?= $rgbStr ?>,.06));border:1px solid rgba(<?= $rgbStr ?>,.18)">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <div class="text-[10.5px] font-bold uppercase tracking-[0.16em]" style="color:<?= $e($brand) ?>">Catálogo de servicios</div>
+                            <h3 class="font-display font-bold text-[16px] tracking-[-0.015em]">¿Buscás un servicio específico?</h3>
+                        </div>
+                        <button type="button" @click="clear()" x-show="selected" x-cloak class="text-[11.5px] text-ink-500 hover:text-ink-900 inline-flex items-center gap-1"><i class="lucide lucide-x text-[12px]"></i> Quitar</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <?php foreach ($catalog as $item): ?>
+                            <button type="button"
+                                    @click="pick(<?= (int)$item['id'] ?>, <?= htmlspecialchars(json_encode([
+                                        'name' => $item['name'],
+                                        'description' => (string)$item['description'],
+                                        'category_id' => (int)$item['category_id'],
+                                        'requires_approval' => (int)$item['requires_approval'],
+                                    ]), ENT_QUOTES) ?>)"
+                                    :class="selected === <?= (int)$item['id'] ?> ? 'ring-2 bg-white' : 'bg-white/70 hover:bg-white'"
+                                    :style="selected === <?= (int)$item['id'] ?> ? '--tw-ring-color:<?= $e($brand) ?>' : ''"
+                                    class="text-left p-3 rounded-2xl border border-[#ececef] transition flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:<?= $e($item['color']) ?>15;color:<?= $e($item['color']) ?>"><i class="lucide lucide-<?= $e($item['icon']) ?> text-[16px]"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-display font-bold text-[13px]"><?= $e($item['name']) ?></div>
+                                    <?php if (!empty($item['description'])): ?><div class="text-[11.5px] text-ink-500 line-clamp-2 mt-0.5"><?= $e($item['description']) ?></div><?php endif; ?>
+                                    <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                        <?php if (!empty($item['requires_approval'])): ?><span class="badge badge-amber text-[10px]">Aprobación</span><?php endif; ?>
+                                        <?php if (!empty($item['sla_minutes'])): ?><span class="badge badge-blue text-[10px]">SLA <?= (int)$item['sla_minutes'] ?>min</span><?php endif; ?>
+                                    </div>
+                                </div>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="text-[11px] text-ink-400 mt-3">Si no ves lo que necesitás, podés describir tu solicitud libremente abajo.</p>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- STEPPER -->
         <div x-data="ticketForm()" x-init="init()" class="space-y-5">
 
@@ -84,6 +124,7 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
 
             <form method="POST" action="<?= $url('/portal/' . $t->slug . '/new') ?>" @submit="submitting=true" enctype="multipart/form-data" class="rounded-3xl bg-white border border-[#ececef] overflow-hidden" style="box-shadow:0 30px 60px -20px rgba(<?= $rgbStr ?>,.18)">
                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <input type="hidden" name="catalog_item_id" id="catalogItemHidden" value="<?= (int)($catalogItemId ?? 0) ?: '' ?>">
                 <?php if (!empty($company)): ?>
                     <input type="hidden" name="company_id" value="<?= (int)$company['id'] ?>">
                 <?php endif; ?>
@@ -287,6 +328,12 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
                         </div>
                     </div>
 
+                    <div x-show="requiresApproval" x-cloak class="flex items-start gap-2.5 p-4 rounded-2xl" style="background:#fef3c7;border:1px solid #fcd34d">
+                        <i class="lucide lucide-shield-alert text-[16px] mt-0.5 flex-shrink-0" style="color:#b45309"></i>
+                        <div class="text-[12px] text-ink-900">
+                            <strong>Este servicio requiere aprobación.</strong> Tu solicitud quedará en espera hasta que el responsable apruebe o rechace. Te avisaremos por email cuando se decida.
+                        </div>
+                    </div>
                     <div class="flex items-start gap-2.5 p-4 rounded-2xl" style="background:rgba(<?= $rgbStr ?>,.06);border:1px solid rgba(<?= $rgbStr ?>,.2)">
                         <i class="lucide lucide-shield-check text-[16px] mt-0.5 flex-shrink-0" style="color:<?= $e($brand) ?>"></i>
                         <div class="text-[12px] text-ink-700">
@@ -303,8 +350,8 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
                     <div class="flex gap-2 ml-auto">
                         <button type="button" @click="next()" x-show="step < 2" :disabled="!canAdvance()" :class="!canAdvance() ? 'opacity-50 cursor-not-allowed' : ''" class="inline-flex items-center gap-1.5 px-5 h-11 rounded-xl text-[13px] font-semibold transition" :style="canAdvance() ? 'background:<?= $e($brand) ?>;color:white;box-shadow:0 8px 18px -6px rgba(<?= $rgbStr ?>,.5)' : 'background:#ececef;color:#8e8e9a'">Continuar <i class="lucide lucide-arrow-right text-[13px]"></i></button>
                         <button type="submit" x-show="step === 2" :disabled="submitting" class="inline-flex items-center gap-1.5 px-5 h-11 rounded-xl text-[13px] font-semibold transition" :style="'background:<?= $e($brand) ?>;color:white;box-shadow:0 10px 22px -8px rgba(<?= $rgbStr ?>,.6)' + (submitting ? ';opacity:.7' : '')">
-                            <i class="lucide" :class="submitting ? 'lucide-loader-2 animate-spin' : 'lucide-send'"></i>
-                            <span x-text="submitting ? 'Enviando…' : 'Enviar ticket'"></span>
+                            <i class="lucide" :class="submitting ? 'lucide-loader-2 animate-spin' : (requiresApproval ? 'lucide-shield-check' : 'lucide-send')"></i>
+                            <span x-text="submitting ? 'Enviando…' : (requiresApproval ? 'Enviar para aprobación' : 'Enviar ticket')"></span>
                         </button>
                     </div>
                 </div>
@@ -337,10 +384,42 @@ $rgbStr = $brandRgb ? implode(',', $brandRgb) : '124,92,255';
 </section>
 
 <script>
+function catalogPicker() {
+    return {
+        selected: <?= (int)($catalogItemId ?? 0) ?: 'null' ?>,
+        pick(id, item) {
+            this.selected = id;
+            const hidden = document.getElementById('catalogItemHidden');
+            if (hidden) hidden.value = id;
+            const root = document.querySelector('[x-data="ticketForm()"]');
+            if (root && root.__x && root.__x.$data) {
+                const f = root.__x.$data.form;
+                if (!f.subject) f.subject = item.name || '';
+                if (!f.description && item.description) f.description = item.description;
+                if (item.category_id) f.category = String(item.category_id);
+                root.__x.$data.requiresApproval = !!item.requires_approval;
+            } else {
+                // Fallback: dispatch a custom event the stepper Alpine instance listens to
+                window.dispatchEvent(new CustomEvent('catalog:picked', {detail: item}));
+            }
+            // Auto-scroll al stepper
+            const stepper = document.querySelector('[x-data="ticketForm()"]');
+            if (stepper) stepper.scrollIntoView({behavior:'smooth', block:'start'});
+        },
+        clear() {
+            this.selected = null;
+            const hidden = document.getElementById('catalogItemHidden');
+            if (hidden) hidden.value = '';
+            window.dispatchEvent(new CustomEvent('catalog:cleared'));
+        },
+    };
+}
+
 function ticketForm() {
     return {
         step: 0,
         submitting: false,
+        requiresApproval: false,
         steps: ['Datos','Detalle','Confirmar'],
         form: { name:'', email:'', phone:'', subject:'', description:'', category:'0', priority:'medium' },
         init() {
@@ -350,6 +429,14 @@ function ticketForm() {
                 if (saved) Object.assign(this.form, JSON.parse(saved));
             } catch(e) {}
             this.$watch('form', v => { try { localStorage.setItem('kydesk_portal_draft_<?= $e($t->slug) ?>', JSON.stringify(v)); } catch(e){} }, {deep:true});
+            window.addEventListener('catalog:picked', e => {
+                const it = e.detail || {};
+                if (!this.form.subject) this.form.subject = it.name || '';
+                if (!this.form.description && it.description) this.form.description = it.description;
+                if (it.category_id) this.form.category = String(it.category_id);
+                this.requiresApproval = !!it.requires_approval;
+            });
+            window.addEventListener('catalog:cleared', () => { this.requiresApproval = false; });
         },
         canAdvance() {
             if (this.step === 0) {

@@ -102,6 +102,7 @@ class Application
         $r->post('/t/{slug}/tickets/{id}/update', ['App\Controllers\TicketController', 'update']);
         $r->post('/t/{slug}/tickets/{id}/assign', ['App\Controllers\TicketController', 'assign']);
         $r->post('/t/{slug}/tickets/{id}/escalate', ['App\Controllers\TicketController', 'escalate']);
+        $r->post('/t/{slug}/tickets/{id}/approve', ['App\Controllers\TicketController', 'approve']);
         $r->post('/t/{slug}/tickets/{id}/move', ['App\Controllers\TicketController', 'move']);
         $r->post('/t/{slug}/tickets/{id}/delete', ['App\Controllers\TicketController', 'delete']);
 
@@ -255,6 +256,8 @@ class Application
         // ─────────── ITSM ───────────
         $r->get('/t/{slug}/itsm', ['App\Controllers\ItsmController', 'index']);
         $r->post('/t/{slug}/itsm/catalog', ['App\Controllers\ItsmController', 'catalogStore']);
+        $r->post('/t/{slug}/itsm/catalog/{id}', ['App\Controllers\ItsmController', 'catalogUpdate']);
+        $r->post('/t/{slug}/itsm/catalog/{id}/visibility', ['App\Controllers\ItsmController', 'catalogToggleVisibility']);
         $r->post('/t/{slug}/itsm/catalog/{id}/delete', ['App\Controllers\ItsmController', 'catalogDelete']);
         $r->post('/t/{slug}/itsm/changes', ['App\Controllers\ItsmController', 'changeStore']);
         $r->get('/t/{slug}/itsm/changes/{id}', ['App\Controllers\ItsmController', 'changeShow']);

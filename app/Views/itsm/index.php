@@ -44,13 +44,13 @@ $problemStatusMap = [
     </div>
 
     <!-- Service Catalog -->
-    <div x-show="tab==='catalog'" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div x-show="tab==='catalog'" x-data="{editing:null}" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="card card-pad">
             <h3 class="font-display font-bold text-[15px] mb-3 flex items-center gap-2"><i class="lucide lucide-plus text-brand-600"></i> Nuevo item</h3>
             <form method="POST" action="<?= $url('/t/' . $slug . '/itsm/catalog') ?>" class="space-y-3">
                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
                 <div><label class="label">Nombre</label><input name="name" required class="input" placeholder="Ej: Solicitar VPN, Reset password"></div>
-                <div><label class="label">Descripción</label><textarea name="description" rows="2" class="input"></textarea></div>
+                <div><label class="label">Descripción</label><textarea name="description" rows="2" class="input" placeholder="Lo que verá el solicitante"></textarea></div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="label">Icono</label><input name="icon" value="package" class="input"></div>
                     <div><label class="label">Color</label><input name="color" type="color" value="#7c5cff" class="input" style="height:42px"></div>
@@ -80,17 +80,28 @@ $problemStatusMap = [
                         <?php foreach ($users as $u): ?><option value="<?= (int)$u['id'] ?>"><?= $e($u['name']) ?></option><?php endforeach; ?>
                     </select>
                 </div>
+                <label class="flex items-start gap-2 text-[13px] p-3 rounded-xl border border-dashed border-[#cdbfff] bg-brand-50/40 cursor-pointer">
+                    <input type="checkbox" name="is_public" value="1" class="mt-0.5">
+                    <span><strong>Visible en portal público</strong><span class="block text-[11px] text-ink-500 mt-0.5">Si lo tildás, cualquier visitante del portal puede solicitarlo. Si no, solo aparecerá en el portal de empresa autenticado y en el form interno.</span></span>
+                </label>
                 <button class="btn btn-primary w-full"><i class="lucide lucide-check"></i> Crear item</button>
             </form>
         </div>
 
         <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <?php foreach ($catalog as $s): ?>
-                <div class="card card-pad relative">
-                    <div class="flex items-start gap-3">
-                        <div class="w-12 h-12 rounded-2xl grid place-items-center" style="background:<?= $e($s['color']) ?>15;color:<?= $e($s['color']) ?>"><i class="lucide lucide-<?= $e($s['icon']) ?> text-[18px]"></i></div>
+                <div class="card card-pad relative" :class="editing === <?= (int)$s['id'] ?> && 'ring-2 ring-brand-300'">
+                    <div x-show="editing !== <?= (int)$s['id'] ?>" class="flex items-start gap-3">
+                        <div class="w-12 h-12 rounded-2xl grid place-items-center flex-shrink-0" style="background:<?= $e($s['color']) ?>15;color:<?= $e($s['color']) ?>"><i class="lucide lucide-<?= $e($s['icon']) ?> text-[18px]"></i></div>
                         <div class="flex-1 min-w-0">
-                            <div class="font-display font-bold text-[14px]"><?= $e($s['name']) ?></div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <div class="font-display font-bold text-[14px]"><?= $e($s['name']) ?></div>
+                                <?php if (!empty($s['is_public'])): ?>
+                                    <span class="badge badge-green" data-tooltip="Visible en portal público"><i class="lucide lucide-globe text-[10px]"></i> Público</span>
+                                <?php else: ?>
+                                    <span class="badge badge-gray" data-tooltip="Solo portal interno + portal de empresa"><i class="lucide lucide-lock text-[10px]"></i> Interno</span>
+                                <?php endif; ?>
+                            </div>
                             <?php if (!empty($s['description'])): ?><p class="text-[12px] text-ink-500 mt-0.5 line-clamp-2"><?= $e($s['description']) ?></p><?php endif; ?>
                             <div class="flex items-center gap-2 mt-2 flex-wrap text-[11px]">
                                 <?php if ($s['requires_approval']): ?><span class="badge badge-amber">Aprobación requerida</span><?php endif; ?>
@@ -98,17 +109,68 @@ $problemStatusMap = [
                                 <?php if (!empty($s['category_name'])): ?><span class="text-ink-500"><?= $e($s['category_name']) ?></span><?php endif; ?>
                             </div>
                         </div>
-                        <form method="POST" action="<?= $url('/t/' . $slug . '/itsm/catalog/' . (int)$s['id'] . '/delete') ?>" onsubmit="return confirm('Eliminar item?')">
-                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                            <button class="btn btn-soft btn-xs" style="color:#b91c1c"><i class="lucide lucide-trash-2 text-[11px]"></i></button>
-                        </form>
+                        <div class="flex flex-col gap-1">
+                            <button type="button" @click="editing=<?= (int)$s['id'] ?>" class="btn btn-soft btn-xs" data-tooltip="Editar"><i class="lucide lucide-pencil text-[11px]"></i></button>
+                            <form method="POST" action="<?= $url('/t/' . $slug . '/itsm/catalog/' . (int)$s['id'] . '/visibility') ?>" data-tooltip="<?= !empty($s['is_public']) ? 'Ocultar del público' : 'Hacer público' ?>">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                <button class="btn btn-soft btn-xs"><i class="lucide lucide-<?= !empty($s['is_public']) ? 'eye-off' : 'globe' ?> text-[11px]"></i></button>
+                            </form>
+                            <form method="POST" action="<?= $url('/t/' . $slug . '/itsm/catalog/' . (int)$s['id'] . '/delete') ?>" onsubmit="return confirm('Eliminar item?')" data-tooltip="Eliminar">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                <button class="btn btn-soft btn-xs" style="color:#b91c1c"><i class="lucide lucide-trash-2 text-[11px]"></i></button>
+                            </form>
+                        </div>
                     </div>
+
+                    <form x-show="editing === <?= (int)$s['id'] ?>" x-cloak method="POST" action="<?= $url('/t/' . $slug . '/itsm/catalog/' . (int)$s['id']) ?>" class="space-y-2">
+                        <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                        <div><label class="label">Nombre</label><input name="name" required class="input" value="<?= $e($s['name']) ?>"></div>
+                        <div><label class="label">Descripción</label><textarea name="description" rows="2" class="input"><?= $e($s['description']) ?></textarea></div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="label">Icono</label><input name="icon" value="<?= $e($s['icon']) ?>" class="input"></div>
+                            <div><label class="label">Color</label><input name="color" type="color" value="<?= $e($s['color']) ?>" class="input" style="height:42px"></div>
+                        </div>
+                        <div>
+                            <label class="label">Categoría</label>
+                            <select name="category_id" class="input">
+                                <option value="">— Ninguna —</option>
+                                <?php foreach ($categories as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)$s['category_id']===(int)$c['id']?'selected':'' ?>><?= $e($c['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php if (!empty($departments)): ?>
+                            <div>
+                                <label class="label">Departamento</label>
+                                <select name="department_id" class="input">
+                                    <option value="">—</option>
+                                    <?php foreach ($departments as $d): ?><option value="<?= (int)$d['id'] ?>" <?= (int)$s['department_id']===(int)$d['id']?'selected':'' ?>><?= $e($d['name']) ?></option><?php endforeach; ?>
+                                </select>
+                            </div>
+                        <?php endif; ?>
+                        <div><label class="label">SLA (minutos)</label><input name="sla_minutes" type="number" min="0" class="input" value="<?= $s['sla_minutes']?(int)$s['sla_minutes']:'' ?>"></div>
+                        <div>
+                            <label class="label">Aprobador</label>
+                            <select name="approver_user_id" class="input">
+                                <option value="">— Sin aprobador específico —</option>
+                                <?php foreach ($users as $u): ?><option value="<?= (int)$u['id'] ?>" <?= (int)$s['approver_user_id']===(int)$u['id']?'selected':'' ?>><?= $e($u['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="flex items-center gap-2 text-[12.5px]"><input type="checkbox" name="requires_approval" value="1" <?= !empty($s['requires_approval'])?'checked':'' ?>> Requiere aprobación</label>
+                            <label class="flex items-center gap-2 text-[12.5px]"><input type="checkbox" name="is_active" value="1" <?= !empty($s['is_active'])?'checked':'' ?>> Activo</label>
+                            <label class="flex items-center gap-2 text-[12.5px]"><input type="checkbox" name="is_public" value="1" <?= !empty($s['is_public'])?'checked':'' ?>> Visible en portal público</label>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button type="button" @click="editing=null" class="btn btn-soft btn-sm flex-1">Cancelar</button>
+                            <button class="btn btn-primary btn-sm flex-1"><i class="lucide lucide-save text-[12px]"></i> Guardar</button>
+                        </div>
+                    </form>
                 </div>
             <?php endforeach; ?>
             <?php if (empty($catalog)): ?>
                 <div class="sm:col-span-2 card card-pad text-center py-12">
                     <i class="lucide lucide-package text-[24px] text-ink-300"></i>
                     <h3 class="font-display font-bold mt-3">Catálogo vacío</h3>
+                    <p class="text-[12.5px] text-ink-400 mt-1">Creá el primer item del catálogo para que tus solicitantes puedan pedir servicios.</p>
                 </div>
             <?php endif; ?>
         </div>

@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Core\Attachments;
+use App\Core\Catalog;
 use App\Core\Controller;
 use App\Core\Events;
 use App\Core\Helpers;
@@ -105,7 +106,17 @@ class TicketController extends Controller
         $technicians = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_active=1 ORDER BY is_technician DESC, name', [$tenant->id]);
         $companies = $this->db->all('SELECT id, name FROM companies WHERE tenant_id=? ORDER BY name', [$tenant->id]);
         $departments = $this->hasDepartments() ? $this->db->all('SELECT id, name, color, icon FROM departments WHERE tenant_id=? AND is_active=1 ORDER BY sort_order, name', [$tenant->id]) : [];
-        $this->render('tickets/create', ['title'=>'Nuevo ticket','categories'=>$categories,'technicians'=>$technicians,'companies'=>$companies,'departments'=>$departments]);
+        $catalog = Catalog::listForAgent($tenant->id);
+        $catalogItemId = (int)($_GET['catalog_item'] ?? 0);
+        $this->render('tickets/create', [
+            'title'         => 'Nuevo ticket',
+            'categories'    => $categories,
+            'technicians'   => $technicians,
+            'companies'     => $companies,
+            'departments'   => $departments,
+            'catalog'       => $catalog,
+            'catalogItemId' => $catalogItemId,
+        ]);
     }
 
     public function store(array $params): void
@@ -167,6 +178,17 @@ class TicketController extends Controller
             'public_token' => bin2hex(random_bytes(16)),
         ];
         if ($this->hasDepartments()) $data['department_id'] = $deptId;
+
+        // Aplicar catalog item si vino
+        $catalogItemId = (int)$this->input('catalog_item_id', 0);
+        $catalogItem = $catalogItemId ? Catalog::findItem($tenant->id, $catalogItemId) : null;
+        $pendingApproval = false;
+        if ($catalogItem) {
+            $built = Catalog::buildTicketFields($catalogItem, $data);
+            $data = $built['data'];
+            $pendingApproval = $built['pending_approval'];
+        }
+
         $id = $this->db->insert('tickets', $data);
         $code = Helpers::ticketCode($tenant->id, $id);
         $this->db->update('tickets', ['code' => $code], 'id=?', [$id]);
@@ -186,7 +208,12 @@ class TicketController extends Controller
         $row = $this->db->one('SELECT * FROM tickets WHERE id = ?', [$id]) ?: $data;
         Events::emit(Events::TICKET_CREATED, $tenant->id, 'ticket', $id, $row, $this->auth->userId());
 
-        $this->session->flash('success', 'Ticket creado con éxito.');
+        if ($pendingApproval && $catalogItem) {
+            Catalog::notifyApprover($tenant, $catalogItem, $row);
+            $this->session->flash('success', 'Ticket creado · Esperando aprobación del responsable.');
+        } else {
+            $this->session->flash('success', 'Ticket creado con éxito.');
+        }
         $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
     }
 
@@ -311,6 +338,16 @@ class TicketController extends Controller
 
         $companies = $this->db->all('SELECT id, name FROM companies WHERE tenant_id=? ORDER BY name', [$tenant->id]);
 
+        // Catalog item + approver para banner de aprobación
+        $catalogItem = null;
+        $approver = null;
+        if (!empty($ticket['catalog_item_id'])) {
+            $catalogItem = $this->db->one('SELECT id, name, icon, color, requires_approval, approver_user_id FROM service_catalog_items WHERE id=? AND tenant_id=?', [(int)$ticket['catalog_item_id'], $tenant->id]);
+        }
+        if (!empty($ticket['approval_user_id'])) {
+            $approver = $this->db->one('SELECT id, name, email FROM users WHERE id=? AND tenant_id=?', [(int)$ticket['approval_user_id'], $tenant->id]);
+        }
+
         $this->render('tickets/show', [
             'title' => $ticket['code'] . ' — ' . $ticket['subject'],
             'ticket' => $ticket,
@@ -324,7 +361,81 @@ class TicketController extends Controller
             'companies' => $companies,
             'relatedArticles' => $relatedArticles,
             'macros' => $macros,
+            'catalogItem' => $catalogItem,
+            'approver' => $approver,
         ]);
+    }
+
+    /** Aprobar/rechazar un ticket que vino del catálogo. */
+    public function approve(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireCan('tickets.edit');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $decision = (string)$this->input('decision', 'approved');
+        if (!in_array($decision, ['approved', 'rejected'], true)) $decision = 'approved';
+
+        $ticket = $this->db->one('SELECT * FROM tickets WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if (!$ticket) { $this->redirect('/t/' . $tenant->slug . '/tickets'); }
+        if (($ticket['approval_status'] ?? null) !== 'pending') {
+            $this->session->flash('error', 'Este ticket no está esperando aprobación.');
+            $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
+        }
+
+        $userId = $this->auth->userId();
+        $isAssignedApprover = !empty($ticket['approval_user_id']) && (int)$ticket['approval_user_id'] === (int)$userId;
+        $isOwner = ($this->auth->user()['role_slug'] ?? '') === 'owner';
+        if (!$isAssignedApprover && !$isOwner) {
+            $this->session->flash('error', 'Solo el aprobador asignado o un owner puede decidir esta solicitud.');
+            $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
+        }
+
+        $newStatus = $decision === 'approved' ? 'open' : 'closed';
+        $this->db->update('tickets', [
+            'approval_status'      => $decision,
+            'approval_decided_at'  => date('Y-m-d H:i:s'),
+            'status'               => $newStatus,
+        ], 'id=?', [$id]);
+
+        // Comentario interno con la decisión
+        $reason = trim((string)$this->input('reason', ''));
+        $body = $decision === 'approved'
+            ? 'Solicitud aprobada' . ($reason !== '' ? ' · ' . $reason : '.')
+            : 'Solicitud rechazada' . ($reason !== '' ? ' · ' . $reason : '.');
+        $this->db->insert('ticket_comments', [
+            'tenant_id'    => $tenant->id,
+            'ticket_id'    => $id,
+            'user_id'      => $userId,
+            'author_name'  => $this->auth->user()['name'],
+            'author_email' => $this->auth->user()['email'],
+            'body'         => $body,
+            'is_internal'  => 0,
+        ]);
+
+        $this->logAudit('ticket.' . $decision, 'ticket', $id, ['reason' => $reason]);
+
+        // Notificar al solicitante con la decisión
+        try {
+            if (!empty($ticket['requester_email']) && filter_var($ticket['requester_email'], FILTER_VALIDATE_EMAIL)) {
+                $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
+                $publicUrl = $appUrl . '/portal/' . $tenant->slug . '/ticket/' . $ticket['public_token'];
+                $verb = $decision === 'approved' ? 'aprobada' : 'rechazada';
+                $color = $decision === 'approved' ? '#16a34a' : '#dc2626';
+                $inner = '<p>Hola <strong>' . htmlspecialchars($ticket['requester_name']) . '</strong>,</p>'
+                    . '<p>Tu solicitud <strong>' . htmlspecialchars($ticket['code']) . '</strong> · <em>' . htmlspecialchars($ticket['subject']) . '</em> fue <strong style="color:' . $color . '">' . $verb . '</strong>.</p>'
+                    . ($reason !== '' ? '<p><strong>Motivo:</strong> ' . htmlspecialchars($reason) . '</p>' : '')
+                    . ($decision === 'approved' ? '<p>Continuaremos con la atención del ticket y te avisaremos en cada novedad.</p>' : '<p>Si necesitás más información, podés responder al ticket.</p>');
+                (new Mailer())->send(
+                    ['email' => $ticket['requester_email'], 'name' => $ticket['requester_name']],
+                    '[' . $ticket['code'] . '] Solicitud ' . $verb,
+                    Mailer::template('Tu solicitud fue ' . $verb, $inner, 'Ver ticket', $publicUrl)
+                );
+            }
+        } catch (\Throwable $e) { /* ignore */ }
+
+        $this->session->flash('success', $decision === 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.');
+        $this->redirect('/t/' . $tenant->slug . '/tickets/' . $id);
     }
 
     public function comment(array $params): void
