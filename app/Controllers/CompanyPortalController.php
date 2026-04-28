@@ -593,8 +593,17 @@ class CompanyPortalController extends Controller
 
         $portalUsers = $this->db->all(
             "SELECT pu.*,
-                    (SELECT COUNT(*) FROM tickets t WHERE t.tenant_id=pu.tenant_id AND t.company_id=pu.company_id AND (t.portal_user_id = pu.id OR t.requester_email = pu.email)) AS tickets_count,
-                    (SELECT COUNT(*) FROM tickets t WHERE t.tenant_id=pu.tenant_id AND t.company_id=pu.company_id AND (t.portal_user_id = pu.id OR t.requester_email = pu.email) AND t.status IN ('open','in_progress','on_hold')) AS open_count
+                    (SELECT COUNT(*) FROM tickets t
+                     WHERE t.tenant_id = pu.tenant_id AND t.company_id = pu.company_id
+                       AND (t.portal_user_id = pu.id
+                            OR LOWER(t.requester_email) COLLATE utf8mb4_unicode_ci = LOWER(pu.email) COLLATE utf8mb4_unicode_ci)
+                    ) AS tickets_count,
+                    (SELECT COUNT(*) FROM tickets t
+                     WHERE t.tenant_id = pu.tenant_id AND t.company_id = pu.company_id
+                       AND (t.portal_user_id = pu.id
+                            OR LOWER(t.requester_email) COLLATE utf8mb4_unicode_ci = LOWER(pu.email) COLLATE utf8mb4_unicode_ci)
+                       AND t.status IN ('open','in_progress','on_hold')
+                    ) AS open_count
              FROM portal_users pu
              WHERE pu.tenant_id=? AND pu.company_id=?
              ORDER BY pu.is_company_manager DESC, pu.name ASC",
