@@ -74,6 +74,65 @@ $action = $isEdit
             <p class="text-[11px] text-ink-400 mt-1">Para identificar esta integración en logs y listados</p>
         </div>
 
+        <?php if ($provider['slug'] === 'telegram'): ?>
+            <div class="rounded-2xl p-4" style="background:linear-gradient(135deg,#eaf4fc,#fff);border:1px solid #b6dcf5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:#0088CC;color:#fff"><i class="lucide lucide-send text-[18px]"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[12.5px] font-display font-bold text-ink-900 mb-1">¿A quién se le envía?</div>
+                        <p class="text-[11.5px] text-ink-500 mb-2 leading-relaxed">El campo <strong>Chat ID</strong> acepta los tres formatos:</p>
+                        <ul class="text-[11.5px] text-ink-700 space-y-1 mb-3 leading-relaxed">
+                            <li class="flex gap-2"><span class="badge" style="background:#dbeafe;color:#1d4ed8;flex-shrink:0">Privado</span> <span>Pegá el <strong>ID numérico del usuario</strong> (ej: <code class="font-mono">7931911586</code>). El usuario debe enviar <code class="font-mono">/start</code> al bot al menos una vez.</span></li>
+                            <li class="flex gap-2"><span class="badge" style="background:#fef3c7;color:#b45309;flex-shrink:0">Grupo</span> <span>ID numérico negativo (ej: <code class="font-mono">-1001234567890</code>). Agregá el bot como miembro.</span></li>
+                            <li class="flex gap-2"><span class="badge" style="background:#dcfce7;color:#15803d;flex-shrink:0">Canal</span> <span><code class="font-mono">@usuario_del_canal</code>. Agregá el bot como administrador.</span></li>
+                        </ul>
+
+                        <?php if (!empty($telegram) && !empty($telegram['bot'])): $bot = $telegram['bot']; ?>
+                            <div class="mt-3 p-3 rounded-xl bg-white border border-[#b6dcf5]">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <div class="text-[11.5px] text-ink-700">
+                                        Bot conectado: <strong>@<?= $e($bot['username'] ?? '?') ?></strong>
+                                        <?php if (!empty($bot['first_name'])): ?> · <?= $e($bot['first_name']) ?><?php endif; ?>
+                                    </div>
+                                    <a href="https://t.me/<?= $e($bot['username'] ?? '') ?>?start=hello" target="_blank" rel="noopener" class="btn btn-outline btn-xs" style="border-color:#0088CC;color:#0088CC">
+                                        <i class="lucide lucide-external-link text-[12px]"></i> Abrir chat con el bot
+                                    </a>
+                                </div>
+                                <p class="text-[10.5px] text-ink-400 mt-1.5">Cualquier persona que vaya a recibir notificaciones por privado debe abrir este link y enviar <code class="font-mono">/start</code> antes de poner su user ID acá.</p>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($telegram) && !empty($telegram['chat'])): $ch = $telegram['chat'];
+                            $type = (string)($ch['type'] ?? '?');
+                            $label = $type === 'private' ? 'Privado' : ($type === 'group' || $type === 'supergroup' ? 'Grupo' : ($type === 'channel' ? 'Canal' : ucfirst($type)));
+                            $name = trim(($ch['title'] ?? '') . ' ' . ($ch['first_name'] ?? '') . ' ' . ($ch['last_name'] ?? '') . (isset($ch['username']) ? ' @' . $ch['username'] : ''));
+                        ?>
+                            <div class="mt-2 p-3 rounded-xl flex items-center gap-2" style="background:#dcfce7;border:1px solid #86efac">
+                                <i class="lucide lucide-check-circle text-[15px]" style="color:#15803d"></i>
+                                <div class="text-[11.5px] text-ink-900">
+                                    <strong>Chat verificado</strong> · tipo: <?= $e($label) ?> · <?= $e($name ?: '#' . ($ch['id'] ?? '?')) ?>
+                                </div>
+                            </div>
+                        <?php elseif (!empty($telegram) && !empty($telegram['chat_error'])): ?>
+                            <div class="mt-2 p-3 rounded-xl flex items-start gap-2" style="background:#fef2f2;border:1px solid #fecaca">
+                                <i class="lucide lucide-alert-circle text-[15px] mt-0.5" style="color:#dc2626"></i>
+                                <div class="text-[11.5px] text-ink-900">
+                                    <strong>Chat ID inválido o inaccesible:</strong> <?= $e($telegram['chat_error']) ?>
+                                    <?php if (!empty($telegram['bot']['username'])): ?>
+                                        <div class="mt-1 text-[11px] text-ink-700">
+                                            Si es un usuario privado, abrí
+                                            <a href="https://t.me/<?= $e($telegram['bot']['username']) ?>?start=hello" target="_blank" rel="noopener" class="underline font-semibold" style="color:#0088CC">@<?= $e($telegram['bot']['username']) ?></a>
+                                            con esa cuenta y mandá <code class="font-mono">/start</code>, luego volvé a probar.
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="space-y-3 pt-3" style="border-top:1px solid #ececef">
             <div class="text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Configuración del proveedor</div>
             <?php foreach ($provider['config'] as $field):

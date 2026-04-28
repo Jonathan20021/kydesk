@@ -85,12 +85,30 @@ class IntegrationController extends Controller
             );
         }
 
+        // Info extra para Telegram: resolver bot info + verificar chat_id si ya hay datos guardados
+        $telegram = null;
+        if ($providerSlug === 'telegram' && $integration) {
+            $cfg = json_decode((string)$integration['config'], true) ?: [];
+            $token = (string)($cfg['bot_token'] ?? '');
+            $chatId = (string)($cfg['chat_id'] ?? '');
+            if ($token !== '') {
+                $bot = IntegrationDispatcher::telegramGetMe($token);
+                $telegram = ['bot' => $bot, 'chat' => null, 'chat_error' => null];
+                if ($chatId !== '') {
+                    $check = IntegrationDispatcher::telegramGetChat($token, $chatId);
+                    $telegram['chat'] = $check['chat'];
+                    $telegram['chat_error'] = $check['ok'] ? null : $check['error'];
+                }
+            }
+        }
+
         $this->render('integrations/configure', [
             'title' => $providerDef['name'] . ' · Configurar',
             'provider' => $providerDef,
             'integration' => $integration,
             'logs' => $logs,
             'availableEvents' => IntegrationRegistry::availableEvents(),
+            'telegram' => $telegram,
         ]);
     }
 
@@ -213,7 +231,10 @@ class IntegrationController extends Controller
         if ($result['ok']) {
             $this->session->flash('success', 'Prueba enviada correctamente · ' . ($result['latency_ms'] ?? '?') . 'ms · HTTP ' . $result['status_code']);
         } else {
-            $this->session->flash('error', 'Error en la prueba: ' . ($result['error'] ?? 'desconocido') . ($result['status_code'] ? ' (HTTP ' . $result['status_code'] . ')' : ''));
+            $errMsg = (string)($result['error'] ?? 'desconocido');
+            // Pista accionable según el provider y el error
+            $hint = $this->errorHint((string)$integration['provider'], $errMsg, (int)($result['status_code'] ?? 0));
+            $this->session->flash('error', 'Error en la prueba: ' . $errMsg . ($hint ? ' · ' . $hint : ''));
         }
         $this->redirect('/t/' . $tenant->slug . '/integrations/' . $integration['provider'] . '/' . $id);
     }
@@ -236,6 +257,61 @@ class IntegrationController extends Controller
     }
 
     /* ─────────────── Helpers ─────────────── */
+
+    /**
+     * Pista accionable cuando un test falla, según provider + status + texto.
+     */
+    protected function errorHint(string $provider, string $err, int $status): string
+    {
+        $lower = strtolower($err);
+        switch ($provider) {
+            case 'telegram':
+                if (str_contains($lower, 'chat not found')) {
+                    return 'Verificá el Chat ID. Para chats privados, el usuario debe enviar /start al bot primero. Para grupos usá el ID negativo (ej: -1001234567890). Para canales usá @username.';
+                }
+                if (str_contains($lower, 'unauthorized') || str_contains($lower, 'token')) {
+                    return 'Token del bot inválido. Generá uno nuevo con @BotFather.';
+                }
+                if (str_contains($lower, 'forbidden') || str_contains($lower, 'bot was kicked') || str_contains($lower, 'blocked')) {
+                    return 'El bot no tiene permiso en ese chat. Agregalo al grupo/canal o pedí al usuario que lo desbloquee.';
+                }
+                if (str_contains($lower, "can't parse entities") || str_contains($lower, 'parse')) {
+                    return 'El mensaje contiene HTML inválido para Telegram.';
+                }
+                break;
+            case 'slack':
+            case 'mattermost':
+            case 'rocketchat':
+                if ($status === 404 || str_contains($lower, 'no_service') || str_contains($lower, 'invalid_token')) {
+                    return 'Webhook URL inválido o expirado. Generá uno nuevo en Slack > Apps > Incoming Webhooks.';
+                }
+                if (str_contains($lower, 'channel_not_found')) {
+                    return 'El canal configurado no existe o el bot no fue invitado.';
+                }
+                break;
+            case 'discord':
+                if ($status === 404) return 'Webhook URL no existe (revisá si fue eliminado en Discord).';
+                if ($status === 401) return 'Webhook URL inválido.';
+                break;
+            case 'teams':
+                if ($status === 410 || $status === 404) return 'El connector de Teams expiró o fue eliminado. Recreálo.';
+                break;
+            case 'pushover':
+                if (str_contains($lower, 'invalid')) return 'User key o token de aplicación inválidos.';
+                break;
+            case 'webhook':
+            case 'zapier':
+            case 'n8n':
+            case 'make':
+                if ($status === 0) return 'No se pudo alcanzar la URL (verificá DNS/firewall).';
+                if ($status === 401 || $status === 403) return 'El destino rechazó la autenticación. Revisá secret/auth_header.';
+                break;
+        }
+        if ($status === 0 && (str_contains($lower, 'timeout') || str_contains($lower, 'resolve'))) {
+            return 'No se pudo conectar al destino.';
+        }
+        return '';
+    }
 
     /**
      * Recopila los valores del form según el config schema del provider.

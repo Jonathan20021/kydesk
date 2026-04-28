@@ -154,6 +154,56 @@ class IntegrationDispatcher
     }
 
     /**
+     * Telegram getMe: devuelve info del bot (id, username, first_name) o null.
+     */
+    public static function telegramGetMe(string $token): ?array
+    {
+        $token = trim($token);
+        if ($token === '') return null;
+        $ch = curl_init('https://api.telegram.org/bot' . $token . '/getMe');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 6,
+            CURLOPT_USERAGENT => 'Kydesk-Integration/1.0',
+        ]);
+        $resp = curl_exec($ch);
+        $sc = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($sc < 200 || $sc >= 300 || !$resp) return null;
+        $j = json_decode((string)$resp, true);
+        if (!is_array($j) || empty($j['ok']) || empty($j['result'])) return null;
+        return $j['result'];
+    }
+
+    /**
+     * Telegram getChat: verifica que el chat_id sea accesible para el bot.
+     * @return array ['ok'=>bool, 'chat'=>array|null, 'error'=>string|null]
+     */
+    public static function telegramGetChat(string $token, string $chatId): array
+    {
+        $token = trim($token);
+        $chatId = trim($chatId);
+        if ($token === '' || $chatId === '') return ['ok' => false, 'chat' => null, 'error' => 'Falta token o chat_id'];
+
+        $url = 'https://api.telegram.org/bot' . $token . '/getChat?chat_id=' . urlencode($chatId);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 6,
+            CURLOPT_USERAGENT => 'Kydesk-Integration/1.0',
+        ]);
+        $resp = curl_exec($ch);
+        $sc = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $j = json_decode((string)($resp ?: ''), true);
+        if ($sc >= 200 && $sc < 300 && is_array($j) && !empty($j['ok'])) {
+            return ['ok' => true, 'chat' => $j['result'] ?? null, 'error' => null];
+        }
+        $desc = is_array($j) ? ($j['description'] ?? 'HTTP ' . $sc) : ('HTTP ' . $sc);
+        return ['ok' => false, 'chat' => null, 'error' => (string)$desc];
+    }
+
+    /**
      * Telegram: Bot API sendMessage con HTML.
      */
     protected static function sendTelegram(array $config, array $context): array
@@ -361,16 +411,49 @@ class IntegrationDispatcher
         ]);
         $resp = curl_exec($ch);
         $sc = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err = curl_error($ch);
+        $curlErr = curl_error($ch);
         curl_close($ch);
 
         $ok = $sc >= 200 && $sc < 300;
+        $respText = (string)($resp ?: '');
         return [
             'ok' => $ok,
             'status_code' => $sc,
-            'response' => substr((string)($resp ?: ''), 0, 500),
-            'error' => $ok ? null : ($err ?: ('HTTP ' . $sc)),
+            'response' => substr($respText, 0, 500),
+            'error' => $ok ? null : self::extractErrorMessage($curlErr, $sc, $respText),
         ];
+    }
+
+    /**
+     * Devuelve un mensaje de error legible. Si el cuerpo es JSON con campos típicos
+     * (description, message, error, error.message) los usa antes que el "HTTP X" genérico.
+     */
+    protected static function extractErrorMessage(string $curlErr, int $statusCode, string $body): string
+    {
+        if ($curlErr !== '') return $curlErr;
+        $body = trim($body);
+        if ($body !== '' && ($body[0] === '{' || $body[0] === '[')) {
+            $j = json_decode($body, true);
+            if (is_array($j)) {
+                $candidates = [
+                    $j['description']           ?? null, // Telegram
+                    $j['message']               ?? null, // Resend, Stripe, varios
+                    $j['error']['message']      ?? null, // Slack/Discord/genérico
+                    is_string($j['error'] ?? null) ? $j['error'] : null,
+                    is_string($j['detail'] ?? null) ? $j['detail'] : null,
+                ];
+                foreach ($candidates as $c) {
+                    if (is_string($c) && trim($c) !== '') {
+                        return 'HTTP ' . $statusCode . ': ' . trim($c);
+                    }
+                }
+            }
+        }
+        if ($body !== '' && strlen($body) <= 200) {
+            // Cuerpos cortos no-JSON (texto plano de error)
+            return 'HTTP ' . $statusCode . ': ' . $body;
+        }
+        return 'HTTP ' . $statusCode;
     }
 
     protected static function err(string $msg): array

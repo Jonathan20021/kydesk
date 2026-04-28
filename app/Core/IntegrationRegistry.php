@@ -57,7 +57,7 @@ class IntegrationRegistry
                 'docs_url' => 'https://core.telegram.org/bots#how-do-i-create-a-bot',
                 'config' => [
                     ['key' => 'bot_token', 'label' => 'Bot token', 'type' => 'password', 'required' => true, 'placeholder' => '123456:ABC-DEF...', 'help' => 'Obtén un bot de @BotFather'],
-                    ['key' => 'chat_id', 'label' => 'Chat ID', 'type' => 'text', 'required' => true, 'placeholder' => '-1001234567890 o @canal', 'help' => 'ID numérico (grupo) o @username (canal)'],
+                    ['key' => 'chat_id', 'label' => 'Chat ID', 'type' => 'text', 'required' => true, 'placeholder' => '-1001234567890 · @canal · 123456789', 'help' => 'Grupo: ID numérico negativo (ej: -1001234567890). Canal: @username del canal. Privado: ID numérico del usuario, y el usuario DEBE enviar /start al bot primero o el envío fallará con "chat not found".'],
                 ],
                 'handler' => 'sendTelegram',
             ],
