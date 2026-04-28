@@ -104,22 +104,22 @@ ob_start(); ?>
             <h3 class="font-display font-bold text-[15px]">Volumen últimos 6 meses</h3>
             <span class="badge bg-[#f3f4f6] text-ink-500"><?= count($labels) ?> meses</span>
         </div>
-        <canvas id="chartMonthly" height="120"></canvas>
+        <div style="position:relative;height:240px"><canvas id="chartMonthly"></canvas></div>
     </div>
     <div class="card card-pad">
         <h3 class="font-display font-bold text-[15px] mb-3">Por estado</h3>
-        <canvas id="chartStatus" height="180"></canvas>
+        <div style="position:relative;height:240px"><canvas id="chartStatus"></canvas></div>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
     <div class="card card-pad">
         <h3 class="font-display font-bold text-[15px] mb-3">Por prioridad</h3>
-        <canvas id="chartPriority" height="160"></canvas>
+        <div style="position:relative;height:240px"><canvas id="chartPriority"></canvas></div>
     </div>
     <div class="card card-pad">
         <h3 class="font-display font-bold text-[15px] mb-3">Top categorías</h3>
-        <canvas id="chartCategory" height="160"></canvas>
+        <div style="position:relative;height:240px"><canvas id="chartCategory"></canvas></div>
     </div>
 </div>
 

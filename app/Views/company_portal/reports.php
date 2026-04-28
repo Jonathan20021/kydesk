@@ -95,17 +95,17 @@ ob_start(); ?>
         <h3 class="font-display font-bold text-[15px]">Tickets por día</h3>
         <span class="badge bg-[#f3f4f6] text-ink-500"><?= count($dailyLabels) ?> días con actividad</span>
     </div>
-    <canvas id="chartDaily" height="100"></canvas>
+    <div style="position:relative;height:260px"><canvas id="chartDaily"></canvas></div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Por estado</h3><canvas id="chartStatus" height="170"></canvas></div>
-    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Por prioridad</h3><canvas id="chartPriority" height="170"></canvas></div>
+    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Por estado</h3><div style="position:relative;height:240px"><canvas id="chartStatus"></canvas></div></div>
+    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Por prioridad</h3><div style="position:relative;height:240px"><canvas id="chartPriority"></canvas></div></div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Top categorías</h3><canvas id="chartCategory" height="180"></canvas></div>
-    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Por canal</h3><canvas id="chartChannel" height="180"></canvas></div>
+    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Top categorías</h3><div style="position:relative;height:260px"><canvas id="chartCategory"></canvas></div></div>
+    <div class="card card-pad"><h3 class="font-display font-bold text-[15px] mb-3">Por canal</h3><div style="position:relative;height:260px"><canvas id="chartChannel"></canvas></div></div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
