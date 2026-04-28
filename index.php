@@ -25,6 +25,11 @@ spl_autoload_register(function (string $class): void {
     if (is_file($file)) require $file;
 });
 
+// Composer autoload (dompdf y otros vendors)
+if (is_file(BASE_PATH . '/vendor/autoload.php')) {
+    require BASE_PATH . '/vendor/autoload.php';
+}
+
 use App\Core\Application;
 
 try {

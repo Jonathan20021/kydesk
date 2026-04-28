@@ -201,7 +201,22 @@ class Application
         $r->post('/portal/{slug}/account/profile', ['App\Controllers\PortalAuthController', 'updateProfile']);
         $r->get('/t/{slug}/portal-users', ['App\Controllers\PortalAuthController', 'manageList']);
         $r->post('/t/{slug}/portal-users/{id}/toggle', ['App\Controllers\PortalAuthController', 'manageToggle']);
+        $r->post('/t/{slug}/portal-users/{id}/manager', ['App\Controllers\PortalAuthController', 'manageToggleManager']);
         $r->post('/t/{slug}/portal-users/{id}/delete', ['App\Controllers\PortalAuthController', 'manageDelete']);
+
+        // ─────────── COMPANY PORTAL (autenticado · multi-empresa) ───────────
+        $r->get('/portal/{slug}/company',                            ['App\Controllers\CompanyPortalController', 'dashboard']);
+        $r->get('/portal/{slug}/company/tickets',                    ['App\Controllers\CompanyPortalController', 'tickets']);
+        $r->get('/portal/{slug}/company/tickets/new',                ['App\Controllers\CompanyPortalController', 'ticketCreate']);
+        $r->post('/portal/{slug}/company/tickets',                   ['App\Controllers\CompanyPortalController', 'ticketStore']);
+        $r->get('/portal/{slug}/company/tickets/{id}',               ['App\Controllers\CompanyPortalController', 'ticketShow']);
+        $r->post('/portal/{slug}/company/tickets/{id}/reply',        ['App\Controllers\CompanyPortalController', 'ticketReply']);
+        $r->get('/portal/{slug}/company/reports',                    ['App\Controllers\CompanyPortalController', 'reports']);
+        $r->get('/portal/{slug}/company/team',                       ['App\Controllers\CompanyPortalController', 'team']);
+        $r->get('/portal/{slug}/company/export/tickets.csv',         ['App\Controllers\CompanyPortalController', 'exportTicketsCsv']);
+        $r->get('/portal/{slug}/company/export/tickets.pdf',         ['App\Controllers\CompanyPortalController', 'exportTicketsPdf']);
+        $r->get('/portal/{slug}/company/export/report.csv',          ['App\Controllers\CompanyPortalController', 'exportReportCsv']);
+        $r->get('/portal/{slug}/company/export/report.pdf',          ['App\Controllers\CompanyPortalController', 'exportReportPdf']);
 
         // ─────────── TIME TRACKING ───────────
         $r->get('/t/{slug}/time', ['App\Controllers\TimeController', 'index']);
@@ -279,6 +294,13 @@ class Application
         $r->get('/t/{slug}/companies/{id}', ['App\Controllers\CompanyController', 'show']);
         $r->post('/t/{slug}/companies/{id}', ['App\Controllers\CompanyController', 'update']);
         $r->post('/t/{slug}/companies/{id}/delete', ['App\Controllers\CompanyController', 'delete']);
+        // Gestión de portal_users por empresa
+        $r->post('/t/{slug}/companies/{id}/portal-users',                       ['App\Controllers\CompanyController', 'portalUserStore']);
+        $r->post('/t/{slug}/companies/{id}/portal-users/{userId}',              ['App\Controllers\CompanyController', 'portalUserUpdate']);
+        $r->post('/t/{slug}/companies/{id}/portal-users/{userId}/toggle',       ['App\Controllers\CompanyController', 'portalUserToggle']);
+        $r->post('/t/{slug}/companies/{id}/portal-users/{userId}/manager',      ['App\Controllers\CompanyController', 'portalUserToggleManager']);
+        $r->post('/t/{slug}/companies/{id}/portal-users/{userId}/resend',       ['App\Controllers\CompanyController', 'portalUserResend']);
+        $r->post('/t/{slug}/companies/{id}/portal-users/{userId}/delete',       ['App\Controllers\CompanyController', 'portalUserDelete']);
 
         // Assets
         $r->get('/t/{slug}/assets', ['App\Controllers\AssetController', 'index']);

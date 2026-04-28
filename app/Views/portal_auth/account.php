@@ -35,6 +35,19 @@ $stMap = [
             </div>
         </div>
 
+        <?php if (!empty($portalUser['company_id'])): ?>
+            <a href="<?= $url('/portal/' . $tenantPublic->slug . '/company') ?>" class="card card-pad mb-6 flex items-center justify-between gap-3 hover:shadow-md transition" style="text-decoration:none;color:inherit;background:linear-gradient(135deg,#f3f0ff,#fff)">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-brand-500 text-white grid place-items-center shrink-0"><i class="lucide lucide-building-2 text-[18px]"></i></div>
+                    <div class="min-w-0">
+                        <div class="font-display font-bold text-[14px]"><?= !empty($portalUser['is_company_manager']) ? 'Portal de tu empresa · Manager' : 'Portal de tu empresa' ?></div>
+                        <div class="text-[12px] text-ink-500 truncate">Accedé al dashboard, tickets y reportes de tu empresa.</div>
+                    </div>
+                </div>
+                <span class="btn btn-primary btn-sm">Ir al portal <i class="lucide lucide-arrow-right text-[13px]"></i></span>
+            </a>
+        <?php endif; ?>
+
         <div class="grid grid-cols-3 gap-3 mb-6">
             <div class="card card-pad text-center"><div class="text-[10.5px] uppercase font-bold text-ink-400 tracking-[0.14em]">Total</div><div class="font-display font-extrabold text-[28px]"><?= $stats['total'] ?></div></div>
             <div class="card card-pad text-center"><div class="text-[10.5px] uppercase font-bold text-ink-400 tracking-[0.14em]">Abiertos</div><div class="font-display font-extrabold text-[28px] text-amber-600"><?= $stats['open'] ?></div></div>

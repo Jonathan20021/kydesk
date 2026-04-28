@@ -281,6 +281,26 @@ class PortalAuthController extends Controller
         $this->redirect('/t/' . $tenant->slug . '/portal-users');
     }
 
+    public function manageToggleManager(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireCan('portal.manage');
+        $this->validateCsrf();
+        $id = (int)$params['id'];
+        $u = $this->db->one('SELECT * FROM portal_users WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if (!$u) {
+            $this->session->flash('error', 'Usuario no encontrado.');
+            $this->redirect('/t/' . $tenant->slug . '/portal-users');
+        }
+        if (empty($u['company_id']) && empty($u['is_company_manager'])) {
+            $this->session->flash('error', 'Asigná una empresa al usuario antes de marcarlo como manager.');
+            $this->redirect('/t/' . $tenant->slug . '/portal-users');
+        }
+        $this->db->update('portal_users', ['is_company_manager' => $u['is_company_manager'] ? 0 : 1], 'id=?', [$id]);
+        $this->session->flash('success', $u['is_company_manager'] ? 'Manager removido.' : 'Marcado como manager de la empresa.');
+        $this->redirect('/t/' . $tenant->slug . '/portal-users');
+    }
+
     public function manageDelete(array $params): void
     {
         $tenant = $this->requireTenant($params['slug']);

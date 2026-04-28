@@ -90,6 +90,140 @@ $internalCreate = $url('/t/' . $slug . '/tickets/create?company_id=' . (int)$c['
             <?php if (empty($contacts)): ?><div class="py-8 text-center text-[13px] text-ink-400">Sin contactos</div><?php endif; ?>
         </div>
     </div>
+    <div class="card overflow-hidden lg:col-span-2" x-data="{open:false, editing:null}">
+        <div class="px-6 pt-5 flex items-center justify-between">
+            <div>
+                <h3 class="section-title">Acceso al portal de empresa</h3>
+                <p class="text-[12px] text-ink-400 mt-0.5">Usuarios autenticados del portal vinculados a <strong><?= $e($c['name']) ?></strong>. Los <em>managers</em> ven dashboard, reportes y exportes.</p>
+            </div>
+            <button @click="open=!open;editing=null" type="button" class="btn btn-primary btn-sm"><i class="lucide lucide-user-plus text-[13px]"></i> <span x-text="open ? 'Cerrar' : 'Invitar usuario'"></span></button>
+        </div>
+
+        <div x-show="open" x-cloak class="px-6 pt-4 pb-2">
+            <form method="POST" action="<?= $url('/t/' . $slug . '/companies/' . (int)$c['id'] . '/portal-users') ?>" class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#fafafb] border border-[#ececef]">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <div><label class="label">Nombre <span class="text-rose-600">*</span></label><input name="name" required class="input" placeholder="Juan Pérez"></div>
+                <div><label class="label">Email <span class="text-rose-600">*</span></label><input name="email" type="email" required class="input" placeholder="juan@empresa.com"></div>
+                <div><label class="label">Teléfono</label><input name="phone" class="input"></div>
+                <div><label class="label">Contraseña <span class="text-ink-400 font-normal text-[11px]">(opcional, se genera una si la dejás vacía)</span></label><input name="password" type="text" class="input" placeholder="Mínimo 6 caracteres" minlength="6"></div>
+                <div class="md:col-span-2 flex flex-wrap items-center gap-4">
+                    <label class="inline-flex items-center gap-2 text-[12.5px] cursor-pointer">
+                        <input type="checkbox" name="is_company_manager" value="1" class="rounded">
+                        <span><strong>Manager</strong> · puede ver reportes, equipo y crear tickets en nombre de otros</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-[12.5px] cursor-pointer">
+                        <input type="checkbox" name="send_invite" value="1" checked class="rounded">
+                        <span>Enviar email de bienvenida con instrucciones</span>
+                    </label>
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-2 border-t border-[#ececef] pt-3">
+                    <button type="button" @click="open=false" class="btn btn-soft btn-sm">Cancelar</button>
+                    <button class="btn btn-primary btn-sm"><i class="lucide lucide-send text-[13px]"></i> Crear acceso</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="px-3 py-3 mt-2">
+            <?php if (empty($portalUsers)): ?>
+                <div class="text-center py-10">
+                    <i class="lucide lucide-user-x text-[28px] text-ink-300"></i>
+                    <h4 class="font-display font-bold text-[13.5px] mt-2">Sin acceso al portal todavía</h4>
+                    <p class="text-[12px] text-ink-400">Invitá al primer usuario para que pueda ver sus tickets, reportes y crear nuevos.</p>
+                </div>
+            <?php else: ?>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-[13px]">
+                        <thead>
+                            <tr class="bg-[#fafafb] border-b border-[#ececef]">
+                                <th class="text-left py-2.5 px-4 text-[10.5px] uppercase tracking-[0.12em] font-bold text-ink-400">Persona</th>
+                                <th class="text-left py-2.5 px-2 text-[10.5px] uppercase tracking-[0.12em] font-bold text-ink-400">Rol</th>
+                                <th class="text-left py-2.5 px-2 text-[10.5px] uppercase tracking-[0.12em] font-bold text-ink-400">Estado</th>
+                                <th class="text-left py-2.5 px-2 text-[10.5px] uppercase tracking-[0.12em] font-bold text-ink-400">Último login</th>
+                                <th class="text-right py-2.5 px-4 text-[10.5px] uppercase tracking-[0.12em] font-bold text-ink-400">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($portalUsers as $pu): ?>
+                            <tr class="border-b border-[#ececef]" x-show="editing !== <?= (int)$pu['id'] ?>">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl text-white grid place-items-center font-display font-bold text-[12px]" style="background:linear-gradient(135deg,#7c5cff,#a78bfa)"><?= strtoupper(substr($pu['name'],0,1)) ?></div>
+                                        <div class="min-w-0">
+                                            <div class="font-display font-bold text-[12.5px] truncate"><?= $e($pu['name']) ?></div>
+                                            <div class="text-[11px] text-ink-400 truncate"><?= $e($pu['email']) ?></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-2">
+                                    <?php if (!empty($pu['is_company_manager'])): ?>
+                                        <span class="badge" style="background:#f3f0ff;color:#5a3aff"><i class="lucide lucide-shield text-[11px]"></i> Manager</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-gray">Miembro</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="py-3 px-2">
+                                    <?php if ($pu['is_active']): ?>
+                                        <span class="badge" style="background:#dcfce7;color:#15803d">Activo</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-gray">Inactivo</span>
+                                    <?php endif; ?>
+                                    <?php if ($pu['email_verified_at']): ?><span class="badge" style="background:#dbeafe;color:#1d4ed8">Verificado</span><?php endif; ?>
+                                </td>
+                                <td class="py-3 px-2 text-[11.5px] text-ink-500"><?= $e($pu['last_login_at'] ?: '—') ?></td>
+                                <td class="py-3 px-4 text-right">
+                                    <div class="inline-flex gap-1">
+                                        <button type="button" @click="editing=<?= (int)$pu['id'] ?>" class="btn btn-soft btn-xs" data-tooltip="Editar"><i class="lucide lucide-pencil text-[12px]"></i></button>
+                                        <form method="POST" action="<?= $url('/t/' . $slug . '/companies/' . (int)$c['id'] . '/portal-users/' . (int)$pu['id'] . '/manager') ?>" data-tooltip="<?= !empty($pu['is_company_manager']) ? 'Quitar manager' : 'Hacer manager' ?>">
+                                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                            <button class="btn <?= !empty($pu['is_company_manager']) ? 'btn-primary' : 'btn-soft' ?> btn-xs"><i class="lucide lucide-shield text-[12px]"></i></button>
+                                        </form>
+                                        <form method="POST" action="<?= $url('/t/' . $slug . '/companies/' . (int)$c['id'] . '/portal-users/' . (int)$pu['id'] . '/toggle') ?>" data-tooltip="Activar/Desactivar">
+                                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                            <button class="btn btn-soft btn-xs"><i class="lucide lucide-power text-[12px]"></i></button>
+                                        </form>
+                                        <form method="POST" action="<?= $url('/t/' . $slug . '/companies/' . (int)$c['id'] . '/portal-users/' . (int)$pu['id'] . '/resend') ?>" data-tooltip="Reenviar invitación con nueva contraseña" onsubmit="return confirm('Reenviar invitación y resetear contraseña?')">
+                                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                            <button class="btn btn-soft btn-xs"><i class="lucide lucide-mail text-[12px]"></i></button>
+                                        </form>
+                                        <form method="POST" action="<?= $url('/t/' . $slug . '/companies/' . (int)$c['id'] . '/portal-users/' . (int)$pu['id'] . '/delete') ?>" data-tooltip="Eliminar" onsubmit="return confirm('Eliminar acceso al portal?')">
+                                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                            <button class="btn btn-soft btn-xs text-rose-600"><i class="lucide lucide-trash-2 text-[12px]"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr x-show="editing === <?= (int)$pu['id'] ?>" x-cloak>
+                                <td colspan="5" class="p-4 bg-[#fafafb]">
+                                    <form method="POST" action="<?= $url('/t/' . $slug . '/companies/' . (int)$c['id'] . '/portal-users/' . (int)$pu['id']) ?>" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                        <div><label class="label">Nombre</label><input name="name" value="<?= $e($pu['name']) ?>" class="input"></div>
+                                        <div><label class="label">Teléfono</label><input name="phone" value="<?= $e($pu['phone'] ?? '') ?>" class="input"></div>
+                                        <div><label class="label">Nueva contraseña <span class="text-ink-400 font-normal text-[11px]">(opcional, mín 6)</span></label><input name="new_password" type="password" minlength="6" class="input"></div>
+                                        <div class="flex items-end gap-4">
+                                            <label class="inline-flex items-center gap-2 text-[12.5px] cursor-pointer">
+                                                <input type="checkbox" name="is_company_manager" value="1" <?= !empty($pu['is_company_manager'])?'checked':'' ?> class="rounded">
+                                                <span>Manager</span>
+                                            </label>
+                                            <label class="inline-flex items-center gap-2 text-[12.5px] cursor-pointer">
+                                                <input type="checkbox" name="is_active" value="1" <?= $pu['is_active']?'checked':'' ?> class="rounded">
+                                                <span>Activo</span>
+                                            </label>
+                                        </div>
+                                        <div class="md:col-span-2 flex justify-end gap-2 border-t border-[#ececef] pt-3">
+                                            <button type="button" @click="editing=null" class="btn btn-soft btn-sm">Cancelar</button>
+                                            <button class="btn btn-primary btn-sm">Guardar cambios</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <div class="card overflow-hidden lg:col-span-2">
         <div class="px-6 pt-5"><h3 class="section-title">Activos asignados</h3></div>
         <div class="px-3 py-3 mt-2">
