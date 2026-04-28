@@ -145,9 +145,9 @@ class Attachments
     {
         $app = Application::get();
         $base = rtrim($app->config['app']['url'] ?? '', '/');
-        // El relPath empieza con /public/...; servimos /uploads/... directamente
-        $relPath = str_replace('/public/', '/', $relPath);
-        return $base . $relPath;
+        // El docroot del proyecto es BASE_PATH (no /public), así que mantenemos
+        // el prefijo /public/ en la URL — igual que hace el helper $asset().
+        return $base . '/' . ltrim($relPath, '/');
     }
 
     /** Útil para iconos en el UI. */
