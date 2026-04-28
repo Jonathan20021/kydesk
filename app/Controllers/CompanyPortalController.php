@@ -552,16 +552,18 @@ class CompanyPortalController extends Controller
             [$tenantId, $companyId, $sinceDt]
         );
         $byRequester = $this->db->all(
-            "SELECT COALESCE(requester_name, requester_email) AS name, requester_email AS email, COUNT(*) AS n
+            "SELECT MAX(COALESCE(requester_name, requester_email)) AS name,
+                    requester_email AS email,
+                    COUNT(*) AS n
              FROM tickets WHERE tenant_id=? AND company_id=? AND created_at >= ?
              GROUP BY requester_email ORDER BY n DESC LIMIT 10",
             [$tenantId, $companyId, $sinceDt]
         );
         $byAgent = $this->db->all(
-            "SELECT u.name, COUNT(*) AS n FROM tickets t
+            "SELECT u.id, u.name, COUNT(*) AS n FROM tickets t
              JOIN users u ON u.id = t.assigned_to
              WHERE t.tenant_id=? AND t.company_id=? AND t.created_at >= ?
-             GROUP BY t.assigned_to ORDER BY n DESC LIMIT 10",
+             GROUP BY u.id, u.name ORDER BY n DESC LIMIT 10",
             [$tenantId, $companyId, $sinceDt]
         );
 
