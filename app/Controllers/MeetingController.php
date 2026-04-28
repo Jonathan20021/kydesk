@@ -132,7 +132,9 @@ class MeetingController extends Controller
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $to))   { $where[] = 'm.scheduled_at <= ?'; $args[] = $to . ' 23:59:59'; }
 
         $meetings = $this->db->all(
-            "SELECT m.*, mt.name AS type_name, mt.color AS type_color, mt.icon AS type_icon,
+            "SELECT m.id, m.code, m.customer_name, m.customer_email, m.scheduled_at, m.duration_minutes, m.status,
+                    m.ai_intent, m.ai_sentiment, m.ai_urgency,
+                    mt.name AS type_name, mt.color AS type_color, mt.icon AS type_icon,
                     u.name AS host_name, c.name AS company_name
              FROM meetings m
              LEFT JOIN meeting_types mt ON mt.id = m.meeting_type_id
@@ -573,6 +575,9 @@ class MeetingController extends Controller
             'require_phone'      => (int)$this->input('require_phone', 0) ? 1 : 0,
             'require_company'    => (int)$this->input('require_company', 0) ? 1 : 0,
             'show_powered_by'    => (int)$this->input('show_powered_by', 1) ? 1 : 0,
+            'ai_auto_analyze'    => (int)$this->input('ai_auto_analyze', 0) ? 1 : 0,
+            'ai_public_suggester'=> (int)$this->input('ai_public_suggester', 0) ? 1 : 0,
+            'ai_briefing_enabled'=> (int)$this->input('ai_briefing_enabled', 0) ? 1 : 0,
         ];
 
         if ($this->db->val('SELECT tenant_id FROM meeting_settings WHERE tenant_id=?', [$tenant->id])) {
@@ -612,11 +617,17 @@ class MeetingController extends Controller
         $hosts = $this->db->all('SELECT id, name FROM users WHERE tenant_id=? AND is_active=1 ORDER BY name', [$tenant->id]);
         $companies = $this->db->all('SELECT id, name FROM companies WHERE tenant_id=? ORDER BY name LIMIT 200', [$tenant->id]);
 
+        // IA disponible? (para mostrar/ocultar cards)
+        $aiAvailable = \App\Core\MeetingAi::guard($tenant)['ok'];
+        $aiTopics = !empty($meeting['ai_topics']) ? (json_decode($meeting['ai_topics'], true) ?: []) : [];
+
         $this->render('meetings/show', [
-            'title'     => 'Reunión ' . $meeting['code'],
-            'meeting'   => $meeting,
-            'hosts'     => $hosts,
-            'companies' => $companies,
+            'title'       => 'Reunión ' . $meeting['code'],
+            'meeting'     => $meeting,
+            'hosts'       => $hosts,
+            'companies'   => $companies,
+            'aiAvailable' => $aiAvailable,
+            'aiTopics'    => $aiTopics,
         ]);
     }
 
@@ -864,6 +875,9 @@ class MeetingController extends Controller
                 'require_company'   => 0,
                 'show_powered_by'   => 1,
                 'custom_css'        => null,
+                'ai_auto_analyze'   => 1,
+                'ai_public_suggester' => 1,
+                'ai_briefing_enabled' => 1,
             ];
         }
         return $row;

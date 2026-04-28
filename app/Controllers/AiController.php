@@ -79,7 +79,16 @@ class AiController extends Controller
         if (!$cfg || !(int)$cfg['is_assigned']) $this->json(['ok'=>false, 'error'=>'IA no está asignada a este workspace'], 403);
         if (!(int)$cfg['is_enabled']) $this->json(['ok'=>false, 'error'=>'IA pausada por el workspace'], 400);
         if (empty($globalCfg['ai_api_key'])) $this->json(['ok'=>false, 'error'=>'Super admin no configuró la API key'], 503);
-        if ((int)$cfg['used_this_month'] >= (int)$cfg['monthly_quota']) $this->json(['ok'=>false,'error'=>'Cuota mensual alcanzada. Contactá al admin.'], 429);
+        if ((int)$cfg['monthly_quota'] > 0 && (int)$cfg['used_this_month'] >= (int)$cfg['monthly_quota']) {
+            $this->json(['ok'=>false,'error'=>'Cuota mensual de requests alcanzada. Contactá al admin.'], 429);
+        }
+        $tokenQuota = (int)($cfg['token_quota_monthly'] ?? 0);
+        if ($tokenQuota > 0) {
+            $tokensUsed = (int)($cfg['tokens_in_this_month'] ?? 0) + (int)($cfg['tokens_out_this_month'] ?? 0);
+            if ($tokensUsed >= $tokenQuota) {
+                $this->json(['ok'=>false,'error'=>'Cuota mensual de tokens alcanzada. Contactá al admin.'], 429);
+            }
+        }
 
         $context = $ticketId ? $this->ticketContext($tenant->id, $ticketId) : null;
         $prompt = $this->buildPrompt($action, (string)$this->input('input',''), $context, $cfg);
@@ -104,7 +113,21 @@ class AiController extends Controller
             'error'      => $result['ok'] ? null : substr((string)($result['error'] ?? ''), 0, 500),
         ]);
         if ($result['ok']) {
-            $this->db->run('UPDATE ai_settings SET used_this_month = used_this_month + 1 WHERE tenant_id = ?', [$tenant->id]);
+            $tin  = (int)($result['tokens_in']  ?? 0);
+            $tout = (int)($result['tokens_out'] ?? 0);
+            try {
+                $this->db->run(
+                    'UPDATE ai_settings
+                       SET used_this_month       = used_this_month + 1,
+                           tokens_in_this_month  = tokens_in_this_month + ?,
+                           tokens_out_this_month = tokens_out_this_month + ?
+                     WHERE tenant_id = ?',
+                    [$tin, $tout, $tenant->id]
+                );
+            } catch (\Throwable $e) {
+                // Fallback si las columnas de tokens aún no fueron migradas
+                $this->db->run('UPDATE ai_settings SET used_this_month = used_this_month + 1 WHERE tenant_id = ?', [$tenant->id]);
+            }
             if ($ticketId) $this->persistOnTicket($tenant->id, $ticketId, $action, $result['text']);
         }
 

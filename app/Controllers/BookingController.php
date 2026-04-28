@@ -34,11 +34,18 @@ class BookingController extends Controller
             [$tenant->id]
         );
 
+        // ¿Mostrar el suggester de IA? Requiere: setting on + IA disponible para el tenant
+        $aiSuggester = false;
+        if ((int)($settings['ai_public_suggester'] ?? 1) === 1) {
+            $aiSuggester = \App\Core\MeetingAi::guard($tenant)['ok'];
+        }
+
         $this->renderPublic('booking/index', [
-            'title'    => $settings['page_title'] ?: ('Agenda una reunión con ' . $tenant->name),
-            'tenant'   => $tenant,
-            'settings' => $settings,
-            'types'    => $types,
+            'title'       => $settings['page_title'] ?: ('Agenda una reunión con ' . $tenant->name),
+            'tenant'      => $tenant,
+            'settings'    => $settings,
+            'types'       => $types,
+            'aiSuggester' => $aiSuggester,
         ]);
     }
 
@@ -341,6 +348,11 @@ class BookingController extends Controller
         // emails (cliente + internos)
         $mc = new MeetingController();
         $mc->sendBookingEmail($tenant, $meeting, $statusInitial === 'confirmed' ? 'created' : 'created');
+
+        // Análisis IA automático (best-effort, no bloquea si falla)
+        if ((int)($settings['ai_auto_analyze'] ?? 1) === 1) {
+            \App\Controllers\MeetingAiController::analyzeAfterBooking($tenant, $id);
+        }
 
         $this->redirect('/book/' . rawurlencode($settings['public_slug'] ?: $tenant->slug) . '/confirmation/' . $token);
     }

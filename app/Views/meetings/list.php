@@ -81,10 +81,21 @@ $f = $filters;
                                 <div class="text-[11px] text-ink-400"><?= date('H:i', $when) ?> · <?= (int)$m['duration_minutes'] ?> min</div>
                             </td>
                             <td>
-                                <div class="font-semibold"><?= $e($m['customer_name']) ?></div>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-semibold"><?= $e($m['customer_name']) ?></span>
+                                    <?php if (!empty($m['ai_urgency']) && $m['ai_urgency'] === 'high'): ?>
+                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-[0.1em]" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca" title="Urgencia alta detectada por IA"><i class="lucide lucide-zap text-[9px]"></i> Urgente</span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($m['ai_sentiment']) && $m['ai_sentiment'] === 'negative'): ?>
+                                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-[0.1em]" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca" title="Sentiment negativo detectado por IA"><i class="lucide lucide-frown text-[9px]"></i> Negativo</span>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="text-[11px] text-ink-400"><?= $e($m['customer_email']) ?></div>
                                 <?php if (!empty($m['company_name'])): ?>
                                     <div class="text-[11px] text-ink-500 mt-0.5"><i class="lucide lucide-building-2 text-[10px]"></i> <?= $e($m['company_name']) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($m['ai_intent'])): ?>
+                                    <div class="text-[10px] text-ink-400 mt-0.5"><i class="lucide lucide-sparkles text-[9px]"></i> <?= $e(ucfirst($m['ai_intent'])) ?></div>
                                 <?php endif; ?>
                             </td>
                             <td>

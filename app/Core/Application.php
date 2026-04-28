@@ -317,8 +317,14 @@ class Application
         $r->post('/t/{slug}/meetings/{id}/no-show',            ['App\Controllers\MeetingController', 'noShow']);
         $r->post('/t/{slug}/meetings/{id}/delete',             ['App\Controllers\MeetingController', 'delete']);
 
+        // Meeting AI (panel · Enterprise)
+        $r->post('/t/{slug}/meetings/{id}/ai/analyze',         ['App\Controllers\MeetingAiController', 'analyze']);
+        $r->post('/t/{slug}/meetings/{id}/ai/briefing',        ['App\Controllers\MeetingAiController', 'briefing']);
+        $r->post('/t/{slug}/meetings/{id}/ai/followup',        ['App\Controllers\MeetingAiController', 'followup']);
+
         // ─────────── BOOKING público (Calendly-style) ───────────
         $r->get('/book/{slug}',                                              ['App\Controllers\BookingController', 'index']);
+        $r->post('/book/{slug}/ai/suggest',                                  ['App\Controllers\MeetingAiController', 'suggest']);
         $r->get('/book/{slug}/confirmation/{token}',                         ['App\Controllers\BookingController', 'confirmation']);
         $r->get('/book/{slug}/manage/{token}',                               ['App\Controllers\BookingController', 'manage']);
         $r->post('/book/{slug}/manage/{token}/cancel',                       ['App\Controllers\BookingController', 'cancelByToken']);

@@ -22,6 +22,7 @@ class AdminAiController extends AdminController
             "SELECT t.id, t.name, t.slug, t.is_demo, t.is_active, t.suspended_at,
                     s.status AS sub_status, p.slug AS plan_slug, p.name AS plan_name,
                     a.is_assigned, a.is_enabled, a.monthly_quota, a.used_this_month,
+                    a.tokens_in_this_month, a.tokens_out_this_month, a.token_quota_monthly,
                     a.suggest_replies, a.auto_summarize, a.auto_categorize, a.detect_sentiment, a.auto_translate,
                     a.assigned_at, a.assigned_by_admin, a.unassigned_at,
                     sa.name AS admin_name,
@@ -162,11 +163,17 @@ class AdminAiController extends AdminController
         if (!$existing || !(int)$existing['is_assigned']) { $this->session->flash('error','No está asignado.'); $this->redirect('/admin/ai'); }
 
         $newQuota = max(0, (int)$this->input('monthly_quota', (int)$existing['monthly_quota']));
+        $newTokenQuota = max(0, (int)$this->input('token_quota_monthly', (int)($existing['token_quota_monthly'] ?? 0)));
         $resetUsage = (bool)$this->input('reset_usage', 0);
         $data = [
-            'monthly_quota' => $newQuota,
+            'monthly_quota'       => $newQuota,
+            'token_quota_monthly' => $newTokenQuota,
         ];
-        if ($resetUsage) $data['used_this_month'] = 0;
+        if ($resetUsage) {
+            $data['used_this_month']       = 0;
+            $data['tokens_in_this_month']  = 0;
+            $data['tokens_out_this_month'] = 0;
+        }
 
         $this->db->update('ai_settings', $data, 'tenant_id = :tid', ['tid' => $tenantId]);
         $this->superAuth->log('ai.tenant_updated', 'tenant', $tenantId, $data);

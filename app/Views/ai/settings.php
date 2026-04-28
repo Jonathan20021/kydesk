@@ -92,12 +92,40 @@ $pct = $quota > 0 ? min(100, ($used / $quota) * 100) : 0;
         </div>
 
         <div class="card card-pad">
-            <div class="text-[11px] uppercase font-bold tracking-[0.14em] text-ink-400 mb-2">Uso este mes</div>
+            <div class="text-[11px] uppercase font-bold tracking-[0.14em] text-ink-400 mb-2">Requests este mes</div>
             <div class="font-display font-extrabold text-[26px]"><?= $used ?><span class="text-ink-400 text-[14px]"> / <?= $quota ?></span></div>
             <div style="height:6px;background:#f3f4f6;border-radius:999px;overflow:hidden" class="mt-2">
                 <div style="height:100%;background:<?= $pct >= 90 ? '#dc2626' : ($pct >= 70 ? '#f59e0b' : '#10b981') ?>;width:<?= $pct ?>%"></div>
             </div>
             <p class="text-[11px] text-ink-500 mt-2">¿Necesitás más cuota? Contactá al equipo de Kydesk.</p>
+        </div>
+
+        <?php
+            $tokensIn   = (int)($cfg['tokens_in_this_month']  ?? 0);
+            $tokensOut  = (int)($cfg['tokens_out_this_month'] ?? 0);
+            $tokensTot  = $tokensIn + $tokensOut;
+            $tokenQuota = (int)($cfg['token_quota_monthly']   ?? 0);
+            $tokenPct   = $tokenQuota > 0 ? min(100, ($tokensTot / $tokenQuota) * 100) : 0;
+            $fmt = function ($n) { return number_format((int)$n); };
+        ?>
+        <div class="card card-pad">
+            <div class="text-[11px] uppercase font-bold tracking-[0.14em] text-ink-400 mb-2">Tokens este mes</div>
+            <div class="font-display font-extrabold text-[24px]"><?= $fmt($tokensTot) ?><?php if ($tokenQuota > 0): ?><span class="text-ink-400 text-[14px]"> / <?= $fmt($tokenQuota) ?></span><?php endif; ?></div>
+            <?php if ($tokenQuota > 0): ?>
+                <div style="height:6px;background:#f3f4f6;border-radius:999px;overflow:hidden" class="mt-2">
+                    <div style="height:100%;background:<?= $tokenPct >= 90 ? '#dc2626' : ($tokenPct >= 70 ? '#f59e0b' : '#10b981') ?>;width:<?= $tokenPct ?>%"></div>
+                </div>
+            <?php endif; ?>
+            <div class="grid grid-cols-2 gap-2 mt-3 text-[11.5px]">
+                <div class="rounded-lg p-2" style="background:#fafafb;border:1px solid var(--border)">
+                    <div class="text-ink-400 text-[10px] uppercase tracking-[0.1em]">Input</div>
+                    <div class="font-mono font-bold text-ink-700"><?= $fmt($tokensIn) ?></div>
+                </div>
+                <div class="rounded-lg p-2" style="background:#fafafb;border:1px solid var(--border)">
+                    <div class="text-ink-400 text-[10px] uppercase tracking-[0.1em]">Output</div>
+                    <div class="font-mono font-bold text-ink-700"><?= $fmt($tokensOut) ?></div>
+                </div>
+            </div>
         </div>
 
         <div class="card card-pad">

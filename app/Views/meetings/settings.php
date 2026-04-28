@@ -3,6 +3,16 @@ $slug = $tenant->slug;
 $publicSlug = $settings['public_slug'] ?: $slug;
 $publicUrl = rtrim($app->config['app']['url'], '/') . '/book/' . rawurlencode($publicSlug);
 $timezones = ['America/Santo_Domingo','America/Mexico_City','America/Bogota','America/Lima','America/Argentina/Buenos_Aires','America/Santiago','America/New_York','America/Los_Angeles','Europe/Madrid','Europe/London','Europe/Paris','UTC'];
+$aiAvailable = \App\Core\MeetingAi::guard($tenant)['ok'];
+// Consumo IA del módulo de reuniones (último mes en curso)
+$meetingAiUsage = $app->db->one(
+    "SELECT COUNT(*) AS reqs, IFNULL(SUM(tokens_in),0) AS tin, IFNULL(SUM(tokens_out),0) AS tout
+     FROM ai_completions
+     WHERE tenant_id = ? AND status = 'ok'
+       AND action LIKE 'meeting_%'
+       AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')",
+    [$tenant->id]
+);
 ?>
 
 <div class="flex items-center gap-2 text-[12px] text-ink-400 mb-1">
@@ -128,6 +138,64 @@ $timezones = ['America/Santo_Domingo','America/Mexico_City','America/Bogota','Am
                 <span>Mostrar "Powered by Kydesk"</span>
                 <input type="checkbox" name="show_powered_by" value="1" <?= (int)$settings['show_powered_by']?'checked':'' ?>>
             </label>
+        </div>
+
+        <div class="card card-pad space-y-3" style="<?= !$aiAvailable ? 'opacity:.6' : '' ?>">
+            <div class="flex items-center justify-between">
+                <h3 class="font-display font-bold text-[15px] flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.14em]" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white">
+                        <i class="lucide lucide-sparkles text-[10px]"></i> Kyros IA
+                    </span>
+                </h3>
+                <?php if (!$aiAvailable): ?>
+                    <span class="badge badge-amber text-[10px]">No asignada</span>
+                <?php endif; ?>
+            </div>
+            <?php if (!$aiAvailable): ?>
+                <p class="text-[12px] text-ink-500">Kyros IA requiere plan Enterprise + asignación del equipo Kydesk. Las opciones quedan deshabilitadas hasta entonces.</p>
+            <?php endif; ?>
+            <label class="flex items-center justify-between gap-2 text-[13px]">
+                <div>
+                    <div>Análisis automático al reservar</div>
+                    <div class="text-[11px] text-ink-400">Detecta intent, sentiment, urgencia y resumen al instante</div>
+                </div>
+                <input type="checkbox" name="ai_auto_analyze" value="1" <?= (int)($settings['ai_auto_analyze'] ?? 1)?'checked':'' ?> <?= !$aiAvailable?'disabled':'' ?>>
+            </label>
+            <label class="flex items-center justify-between gap-2 text-[13px]">
+                <div>
+                    <div>Suggester en página pública</div>
+                    <div class="text-[11px] text-ink-400">Cliente describe necesidad, IA recomienda tipo</div>
+                </div>
+                <input type="checkbox" name="ai_public_suggester" value="1" <?= (int)($settings['ai_public_suggester'] ?? 1)?'checked':'' ?> <?= !$aiAvailable?'disabled':'' ?>>
+            </label>
+            <label class="flex items-center justify-between gap-2 text-[13px]">
+                <div>
+                    <div>Briefing pre-meeting on-demand</div>
+                    <div class="text-[11px] text-ink-400">Botón en el detalle para generar brief con IA</div>
+                </div>
+                <input type="checkbox" name="ai_briefing_enabled" value="1" <?= (int)($settings['ai_briefing_enabled'] ?? 1)?'checked':'' ?> <?= !$aiAvailable?'disabled':'' ?>>
+            </label>
+
+            <?php if ($aiAvailable && $meetingAiUsage): ?>
+                <div class="pt-3 mt-2" style="border-top:1px solid var(--border)">
+                    <div class="text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-400 mb-2">Consumo IA del módulo este mes</div>
+                    <div class="grid grid-cols-3 gap-2 text-[12px]">
+                        <div class="rounded-lg p-2" style="background:#fafafb;border:1px solid var(--border)">
+                            <div class="text-ink-400 text-[10px] uppercase tracking-[0.1em]">Llamadas</div>
+                            <div class="font-mono font-bold text-ink-700"><?= number_format((int)$meetingAiUsage['reqs']) ?></div>
+                        </div>
+                        <div class="rounded-lg p-2" style="background:#fafafb;border:1px solid var(--border)">
+                            <div class="text-ink-400 text-[10px] uppercase tracking-[0.1em]">Tokens in</div>
+                            <div class="font-mono font-bold text-ink-700"><?= number_format((int)$meetingAiUsage['tin']) ?></div>
+                        </div>
+                        <div class="rounded-lg p-2" style="background:#fafafb;border:1px solid var(--border)">
+                            <div class="text-ink-400 text-[10px] uppercase tracking-[0.1em]">Tokens out</div>
+                            <div class="font-mono font-bold text-ink-700"><?= number_format((int)$meetingAiUsage['tout']) ?></div>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-ink-400 mt-2">Se descuentan de la cuota IA asignada al workspace · <a href="<?= $url('/t/' . $slug . '/ai') ?>" class="text-brand-700">ver detalles</a></p>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="flex gap-2 sticky bottom-4">

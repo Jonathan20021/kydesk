@@ -88,6 +88,10 @@
                 $used = (int)$t['used_this_month'];
                 $quota = (int)$t['monthly_quota'];
                 $pct = $quota > 0 ? min(100, ($used / $quota) * 100) : 0;
+                $tokensIn   = (int)($t['tokens_in_this_month']  ?? 0);
+                $tokensOut  = (int)($t['tokens_out_this_month'] ?? 0);
+                $tokensTot  = $tokensIn + $tokensOut;
+                $tokenQuota = (int)($t['token_quota_monthly']   ?? 0);
                 $enabledActions = [];
                 if ($t['suggest_replies']) $enabledActions[] = 'Sugerir';
                 if ($t['auto_summarize']) $enabledActions[] = 'Resumen';
@@ -123,9 +127,14 @@
                     </td>
                     <td>
                         <?php if ($isAssigned): ?>
-                            <div class="text-[12px] font-mono"><strong><?= $used ?></strong> / <?= $quota ?></div>
+                            <div class="text-[12px] font-mono"><strong><?= $used ?></strong> / <?= $quota ?> <span class="text-ink-400 text-[10px]">reqs</span></div>
                             <div style="height:4px;background:#f3f4f6;border-radius:999px;overflow:hidden;width:100px;margin-top:3px">
                                 <div style="height:100%;width:<?= $pct ?>%;background:<?= $pct>=90?'#dc2626':($pct>=70?'#f59e0b':'#10b981') ?>"></div>
+                            </div>
+                            <div class="text-[10.5px] text-ink-500 mt-1.5 font-mono">
+                                <i class="lucide lucide-coins text-[10px]"></i>
+                                <?= number_format($tokensTot) ?><?php if ($tokenQuota > 0): ?> / <?= number_format($tokenQuota) ?><?php endif; ?>
+                                <span class="text-ink-400">tokens</span>
                             </div>
                         <?php else: ?>
                             <span class="text-ink-400 text-[12px]">—</span>
@@ -133,10 +142,17 @@
                     </td>
                     <td>
                         <?php if ($isAssigned): ?>
-                            <form method="POST" action="<?= $url('/admin/ai/tenants/' . $t['id'] . '/update') ?>" class="flex gap-1">
+                            <form method="POST" action="<?= $url('/admin/ai/tenants/' . $t['id'] . '/update') ?>" class="flex flex-col gap-1">
                                 <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                                <input name="monthly_quota" type="number" min="0" value="<?= $quota ?>" class="admin-input" style="width:90px;height:32px;font-size:12px;padding:0 8px">
-                                <button class="admin-btn admin-btn-soft" style="padding:0 10px;height:32px"><i class="lucide lucide-save text-[12px]"></i></button>
+                                <div class="flex gap-1 items-center">
+                                    <input name="monthly_quota" type="number" min="0" value="<?= $quota ?>" class="admin-input" style="width:80px;height:30px;font-size:11.5px;padding:0 6px" title="Requests/mes">
+                                    <span class="text-[10px] text-ink-400">reqs</span>
+                                </div>
+                                <div class="flex gap-1 items-center">
+                                    <input name="token_quota_monthly" type="number" min="0" step="1000" value="<?= $tokenQuota ?>" class="admin-input" style="width:80px;height:30px;font-size:11.5px;padding:0 6px" title="Tokens/mes (0 = ilimitado)">
+                                    <span class="text-[10px] text-ink-400">tokens</span>
+                                </div>
+                                <button class="admin-btn admin-btn-soft" style="padding:0 10px;height:28px;font-size:11.5px"><i class="lucide lucide-save text-[11px]"></i> Guardar</button>
                             </form>
                         <?php else: ?>—<?php endif; ?>
                     </td>

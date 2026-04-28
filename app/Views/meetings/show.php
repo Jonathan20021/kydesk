@@ -88,6 +88,190 @@ $manageUrl = rtrim($app->config['app']['url'], '/') . '/book/' . rawurlencode($p
             <?php endif; ?>
         </div>
 
+        <?php if ($aiAvailable):
+            $intentColors = [
+                'sales'       => ['#10b981','#ecfdf5','rocket','Ventas'],
+                'support'     => ['#0ea5e9','#e0f2fe','life-buoy','Soporte'],
+                'demo'        => ['#7c5cff','#f3f0ff','play-circle','Demo'],
+                'consultation'=> ['#f59e0b','#fffbeb','message-circle','Consulta'],
+                'complaint'   => ['#ef4444','#fef2f2','alert-triangle','Queja'],
+                'partnership' => ['#a855f7','#faf5ff','handshake','Partnership'],
+                'other'       => ['#6b7280','#f3f4f6','help-circle','Otro'],
+            ];
+            $sentimentColors = [
+                'positive' => ['#10b981','#ecfdf5','smile','Positivo'],
+                'neutral'  => ['#6b7280','#f3f4f6','minus-circle','Neutral'],
+                'negative' => ['#ef4444','#fef2f2','frown','Negativo'],
+            ];
+            $urgencyColors = [
+                'low'    => ['#10b981','#ecfdf5','Bajo'],
+                'medium' => ['#f59e0b','#fffbeb','Medio'],
+                'high'   => ['#ef4444','#fef2f2','Alto'],
+            ];
+        ?>
+        <!-- AI Insights -->
+        <div class="card overflow-hidden"
+             x-data="meetingAi(<?= htmlspecialchars(json_encode([
+                 'analyzeUrl'  => $url('/t/' . $slug . '/meetings/' . $m['id'] . '/ai/analyze'),
+                 'briefingUrl' => $url('/t/' . $slug . '/meetings/' . $m['id'] . '/ai/briefing'),
+                 'followupUrl' => $url('/t/' . $slug . '/meetings/' . $m['id'] . '/ai/followup'),
+                 'csrf' => $csrf,
+                 'briefing' => $m['ai_briefing'] ?? '',
+                 'followup' => $m['ai_followup'] ?? '',
+             ]), ENT_QUOTES) ?>)">
+            <div class="px-5 py-3.5 flex items-center justify-between" style="border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fafafb,white)">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg grid place-items-center" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white"><i class="lucide lucide-sparkles text-[13px]"></i></div>
+                    <h3 class="font-display font-bold text-[15px]">Kyros IA · Insights</h3>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button @click="reanalyze()" :disabled="loading.analyze" class="text-[11.5px] font-medium px-2.5 py-1 rounded-lg border transition inline-flex items-center gap-1 disabled:opacity-50" style="border-color:#cdbfff;color:#5a3aff;background:#f3f0ff" data-tooltip="Re-analizar (consume cuota)">
+                        <i class="lucide lucide-refresh-cw text-[11px]" :class="loading.analyze && 'animate-spin'"></i>
+                        <span x-text="loading.analyze ? 'Analizando…' : 'Re-analizar'"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-5 space-y-4">
+                <!-- Pills: intent + sentiment + urgency -->
+                <?php if (!empty($m['ai_processed_at']) || !empty($m['ai_intent'])): ?>
+                    <div class="flex flex-wrap gap-2" x-show="!loading.analyze">
+                        <?php if (!empty($m['ai_intent']) && isset($intentColors[$m['ai_intent']])):
+                            [$ic, $ibg, $iico, $ilbl] = $intentColors[$m['ai_intent']];
+                        ?>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-semibold" style="background:<?= $ibg ?>;color:<?= $ic ?>;border:1px solid <?= $ic ?>33"><i class="lucide lucide-<?= $iico ?> text-[11px]"></i> Intent: <?= $e($ilbl) ?></span>
+                        <?php endif; ?>
+                        <?php if (!empty($m['ai_sentiment']) && isset($sentimentColors[$m['ai_sentiment']])):
+                            [$sc, $sbg, $sico, $slbl] = $sentimentColors[$m['ai_sentiment']];
+                        ?>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-semibold" style="background:<?= $sbg ?>;color:<?= $sc ?>;border:1px solid <?= $sc ?>33"><i class="lucide lucide-<?= $sico ?> text-[11px]"></i> <?= $e($slbl) ?></span>
+                        <?php endif; ?>
+                        <?php if (!empty($m['ai_urgency']) && isset($urgencyColors[$m['ai_urgency']])):
+                            [$uc, $ubg, $ulbl] = $urgencyColors[$m['ai_urgency']];
+                        ?>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-semibold" style="background:<?= $ubg ?>;color:<?= $uc ?>;border:1px solid <?= $uc ?>33"><i class="lucide lucide-zap text-[11px]"></i> Urgencia: <?= $e($ulbl) ?></span>
+                        <?php endif; ?>
+                        <?php foreach ($aiTopics as $topic): ?>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium" style="background:#f3f0ff;color:#5a3aff"><?= $e($topic) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if (!empty($m['ai_summary'])): ?>
+                        <div class="rounded-xl p-3 text-[13px] text-ink-700 leading-relaxed" style="background:#fafafb;border:1px solid var(--border);white-space:pre-wrap"><?= $e($m['ai_summary']) ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($m['ai_processed_at'])): ?>
+                        <div class="text-[10.5px] text-ink-400">Analizado el <?= date('d/m/Y H:i', strtotime($m['ai_processed_at'])) ?></div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="text-[12.5px] text-ink-500 italic">Sin análisis IA todavía. Pulsá "Re-analizar" para generar uno.</div>
+                <?php endif; ?>
+
+                <!-- Briefing pre-meeting -->
+                <div class="pt-4" style="border-top:1px solid var(--border)">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-[12px] font-bold uppercase tracking-[0.14em] text-ink-500 inline-flex items-center gap-1.5">
+                            <i class="lucide lucide-file-text text-[12px]"></i> Briefing pre-meeting
+                        </div>
+                        <button @click="generateBriefing()" :disabled="loading.briefing" class="text-[11.5px] font-medium px-2.5 py-1 rounded-lg inline-flex items-center gap-1 disabled:opacity-50" style="background:#7c5cff;color:white">
+                            <i class="lucide lucide-sparkles text-[11px]" x-show="!loading.briefing"></i>
+                            <i class="lucide lucide-loader-2 text-[11px] animate-spin" x-show="loading.briefing" x-cloak></i>
+                            <span x-text="loading.briefing ? 'Generando…' : (briefing ? 'Re-generar' : 'Generar briefing')"></span>
+                        </button>
+                    </div>
+                    <div x-show="briefing" x-cloak class="rounded-xl p-3 text-[13px] text-ink-700 leading-relaxed" style="background:#f3f0ff;border:1px solid #cdbfff;white-space:pre-wrap;font-family:'Inter',sans-serif" x-text="briefing"></div>
+                    <p x-show="!briefing" x-cloak class="text-[12px] text-ink-400 italic">Generá un briefing personalizado con: resumen del cliente, contexto de la solicitud, preguntas sugeridas y action items previos.</p>
+                </div>
+
+                <!-- Follow-up post-meeting -->
+                <?php if (in_array($m['status'], ['completed','no_show'], true)): ?>
+                <div class="pt-4" style="border-top:1px solid var(--border)">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-[12px] font-bold uppercase tracking-[0.14em] text-ink-500 inline-flex items-center gap-1.5">
+                            <i class="lucide lucide-mail text-[12px]"></i> Email de follow-up
+                        </div>
+                        <button @click="generateFollowup()" :disabled="loading.followup" class="text-[11.5px] font-medium px-2.5 py-1 rounded-lg inline-flex items-center gap-1 disabled:opacity-50" style="background:#10b981;color:white">
+                            <i class="lucide lucide-sparkles text-[11px]" x-show="!loading.followup"></i>
+                            <i class="lucide lucide-loader-2 text-[11px] animate-spin" x-show="loading.followup" x-cloak></i>
+                            <span x-text="loading.followup ? 'Generando…' : (followup ? 'Re-generar' : 'Redactar follow-up')"></span>
+                        </button>
+                    </div>
+                    <textarea x-show="!loading.followup && !showFollowupForm && !followup" x-cloak @click="showFollowupForm = true" rows="2" class="input mb-2" style="height:auto;padding:10px 12px;font-size:12.5px" placeholder="Notas opcionales sobre la reunión (alimentan al follow-up)..."></textarea>
+                    <textarea x-show="showFollowupForm" x-model="hostNotes" x-cloak rows="3" class="input mb-2" style="height:auto;padding:10px 12px;font-size:12.5px" placeholder="Notas opcionales sobre la reunión (qué se discutió, próximos pasos)..."></textarea>
+                    <div x-show="followup" x-cloak class="rounded-xl p-3 text-[13px] text-ink-700 leading-relaxed" style="background:#ecfdf5;border:1px solid #a7f3d0;white-space:pre-wrap" x-text="followup"></div>
+                    <div x-show="followup" x-cloak class="mt-2 flex gap-2">
+                        <button type="button" @click="copyFollowup()" class="text-[11.5px] font-medium px-2.5 py-1 rounded-lg inline-flex items-center gap-1" style="background:#fafafb;border:1px solid var(--border);color:var(--ink-700)">
+                            <i class="lucide lucide-copy text-[11px]"></i>
+                            <span x-text="copied ? 'Copiado!' : 'Copiar'"></span>
+                        </button>
+                        <a :href="'mailto:' + encodeURIComponent('<?= $e($m['customer_email']) ?>') + '?subject=' + encodeURIComponent('Follow-up: <?= $e($m['type_name'] ?? 'Reunión') ?>') + '&body=' + encodeURIComponent(followup)" class="text-[11.5px] font-medium px-2.5 py-1 rounded-lg inline-flex items-center gap-1" style="background:#10b981;color:white">
+                            <i class="lucide lucide-send text-[11px]"></i> Abrir en email
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <div x-show="error" x-cloak class="text-[12px] px-3 py-2 rounded-lg" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca" x-text="error"></div>
+            </div>
+        </div>
+        <script>
+        function meetingAi(cfg) {
+            return {
+                analyzeUrl: cfg.analyzeUrl,
+                briefingUrl: cfg.briefingUrl,
+                followupUrl: cfg.followupUrl,
+                csrf: cfg.csrf,
+                briefing: cfg.briefing || '',
+                followup: cfg.followup || '',
+                hostNotes: '',
+                showFollowupForm: false,
+                loading: { analyze: false, briefing: false, followup: false },
+                error: '',
+                copied: false,
+                async post(url, body) {
+                    body = body || {};
+                    body._csrf = this.csrf;
+                    const r = await fetch(url, {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                        body: new URLSearchParams(body),
+                    });
+                    return r.json();
+                },
+                async reanalyze() {
+                    this.error = ''; this.loading.analyze = true;
+                    try {
+                        const j = await this.post(this.analyzeUrl);
+                        if (j.ok) location.reload();
+                        else this.error = j.error || 'Error al analizar';
+                    } catch (e) { this.error = 'Error de red'; }
+                    this.loading.analyze = false;
+                },
+                async generateBriefing() {
+                    this.error = ''; this.loading.briefing = true;
+                    try {
+                        const j = await this.post(this.briefingUrl);
+                        if (j.ok) this.briefing = j.briefing;
+                        else this.error = j.error || 'Error generando briefing';
+                    } catch (e) { this.error = 'Error de red'; }
+                    this.loading.briefing = false;
+                },
+                async generateFollowup() {
+                    this.error = ''; this.loading.followup = true; this.showFollowupForm = true;
+                    try {
+                        const j = await this.post(this.followupUrl, { host_notes: this.hostNotes });
+                        if (j.ok) this.followup = j.email;
+                        else this.error = j.error || 'Error generando follow-up';
+                    } catch (e) { this.error = 'Error de red'; }
+                    this.loading.followup = false;
+                },
+                copyFollowup() {
+                    navigator.clipboard.writeText(this.followup);
+                    this.copied = true;
+                    setTimeout(() => { this.copied = false; }, 1500);
+                },
+            };
+        }
+        </script>
+        <?php endif; ?>
+
         <!-- Editar -->
         <?php if ($auth->can('meetings.edit') && !in_array($m['status'], ['cancelled','no_show'], true)): ?>
         <details class="card card-pad">
