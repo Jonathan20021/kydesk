@@ -67,6 +67,97 @@ textarea.input { padding: 12px 16px; height: auto; }
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold" style="background:<?= $sBg ?>;color:<?= $sCol ?>"><?= $e($sLbl) ?></span>
             </div>
 
+            <?php if (!empty($conferenceConfig) && !in_array($meeting['status'], ['cancelled','no_show'], true)):
+                $isAudioOnly = !empty($conferenceConfig['audioOnly']);
+                $whenTs = strtotime($meeting['scheduled_at']);
+                $endTs  = strtotime($meeting['ends_at']);
+                $minutesToStart = (int)(($whenTs - time()) / 60);
+                $isLive = time() >= $whenTs - 900 && time() < $endTs + 1800; // 15 min antes a 30 min después
+            ?>
+                <div class="px-6 py-4" style="background:linear-gradient(135deg,#0f0d18 0%,#1a1530 60%,#2a1f3d 100%);border-bottom:1px solid #ececef;color:white"
+                     x-data="customerConferencePanel(<?= htmlspecialchars(json_encode($conferenceConfig), ENT_QUOTES) ?>)">
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:rgba(167,139,250,.18);color:#c4b5fd">
+                                <i class="lucide lucide-<?= $isAudioOnly ? 'phone' : 'video' ?> text-[16px]"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-display font-bold text-[14px]"><?= $isAudioOnly ? 'Llamada de audio' : 'Video conferencia' ?></div>
+                                <div class="text-[11.5px]" style="color:rgba(255,255,255,.6)">
+                                    <?php if ($minutesToStart > 60): ?>
+                                        Se habilita 15 min antes
+                                    <?php elseif ($isLive): ?>
+                                        <span style="color:#86efac">● Disponible ahora</span>
+                                    <?php else: ?>
+                                        Reunión finalizada
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="join()"
+                                <?= !$isLive ? 'disabled' : '' ?>
+                                class="inline-flex items-center gap-2 h-10 px-5 rounded-xl font-semibold text-[13px] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                style="background:white;color:#0f0d18">
+                            <i class="lucide lucide-video text-[14px]"></i>
+                            <?= $isLive ? 'Entrar a la reunión' : 'Aún no disponible' ?>
+                        </button>
+                    </div>
+
+                    <!-- Embed -->
+                    <div x-show="open" x-cloak x-transition class="mt-4 rounded-2xl overflow-hidden" style="background:#000">
+                        <div class="relative" style="height:520px">
+                            <div x-show="!ready" class="absolute inset-0 grid place-items-center">
+                                <div class="text-center">
+                                    <i class="lucide lucide-loader-2 text-[24px] animate-spin block mb-2" style="color:#a78bfa"></i>
+                                    <div class="text-[12px]" style="color:rgba(255,255,255,.6)">Conectando...</div>
+                                </div>
+                            </div>
+                            <div x-ref="container" class="absolute inset-0"></div>
+                        </div>
+                        <div class="px-4 py-2.5 flex items-center justify-between text-[11.5px]" style="background:rgba(255,255,255,.04);color:rgba(255,255,255,.55)">
+                            <span><i class="lucide lucide-shield-check text-[11px]"></i> Conexión cifrada P2P</span>
+                            <button @click="leave()" class="font-semibold" style="color:rgba(255,255,255,.85)">Cerrar y volver</button>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                function customerConferencePanel(cfg) {
+                    return {
+                        cfg: cfg, api: null, open: false, ready: false,
+                        async join() {
+                            if (cfg.provider !== 'jitsi') { alert(cfg.message || 'Provider no soportado'); return; }
+                            this.open = true; this.ready = false;
+                            if (!window.JitsiMeetExternalAPI) {
+                                await new Promise((resolve, reject) => {
+                                    const s = document.createElement('script');
+                                    s.src = 'https://' + cfg.domain + '/external_api.js';
+                                    s.onload = resolve; s.onerror = () => reject();
+                                    document.head.appendChild(s);
+                                });
+                            }
+                            await this.$nextTick();
+                            const opts = {
+                                roomName: cfg.roomName,
+                                parentNode: this.$refs.container,
+                                width: '100%', height: '100%',
+                                userInfo: cfg.userInfo,
+                                configOverwrite: cfg.configOverwrite || {},
+                                interfaceConfigOverwrite: cfg.interfaceConfigOverwrite || {},
+                            };
+                            if (cfg.jwt) opts.jwt = cfg.jwt;
+                            this.api = new window.JitsiMeetExternalAPI(cfg.domain, opts);
+                            this.api.addEventListener('videoConferenceJoined', () => { this.ready = true; });
+                            this.api.addEventListener('readyToClose', () => { this.leave(); });
+                        },
+                        leave() {
+                            if (this.api) { try { this.api.dispose(); } catch (e) {} this.api = null; }
+                            this.open = false; this.ready = false;
+                        },
+                    };
+                }
+                </script>
+            <?php endif; ?>
+
             <!-- detalles actuales -->
             <div class="px-6 py-5 space-y-3">
                 <div class="flex items-start gap-3">

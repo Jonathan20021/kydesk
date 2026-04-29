@@ -140,6 +140,89 @@ $meetingAiUsage = $app->db->one(
             </label>
         </div>
 
+        <div class="card card-pad space-y-3" x-data="{ provider: '<?= $e($settings['conference_provider'] ?? 'jitsi') ?>', advanced: false }">
+            <div class="flex items-center justify-between">
+                <h3 class="font-display font-bold text-[15px]">Video conferencia</h3>
+                <label class="inline-flex items-center gap-2 text-[12px]">
+                    <input type="checkbox" name="conference_enabled" value="1" <?= (int)($settings['conference_enabled'] ?? 1) ? 'checked' : '' ?>>
+                    <span>Activa</span>
+                </label>
+            </div>
+            <p class="text-[11.5px] text-ink-400">Auto-crea rooms para reuniones <strong>virtuales</strong> y <strong>llamadas de audio</strong>. Host y cliente entran desde el mismo panel.</p>
+
+            <div>
+                <label class="text-[12px] font-semibold text-ink-700 mb-2 block">Provider</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="cursor-pointer flex items-start gap-2 p-3 rounded-xl border-2 transition" :style="provider === 'jitsi' ? 'border-color:var(--brand-300);background:var(--brand-50)' : 'border-color:var(--border);background:white'">
+                        <input type="radio" name="conference_provider" value="jitsi" x-model="provider" class="mt-0.5">
+                        <div>
+                            <div class="font-display font-bold text-[12.5px] flex items-center gap-1.5">Jitsi Meet <span class="badge badge-emerald text-[9px]">GRATIS</span></div>
+                            <div class="text-[10.5px] text-ink-500 mt-0.5">meet.jit.si o self-host</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer flex items-start gap-2 p-3 rounded-xl border-2 transition" :style="provider === 'livekit' ? 'border-color:var(--brand-300);background:var(--brand-50)' : 'border-color:var(--border);background:white'">
+                        <input type="radio" name="conference_provider" value="livekit" x-model="provider" class="mt-0.5">
+                        <div>
+                            <div class="font-display font-bold text-[12.5px] flex items-center gap-1.5">LiveKit <span class="badge badge-amber text-[9px]">BETA</span></div>
+                            <div class="text-[10.5px] text-ink-500 mt-0.5">SDK propio · grabación + transcripción</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Jitsi config -->
+            <div x-show="provider === 'jitsi'" x-cloak class="space-y-2 pt-2" style="border-top:1px solid var(--border)">
+                <div>
+                    <label class="text-[12px] font-semibold text-ink-700 mb-1 block">Dominio Jitsi</label>
+                    <input name="jitsi_domain" class="input" value="<?= $e($settings['jitsi_domain'] ?? 'meet.jit.si') ?>" placeholder="meet.jit.si">
+                    <p class="text-[10.5px] text-ink-400 mt-1">Default: <code class="font-mono">meet.jit.si</code> (gratis). Para producción usá <code class="font-mono">8x8.vc</code> o tu Jitsi self-hosted.</p>
+                </div>
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Solo audio por defecto</div>
+                        <div class="text-[11px] text-ink-400">Inicia con la cámara apagada · útil para llamadas tipo "phone call"</div>
+                    </div>
+                    <input type="checkbox" name="jitsi_audio_only" value="1" <?= (int)($settings['jitsi_audio_only'] ?? 0) ? 'checked' : '' ?>>
+                </label>
+                <button type="button" @click="advanced = !advanced" class="text-[11.5px] font-semibold text-brand-700 inline-flex items-center gap-1">
+                    <i class="lucide lucide-chevron-right text-[11px]" :class="advanced && 'rotate-90'" style="transition:transform .15s"></i>
+                    Avanzado · JWT (8x8.vc o self-hosted con auth)
+                </button>
+                <div x-show="advanced" x-cloak class="space-y-2">
+                    <div>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">App ID</label>
+                        <input name="jitsi_app_id" class="input" value="<?= $e($settings['jitsi_app_id'] ?? '') ?>" placeholder="vpaas-magic-cookie-...">
+                    </div>
+                    <div>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">App Secret</label>
+                        <input type="password" name="jitsi_app_secret" class="input" value="<?= $e($settings['jitsi_app_secret'] ?? '') ?>" placeholder="dejá vacío para usar el actual">
+                        <p class="text-[10.5px] text-ink-400 mt-1">Si configurás ambos, generamos JWT por reunión con role host/guest.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LiveKit config (placeholder · stub) -->
+            <div x-show="provider === 'livekit'" x-cloak class="space-y-2 pt-2" style="border-top:1px solid var(--border)">
+                <div class="rounded-xl p-3 text-[12px]" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e">
+                    <i class="lucide lucide-clock text-[12px]"></i> <strong>LiveKit en BETA.</strong> Las llamadas se firman correctamente pero el frontend SDK aún no está embebido. Si configurás keys + URL, el sistema hace fallback a Jitsi automáticamente.
+                </div>
+                <div>
+                    <label class="text-[12px] font-semibold text-ink-700 mb-1 block">URL del cliente LiveKit</label>
+                    <input name="livekit_url" class="input" value="<?= $e($settings['livekit_url'] ?? '') ?>" placeholder="https://tu-app.livekit.cloud">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">API Key</label>
+                        <input name="livekit_api_key" class="input" value="<?= $e($settings['livekit_api_key'] ?? '') ?>" placeholder="API_xxxx">
+                    </div>
+                    <div>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">API Secret</label>
+                        <input type="password" name="livekit_api_secret" class="input" value="<?= $e($settings['livekit_api_secret'] ?? '') ?>" placeholder="••••">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card card-pad space-y-3" style="<?= !$aiAvailable ? 'opacity:.6' : '' ?>">
             <div class="flex items-center justify-between">
                 <h3 class="font-display font-bold text-[15px] flex items-center gap-2">

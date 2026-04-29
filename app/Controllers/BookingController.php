@@ -345,6 +345,23 @@ class BookingController extends Controller
 
         $meeting = $this->db->one('SELECT * FROM meetings WHERE id=?', [$id]);
 
+        // Auto-generar room de conferencia si la ubicación es virtual o teléfono
+        if (in_array($type['location_type'], ['virtual', 'phone'], true) && \App\Core\Conference\ConferenceFactory::isEnabled($tenant)) {
+            $provider = \App\Core\Conference\ConferenceFactory::forTenant($tenant);
+            $room = $provider->createRoom($tenant, $meeting, $type);
+            $update = [
+                'conference_provider' => $provider->name(),
+                'conference_room_id'  => $room['room_id'],
+                'conference_meta'     => json_encode($room['meta'] ?? [], JSON_UNESCAPED_UNICODE),
+            ];
+            // Si el host no fijó URL custom, usamos la auto-generada
+            if (empty($meeting['meeting_url']) && !empty($room['url'])) {
+                $update['meeting_url'] = $room['url'];
+            }
+            $this->db->update('meetings', $update, 'id=?', [$id]);
+            $meeting = array_merge($meeting, $update);
+        }
+
         // emails (cliente + internos)
         $mc = new MeetingController();
         $mc->sendBookingEmail($tenant, $meeting, $statusInitial === 'confirmed' ? 'created' : 'created');
@@ -381,6 +398,7 @@ class BookingController extends Controller
             'tenant'   => $tenant,
             'settings' => $settings,
             'meeting'  => $meeting,
+            'conferenceConfig' => $this->customerConferenceConfig($tenant, $meeting),
         ]);
     }
 
@@ -408,6 +426,23 @@ class BookingController extends Controller
             'tenant'   => $tenant,
             'settings' => $settings,
             'meeting'  => $meeting,
+            'conferenceConfig' => $this->customerConferenceConfig($tenant, $meeting),
+        ]);
+    }
+
+    /**
+     * Calcula el embed config de conferencia para el cliente (rol guest).
+     * Devuelve null si la reunión no tiene room o conferencia está deshabilitada.
+     */
+    protected function customerConferenceConfig(\App\Core\Tenant $tenant, array $meeting): ?array
+    {
+        if (empty($meeting['conference_room_id'])) return null;
+        if (!\App\Core\Conference\ConferenceFactory::isEnabled($tenant)) return null;
+        $provider = \App\Core\Conference\ConferenceFactory::forTenant($tenant);
+        return $provider->embedConfig($tenant, $meeting, [
+            'name'  => $meeting['customer_name'] ?? 'Invitado',
+            'email' => $meeting['customer_email'] ?? '',
+            'role'  => 'guest',
         ]);
     }
 

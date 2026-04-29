@@ -91,15 +91,26 @@ $manageUrl = $url('/book/' . rawurlencode($publicSlug) . '/manage/' . $meeting['
             </div>
 
             <!-- Acciones -->
-            <div class="px-8 pb-8 pt-4 flex flex-col sm:flex-row gap-2" style="background:#fafafb">
-                <a href="<?= $e($icsDataUri) ?>" download="reunion-<?= $e($meeting['code']) ?>.ics" class="flex-1 inline-flex items-center justify-center gap-2 h-[44px] rounded-2xl border border-[#ececef] bg-white text-[13.5px] font-semibold hover:border-ink-300">
-                    <i class="lucide lucide-calendar-plus text-[14px]"></i> Agregar al calendario
-                </a>
-                <?php if ((int)($meeting['allow_cancel'] ?? 1) === 1 || (int)($meeting['allow_reschedule'] ?? 1) === 1): ?>
-                    <a href="<?= $e($manageUrl) ?>" class="flex-1 inline-flex items-center justify-center gap-2 h-[44px] rounded-2xl text-white text-[13.5px] font-semibold" style="background:var(--book-brand);box-shadow:0 4px 14px -4px <?= $e($brandColor) ?>aa">
-                        <i class="lucide lucide-settings-2 text-[14px]"></i> Gestionar
+            <div class="px-8 pb-8 pt-4 flex flex-col gap-2" style="background:#fafafb">
+                <?php if (!empty($conferenceConfig)):
+                    $isAudioOnly = !empty($conferenceConfig['audioOnly']);
+                ?>
+                    <a href="<?= $e($manageUrl) ?>" class="inline-flex items-center justify-center gap-2 h-[48px] rounded-2xl text-white text-[14px] font-semibold" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);box-shadow:0 8px 22px -8px rgba(124,92,255,.55)">
+                        <i class="lucide lucide-<?= $isAudioOnly ? 'phone' : 'video' ?> text-[15px]"></i>
+                        Entrar a la <?= $isAudioOnly ? 'llamada' : 'video reunión' ?>
                     </a>
+                    <p class="text-center text-[11px] text-ink-400 -mt-1">Desde el botón de arriba podés conectarte 15 min antes de la hora.</p>
                 <?php endif; ?>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <a href="<?= $e($icsDataUri) ?>" download="reunion-<?= $e($meeting['code']) ?>.ics" class="flex-1 inline-flex items-center justify-center gap-2 h-[44px] rounded-2xl border border-[#ececef] bg-white text-[13.5px] font-semibold hover:border-ink-300">
+                        <i class="lucide lucide-calendar-plus text-[14px]"></i> Agregar al calendario
+                    </a>
+                    <?php if ((int)($meeting['allow_cancel'] ?? 1) === 1 || (int)($meeting['allow_reschedule'] ?? 1) === 1): ?>
+                        <a href="<?= $e($manageUrl) ?>" class="flex-1 inline-flex items-center justify-center gap-2 h-[44px] rounded-2xl text-white text-[13.5px] font-semibold" style="background:var(--book-brand);box-shadow:0 4px 14px -4px <?= $e($brandColor) ?>aa">
+                            <i class="lucide lucide-settings-2 text-[14px]"></i> Gestionar
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 

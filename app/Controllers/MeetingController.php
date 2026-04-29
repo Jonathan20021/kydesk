@@ -578,6 +578,15 @@ class MeetingController extends Controller
             'ai_auto_analyze'    => (int)$this->input('ai_auto_analyze', 0) ? 1 : 0,
             'ai_public_suggester'=> (int)$this->input('ai_public_suggester', 0) ? 1 : 0,
             'ai_briefing_enabled'=> (int)$this->input('ai_briefing_enabled', 0) ? 1 : 0,
+            'conference_enabled' => (int)$this->input('conference_enabled', 0) ? 1 : 0,
+            'conference_provider'=> in_array($this->input('conference_provider'), ['jitsi','livekit'], true) ? (string)$this->input('conference_provider') : 'jitsi',
+            'jitsi_domain'       => trim((string)$this->input('jitsi_domain', 'meet.jit.si')) ?: 'meet.jit.si',
+            'jitsi_app_id'       => trim((string)$this->input('jitsi_app_id','')) ?: null,
+            'jitsi_app_secret'   => trim((string)$this->input('jitsi_app_secret','')) ?: null,
+            'jitsi_audio_only'   => (int)$this->input('jitsi_audio_only', 0) ? 1 : 0,
+            'livekit_url'        => trim((string)$this->input('livekit_url','')) ?: null,
+            'livekit_api_key'    => trim((string)$this->input('livekit_api_key','')) ?: null,
+            'livekit_api_secret' => trim((string)$this->input('livekit_api_secret','')) ?: null,
         ];
 
         if ($this->db->val('SELECT tenant_id FROM meeting_settings WHERE tenant_id=?', [$tenant->id])) {
@@ -586,6 +595,7 @@ class MeetingController extends Controller
             $data['tenant_id'] = $tenant->id;
             $this->db->insert('meeting_settings', $data);
         }
+        \App\Core\Conference\ConferenceFactory::clearCache($tenant->id);
 
         $this->session->flash('success', 'Ajustes guardados.');
         $this->redirect('/t/' . $tenant->slug . '/meetings/settings');
@@ -621,13 +631,26 @@ class MeetingController extends Controller
         $aiAvailable = \App\Core\MeetingAi::guard($tenant)['ok'];
         $aiTopics = !empty($meeting['ai_topics']) ? (json_decode($meeting['ai_topics'], true) ?: []) : [];
 
+        // Conferencia (embed config)
+        $conferenceConfig = null;
+        if (!empty($meeting['conference_room_id']) && \App\Core\Conference\ConferenceFactory::isEnabled($tenant)) {
+            $provider = \App\Core\Conference\ConferenceFactory::forTenant($tenant);
+            $hostUser = $this->auth->user();
+            $conferenceConfig = $provider->embedConfig($tenant, $meeting, [
+                'name'  => $hostUser['name'] ?? 'Host',
+                'email' => $hostUser['email'] ?? '',
+                'role'  => 'host',
+            ]);
+        }
+
         $this->render('meetings/show', [
-            'title'       => 'Reunión ' . $meeting['code'],
-            'meeting'     => $meeting,
-            'hosts'       => $hosts,
-            'companies'   => $companies,
-            'aiAvailable' => $aiAvailable,
-            'aiTopics'    => $aiTopics,
+            'title'            => 'Reunión ' . $meeting['code'],
+            'meeting'          => $meeting,
+            'hosts'            => $hosts,
+            'companies'        => $companies,
+            'aiAvailable'      => $aiAvailable,
+            'aiTopics'         => $aiTopics,
+            'conferenceConfig' => $conferenceConfig,
         ]);
     }
 
@@ -841,6 +864,21 @@ class MeetingController extends Controller
         Helpers::upsertContact($tenant->id, $companyId, $name, $email, trim((string)$this->input('customer_phone','')) ?: null);
 
         $meeting = $this->db->one('SELECT * FROM meetings WHERE id=?', [$id]);
+
+        // Auto-generar room de conferencia si la reunión es virtual/audio
+        if ($meeting && in_array($meeting['location_type'], ['virtual', 'phone'], true) && \App\Core\Conference\ConferenceFactory::isEnabled($tenant) && empty($meeting['meeting_url'])) {
+            $provider = \App\Core\Conference\ConferenceFactory::forTenant($tenant);
+            $room = $provider->createRoom($tenant, $meeting, $type ?: []);
+            $update = [
+                'conference_provider' => $provider->name(),
+                'conference_room_id'  => $room['room_id'],
+                'conference_meta'     => json_encode($room['meta'] ?? [], JSON_UNESCAPED_UNICODE),
+            ];
+            if (!empty($room['url'])) $update['meeting_url'] = $room['url'];
+            $this->db->update('meetings', $update, 'id=? AND tenant_id=?', [$id, $tenant->id]);
+            $meeting = array_merge($meeting, $update);
+        }
+
         if ($meeting) $this->sendBookingEmail($tenant, $meeting, 'confirmed');
 
         $this->session->flash('success', 'Reunión agendada manualmente. Se envió la confirmación al cliente.');
@@ -878,6 +916,15 @@ class MeetingController extends Controller
                 'ai_auto_analyze'   => 1,
                 'ai_public_suggester' => 1,
                 'ai_briefing_enabled' => 1,
+                'conference_enabled'  => 1,
+                'conference_provider' => 'jitsi',
+                'jitsi_domain'        => 'meet.jit.si',
+                'jitsi_app_id'        => null,
+                'jitsi_app_secret'    => null,
+                'jitsi_audio_only'    => 0,
+                'livekit_url'         => null,
+                'livekit_api_key'     => null,
+                'livekit_api_secret'  => null,
             ];
         }
         return $row;
@@ -923,6 +970,9 @@ class MeetingController extends Controller
             default: $statusLine = '<p style="color:#0ea5e9;font-weight:600">Recibimos tu reserva.</p>';
         }
 
+        $hasConference = !empty($meeting['conference_room_id']) && $kind !== 'cancelled';
+        $isAudioOnly = ($meeting['location_type'] ?? '') === 'phone';
+
         $body = $statusLine
             . '<table cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;width:100%;background:#fafafb;border:1px solid #ececef;border-radius:14px">'
             . '<tr><td style="padding:18px">'
@@ -930,10 +980,26 @@ class MeetingController extends Controller
             . '<div style="font-size:18px;font-weight:700;color:#16151b;margin-bottom:8px">' . htmlspecialchars($when) . '</div>'
             . '<div style="font-size:13px;color:#3a3946">Duración: ' . (int)$meeting['duration_minutes'] . ' min</div>'
             . '<div style="font-size:13px;color:#3a3946;margin-top:6px">Código: <strong>' . htmlspecialchars($meeting['code']) . '</strong></div>'
-            . (!empty($meeting['meeting_url']) ? '<div style="font-size:13px;color:#3a3946;margin-top:6px">Enlace: <a href="' . htmlspecialchars($meeting['meeting_url']) . '" style="color:' . $brandColor . '">' . htmlspecialchars($meeting['meeting_url']) . '</a></div>' : '')
             . (!empty($meeting['location_value']) ? '<div style="font-size:13px;color:#3a3946;margin-top:6px">Lugar: ' . htmlspecialchars($meeting['location_value']) . '</div>' : '')
-            . '</td></tr></table>'
-            . '<p style="font-size:13px;color:#3a3946">Podés gestionar (cancelar / reprogramar) tu reserva desde el siguiente enlace:</p>';
+            . '</td></tr></table>';
+
+        if ($hasConference) {
+            $body .= '<table cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;width:100%;background:linear-gradient(135deg,#0f0d18 0%,#2a1f3d 100%);border-radius:14px">'
+                . '<tr><td style="padding:20px;text-align:center;color:white">'
+                . '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(167,139,250,.8);margin-bottom:8px">'
+                . ($isAudioOnly ? '🎙️ Llamada de audio' : '📹 Video conferencia')
+                . '</div>'
+                . '<div style="font-size:14px;color:rgba(255,255,255,.85);margin-bottom:14px">Hacé click el día de la reunión para entrar directamente</div>'
+                . '<a href="' . htmlspecialchars($manageUrl) . '" style="display:inline-block;background:white;color:#0f0d18;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px">'
+                . ($isAudioOnly ? 'Entrar a la llamada' : 'Entrar a la videoconferencia')
+                . '</a>'
+                . '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:10px">Habilitado 15 min antes de la hora</div>'
+                . '</td></tr></table>';
+        } elseif (!empty($meeting['meeting_url'])) {
+            $body .= '<p style="font-size:13px;color:#3a3946">Enlace: <a href="' . htmlspecialchars($meeting['meeting_url']) . '" style="color:' . $brandColor . '">' . htmlspecialchars($meeting['meeting_url']) . '</a></p>';
+        }
+
+        $body .= '<p style="font-size:13px;color:#3a3946">Podés gestionar (cancelar / reprogramar) tu reserva desde el siguiente enlace:</p>';
 
         $html = Mailer::template($subject, $body, 'Gestionar mi reserva', $manageUrl);
 

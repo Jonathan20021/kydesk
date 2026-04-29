@@ -10,6 +10,74 @@ $publicSlug = $app->db->val('SELECT public_slug FROM meeting_settings WHERE tena
 $manageUrl = rtrim($app->config['app']['url'], '/') . '/book/' . rawurlencode($publicSlug) . '/manage/' . $m['public_token'];
 ?>
 
+<?php if ($conferenceConfig): ?>
+<script>
+function conferencePanel(cfg) {
+    return {
+        cfg: cfg,
+        api: null,
+        open: false,
+        ready: false,
+        copied: false,
+        joinUrl() {
+            if (cfg.provider === 'jitsi') {
+                let url = 'https://' + cfg.domain + '/' + encodeURIComponent(cfg.roomName);
+                if (cfg.jwt) url += '?jwt=' + encodeURIComponent(cfg.jwt);
+                if (cfg.userInfo && cfg.userInfo.displayName) {
+                    const sep = url.indexOf('#') === -1 ? '#' : '&';
+                    url += sep + 'userInfo.displayName="' + encodeURIComponent(cfg.userInfo.displayName) + '"';
+                }
+                return url;
+            }
+            return '';
+        },
+        copyLink() {
+            navigator.clipboard.writeText(this.joinUrl());
+            this.copied = true;
+            setTimeout(() => { this.copied = false; }, 1500);
+        },
+        async join() {
+            if (cfg.provider !== 'jitsi') {
+                alert(cfg.message || 'Provider no soportado');
+                return;
+            }
+            this.open = true;
+            this.ready = false;
+            // Cargar el SDK de Jitsi una vez
+            if (!window.JitsiMeetExternalAPI) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://' + cfg.domain + '/external_api.js';
+                    s.onload = resolve;
+                    s.onerror = () => reject(new Error('No se pudo cargar Jitsi'));
+                    document.head.appendChild(s);
+                });
+            }
+            await this.$nextTick();
+            const opts = {
+                roomName: cfg.roomName,
+                parentNode: this.$refs.container,
+                width: '100%',
+                height: '100%',
+                userInfo: cfg.userInfo,
+                configOverwrite: cfg.configOverwrite || {},
+                interfaceConfigOverwrite: cfg.interfaceConfigOverwrite || {},
+            };
+            if (cfg.jwt) opts.jwt = cfg.jwt;
+            this.api = new window.JitsiMeetExternalAPI(cfg.domain, opts);
+            this.api.addEventListener('videoConferenceJoined', () => { this.ready = true; });
+            this.api.addEventListener('readyToClose', () => { this.leave(); });
+        },
+        leave() {
+            if (this.api) { try { this.api.dispose(); } catch (e) {} this.api = null; }
+            this.open = false;
+            this.ready = false;
+        },
+    };
+}
+</script>
+<?php endif; ?>
+
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
     <div class="flex items-center gap-2 text-[12px] text-ink-400">
         <a href="<?= $url('/t/' . $slug . '/meetings') ?>" class="hover:text-ink-700">Reuniones</a> /
@@ -21,6 +89,79 @@ $manageUrl = rtrim($app->config['app']['url'], '/') . '/book/' . rawurlencode($p
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="lg:col-span-2 space-y-4">
+        <?php if ($conferenceConfig):
+            $providerLabel = $conferenceConfig['provider'] === 'livekit' ? 'LiveKit' : 'Jitsi Meet';
+            $isAudioOnly = !empty($conferenceConfig['audioOnly']);
+            $whenTs = strtotime($m['scheduled_at']);
+            $endTs  = strtotime($m['ends_at']);
+            $minutesToStart = (int)(($whenTs - time()) / 60);
+            $canJoin = !in_array($m['status'], ['cancelled','no_show','completed'], true);
+        ?>
+        <div class="card overflow-hidden" x-data="conferencePanel(<?= htmlspecialchars(json_encode($conferenceConfig), ENT_QUOTES) ?>)">
+            <div class="px-5 py-4 flex items-center justify-between gap-3 flex-wrap" style="background:linear-gradient(135deg,#0f0d18 0%,#1a1530 60%,#2a1f3d 100%);color:white">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl grid place-items-center" style="background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)">
+                        <i class="lucide lucide-<?= $isAudioOnly ? 'phone' : 'video' ?> text-[18px]"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-display font-extrabold text-[16px]"><?= $isAudioOnly ? 'Llamada de audio' : 'Video conferencia' ?></span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-[0.14em]" style="background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)"><?= $e($providerLabel) ?></span>
+                        </div>
+                        <div class="text-[11.5px]" style="color:rgba(255,255,255,.6)">
+                            <?php if ($minutesToStart > 60): ?>
+                                Empieza <?= $minutesToStart < 1440 ? 'en ' . floor($minutesToStart / 60) . 'h ' . ($minutesToStart % 60) . 'min' : 'el ' . date('d/m', $whenTs) . ' a las ' . date('H:i', $whenTs) ?>
+                            <?php elseif ($minutesToStart > 0): ?>
+                                Empieza en <?= $minutesToStart ?> min · room ya disponible
+                            <?php elseif (time() < $endTs): ?>
+                                <span style="color:#86efac">● En curso</span>
+                            <?php else: ?>
+                                Reunión finalizada · podés volver a entrar
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <?php if ($canJoin): ?>
+                        <button @click="join()" class="inline-flex items-center gap-2 h-10 px-5 rounded-xl font-semibold text-[13.5px] transition" style="background:white;color:#0f0d18;box-shadow:0 4px 14px -4px rgba(255,255,255,.3)">
+                            <i class="lucide lucide-video text-[14px]"></i> Iniciar conferencia
+                        </button>
+                        <a :href="joinUrl()" target="_blank" class="inline-flex items-center justify-center h-10 w-10 rounded-xl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.12)" data-tooltip="Abrir en nueva pestaña">
+                            <i class="lucide lucide-external-link text-[13px]"></i>
+                        </a>
+                        <button @click="copyLink()" class="inline-flex items-center justify-center h-10 w-10 rounded-xl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.12)" :data-tooltip="copied ? '¡Copiado!' : 'Copiar enlace'">
+                            <i class="lucide lucide-copy text-[13px]" x-show="!copied"></i>
+                            <i class="lucide lucide-check text-[13px]" x-show="copied" x-cloak></i>
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php if (!empty($m['meeting_url'])): ?>
+                <div class="px-5 py-2.5 text-[11.5px] flex items-center gap-2 truncate" style="background:#fafafb;border-bottom:1px solid var(--border);color:var(--ink-500)">
+                    <i class="lucide lucide-link-2 text-[12px]"></i>
+                    <span class="font-mono truncate"><?= $e($m['meeting_url']) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Embed area (toggled) -->
+            <div x-show="open" x-cloak x-transition>
+                <div class="relative" style="background:#000;height:600px">
+                    <div x-show="!ready" class="absolute inset-0 grid place-items-center text-white">
+                        <div class="text-center">
+                            <i class="lucide lucide-loader-2 text-[28px] animate-spin block mb-3"></i>
+                            <div class="text-[13px]" style="color:rgba(255,255,255,.7)">Cargando conferencia...</div>
+                        </div>
+                    </div>
+                    <div id="conf-host-container" x-ref="container" class="absolute inset-0"></div>
+                </div>
+                <div class="px-5 py-3 flex items-center justify-between" style="background:#fafafb;border-top:1px solid var(--border)">
+                    <div class="text-[12px] text-ink-500"><i class="lucide lucide-shield-check text-[12px]"></i> Conexión cifrada peer-to-peer · sin grabación automática</div>
+                    <button @click="leave()" class="text-[12px] font-semibold text-ink-700 hover:text-ink-900">Salir y minimizar</button>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="card card-pad">
             <div class="flex items-start gap-4 mb-4">
                 <div class="w-14 h-14 rounded-2xl grid place-items-center flex-shrink-0" style="background:<?= $e($m['type_color'] ?? '#7c5cff') ?>22;color:<?= $e($m['type_color'] ?? '#7c5cff') ?>">
