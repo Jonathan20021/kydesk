@@ -12,32 +12,54 @@ $manageUrl = rtrim($app->config['app']['url'], '/') . '/book/' . rawurlencode($p
 
 <?php if ($conferenceConfig): ?>
 <script>
-function conferencePanel(cfg) {
+function conferencePanel(init) {
     return {
-        cfg: cfg,
+        cfg: init.cfg || init, // backwards compat
+        startUrl: init.startUrl || null,
+        endUrl: init.endUrl || null,
+        csrf: init.csrf || null,
         api: null,
         open: false,
         ready: false,
         copied: false,
-        joinUrl() {
-            return cfg.joinUrl || '';
-        },
+        startedNotified: false,
+        joinUrl() { return (this.cfg.joinUrl) || ''; },
         copyLink() {
             navigator.clipboard.writeText(this.joinUrl());
             this.copied = true;
             setTimeout(() => { this.copied = false; }, 1500);
         },
+        // Fire-and-forget al backend para marcar started_at sin esperar webhook
+        notifyStart() {
+            if (this.startedNotified || !this.startUrl) return;
+            this.startedNotified = true;
+            try {
+                navigator.sendBeacon
+                    ? navigator.sendBeacon(this.startUrl, new URLSearchParams({_csrf: this.csrf}))
+                    : fetch(this.startUrl, { method:'POST', body: new URLSearchParams({_csrf: this.csrf}), keepalive: true });
+            } catch (e) {}
+        },
+        notifyEnd() {
+            if (!this.endUrl) return;
+            try {
+                navigator.sendBeacon
+                    ? navigator.sendBeacon(this.endUrl, new URLSearchParams({_csrf: this.csrf}))
+                    : fetch(this.endUrl, { method:'POST', body: new URLSearchParams({_csrf: this.csrf}), keepalive: true });
+            } catch (e) {}
+        },
         async join() {
+            const cfg = this.cfg;
             if (cfg.provider !== 'jitsi') {
                 alert(cfg.message || 'Provider no soportado');
                 return;
             }
-            // meet.jit.si gratis no soporta embed en producción → abrir en pestaña nueva
+            // Marcar inicio para que el cliente lo detecte (sin esperar webhook de JaaS)
+            this.notifyStart();
+
             if (cfg.embedMode === 'new_tab') {
                 window.open(this.joinUrl(), '_blank', 'noopener');
                 return;
             }
-            // Embed con SDK (8x8.vc o self-hosted)
             this.open = true;
             this.ready = false;
             if (!window.JitsiMeetExternalAPI) {
@@ -63,11 +85,13 @@ function conferencePanel(cfg) {
             this.api = new window.JitsiMeetExternalAPI(cfg.domain, opts);
             this.api.addEventListener('videoConferenceJoined', () => { this.ready = true; });
             this.api.addEventListener('readyToClose', () => { this.leave(); });
+            this.api.addEventListener('videoConferenceLeft', () => { this.notifyEnd(); });
         },
         leave() {
             if (this.api) { try { this.api.dispose(); } catch (e) {} this.api = null; }
             this.open = false;
             this.ready = false;
+            this.notifyEnd();
         },
     };
 }
@@ -93,7 +117,12 @@ function conferencePanel(cfg) {
             $minutesToStart = (int)(($whenTs - time()) / 60);
             $canJoin = !in_array($m['status'], ['cancelled','no_show','completed'], true);
         ?>
-        <div class="card overflow-hidden" x-data="conferencePanel(<?= htmlspecialchars(json_encode($conferenceConfig), ENT_QUOTES) ?>)">
+        <div class="card overflow-hidden" x-data='conferencePanel(<?= htmlspecialchars(json_encode([
+            'cfg'      => $conferenceConfig,
+            'startUrl' => $url('/t/' . $slug . '/meetings/' . $m['id'] . '/conference/start'),
+            'endUrl'   => $url('/t/' . $slug . '/meetings/' . $m['id'] . '/conference/end'),
+            'csrf'     => $csrf,
+        ]), ENT_QUOTES) ?>)'>
             <div class="px-5 py-4 flex items-center justify-between gap-3 flex-wrap" style="background:linear-gradient(135deg,#0f0d18 0%,#1a1530 60%,#2a1f3d 100%);color:white">
                 <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-xl grid place-items-center" style="background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)">

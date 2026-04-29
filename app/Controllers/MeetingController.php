@@ -676,6 +676,60 @@ class MeetingController extends Controller
     }
 
     /**
+     * Marca conference_started_at = NOW() (idempotente).
+     * Llamado por el JS del host cuando hace click en "Iniciar conferencia",
+     * sin esperar al webhook CONFERENCE_CREATED de JaaS.
+     * Esto permite que el cliente detecte "live" en el polling sin depender de que
+     * el tenant haya configurado el webhook en JaaS.
+     */
+    public function conferenceMarkStarted(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('meetings');
+        $this->requireCan('meetings.view');
+        $this->validateCsrf();
+
+        $id = (int)$params['id'];
+        $row = $this->db->one('SELECT id, conference_started_at FROM meetings WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if (!$row) $this->json(['ok' => false, 'error' => 'not_found'], 404);
+
+        if (empty($row['conference_started_at'])) {
+            $this->db->update('meetings', [
+                'conference_started_at' => date('Y-m-d H:i:s'),
+                'conference_ended_at'   => null,
+                'status'                => 'confirmed',
+            ], 'id=? AND tenant_id=?', [$id, $tenant->id]);
+        }
+        $this->json(['ok' => true, 'started_at' => date('Y-m-d H:i:s')]);
+    }
+
+    /**
+     * Marca conference_ended_at = NOW() y, si tuvo duración mínima, status=completed.
+     * Llamado por el JS del host al cerrar el embed o salir.
+     */
+    public function conferenceMarkEnded(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('meetings');
+        $this->requireCan('meetings.view');
+        $this->validateCsrf();
+
+        $id = (int)$params['id'];
+        $row = $this->db->one('SELECT id, status, conference_started_at, conference_ended_at FROM meetings WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if (!$row) $this->json(['ok' => false, 'error' => 'not_found'], 404);
+        if (!empty($row['conference_ended_at'])) $this->json(['ok' => true, 'already_ended' => true]);
+
+        $endedAt = date('Y-m-d H:i:s');
+        $update = ['conference_ended_at' => $endedAt];
+        if (in_array($row['status'], ['confirmed','scheduled'], true) && !empty($row['conference_started_at'])) {
+            $duration = strtotime($endedAt) - strtotime($row['conference_started_at']);
+            if ($duration >= 60) $update['status'] = 'completed';
+        }
+        $this->db->update('meetings', $update, 'id=? AND tenant_id=?', [$id, $tenant->id]);
+        $this->json(['ok' => true, 'ended_at' => $endedAt]);
+    }
+
+    /**
      * Rota el secret del webhook de JaaS.
      */
     public function rotateWebhookSecret(array $params): void
