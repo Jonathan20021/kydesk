@@ -10,12 +10,38 @@
         <div class="p-4 flex items-center gap-3" style="border-bottom:1px solid var(--border)">
             <div class="w-10 h-10 rounded-xl text-white grid place-items-center font-display font-bold text-[14px]" style="background:linear-gradient(135deg,#7c5cff,#a78bfa)"><?= $e(strtoupper(substr($convo['visitor_name'] ?: 'V', 0, 1))) ?></div>
             <div class="flex-1 min-w-0">
-                <div class="font-display font-bold text-[14px]"><?= $e($convo['visitor_name'] ?: 'Visitante') ?></div>
+                <div class="font-display font-bold text-[14px] flex items-center gap-2">
+                    <?= $e($convo['visitor_name'] ?: 'Visitante') ?>
+                    <?php if ((int)($convo['ai_takeover'] ?? 0) === 1): ?>
+                        <span class="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full" style="background:#ede9fe;color:#6d28d9">
+                            <i class="lucide lucide-sparkles text-[10px]"></i> IA atendiendo
+                        </span>
+                    <?php endif; ?>
+                </div>
                 <div class="text-[11.5px] text-ink-400">
                     <?= $e($convo['visitor_email'] ?: '—') ?>
                     <?php if (!empty($convo['page_url'])): ?>· <a href="<?= $e($convo['page_url']) ?>" target="_blank" class="hover:text-ink-700">Página</a><?php endif; ?>
                 </div>
             </div>
+            <?php
+                $aiOn = (int)($convo['ai_takeover'] ?? 0) === 1;
+                $aiAvailable = $aiAvailable ?? false;
+            ?>
+            <?php if ($aiAvailable && $convo['status'] !== 'closed'): ?>
+                <form method="POST" action="<?= $url('/t/' . $slug . '/chat/' . (int)$convo['id'] . '/ai-toggle') ?>">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <input type="hidden" name="enable" value="<?= $aiOn ? '0' : '1' ?>">
+                    <?php if ($aiOn): ?>
+                        <button class="btn btn-soft btn-sm" style="color:#7c3aed" title="Volver a tomar la conversación">
+                            <i class="lucide lucide-user-check text-[13px]"></i> Tomar de la IA
+                        </button>
+                    <?php else: ?>
+                        <button class="btn btn-soft btn-sm" style="color:#7c3aed" title="Que la IA responda en automático">
+                            <i class="lucide lucide-sparkles text-[13px]"></i> Pasar a IA
+                        </button>
+                    <?php endif; ?>
+                </form>
+            <?php endif; ?>
             <?php if ($convo['ticket_id']): ?>
                 <a href="<?= $url('/t/' . $slug . '/tickets/' . (int)$convo['ticket_id']) ?>" class="btn btn-soft btn-sm"><i class="lucide lucide-link text-[13px]"></i> Ticket</a>
             <?php else: ?>

@@ -76,6 +76,8 @@ chataiAdd($pdo, 'chat_conversations', 'ai_tokens_out',
     "ALTER TABLE chat_conversations ADD COLUMN ai_tokens_out BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER ai_tokens_in");
 chataiAdd($pdo, 'chat_conversations', 'ai_escalated_at',
     "ALTER TABLE chat_conversations ADD COLUMN ai_escalated_at DATETIME NULL AFTER ai_tokens_out");
+chataiAdd($pdo, 'chat_conversations', 'ai_takeover',
+    "ALTER TABLE chat_conversations ADD COLUMN ai_takeover TINYINT(1) NOT NULL DEFAULT 0 AFTER ai_escalated_at");
 
 echo "\n→ chat_messages\n";
 chataiAdd($pdo, 'chat_messages', 'is_ai',

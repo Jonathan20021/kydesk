@@ -58,12 +58,15 @@ class ChatController extends Controller
         $this->db->run('UPDATE chat_messages SET is_seen = 1 WHERE conversation_id = ? AND sender_type = "visitor"', [$id]);
 
         $users = $this->db->all('SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name', [$tenant->id]);
+        $widget = $this->db->one('SELECT * FROM chat_widgets WHERE id = ?', [(int)$convo['widget_id']]);
 
         $this->render('chat/show', [
             'title' => 'Chat #' . $id,
             'convo' => $convo,
             'messages' => $messages,
             'users' => $users,
+            'widget' => $widget,
+            'aiAvailable' => \App\Core\Plan::has($tenant, 'ai_assist') && in_array((string)($widget['ai_fallback_mode'] ?? 'off'), ['no_agent','always'], true),
         ]);
     }
 
@@ -91,11 +94,112 @@ class ChatController extends Controller
             'last_message_at' => date('Y-m-d H:i:s'),
             'status' => 'assigned',
             'assigned_to' => $convo['assigned_to'] ?: $this->auth->userId(),
+            'ai_takeover' => 0,
         ], 'id = :id', ['id' => $id]);
 
         $isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
         if ($isAjax) $this->json(['ok'=>true]);
         else $this->redirect('/t/' . $tenant->slug . '/chat/' . $id);
+    }
+
+    /**
+     * Activa o desactiva la respuesta IA automática para esta conversación.
+     * Sobrescribe el modo del widget — útil cuando el agente quiere derivar a la IA
+     * mientras se ocupa de otra cosa, o quiere retomar el control.
+     */
+    public function aiToggle(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('live_chat');
+        $this->requireCan('chat.reply');
+        $this->validateCsrf();
+
+        if (!\App\Core\Plan::has($tenant, 'ai_assist')) {
+            $this->session->flash('error', 'IA no disponible en tu plan.');
+            $this->redirect('/t/' . $tenant->slug . '/chat/' . (int)$params['id']);
+        }
+
+        $id = (int)$params['id'];
+        $convo  = $this->db->one('SELECT * FROM chat_conversations WHERE id=? AND tenant_id=?', [$id, $tenant->id]);
+        if (!$convo) { $this->redirect('/t/' . $tenant->slug . '/chat'); }
+        $widget = $this->db->one('SELECT * FROM chat_widgets WHERE id=?', [(int)$convo['widget_id']]);
+
+        $enable = (int)($this->input('enable', 0)) === 1;
+
+        if ($enable) {
+            // El widget tiene que tener la IA mínimamente disponible.
+            $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
+            if ($mode === 'off') {
+                $this->session->flash('error', 'La IA está apagada en la configuración del widget. Activala primero en Configurar widget.');
+                $this->redirect('/t/' . $tenant->slug . '/chat/' . $id);
+            }
+            // Verificación de cuota antes de prometer al agente que la IA va a responder.
+            $guard = \App\Core\ChatAi::guard(\App\Core\Tenant::find($tenant->id));
+            if (!$guard['ok']) {
+                $this->session->flash('error', 'IA no disponible: ' . $guard['error']);
+                $this->redirect('/t/' . $tenant->slug . '/chat/' . $id);
+            }
+
+            // Reset turnos + limpiar escalación previa para dar a la IA un budget fresco.
+            $this->db->run(
+                'UPDATE chat_conversations
+                    SET ai_takeover = 1,
+                        ai_turns = 0,
+                        ai_escalated_at = NULL,
+                        last_message_at = ?
+                  WHERE id = ? AND tenant_id = ?',
+                [date('Y-m-d H:i:s'), $id, $tenant->id]
+            );
+            $persona = trim((string)($widget['ai_persona_name'] ?? '')) ?: 'el asistente IA';
+            $this->db->insert('chat_messages', [
+                'tenant_id'       => $tenant->id,
+                'conversation_id' => $id,
+                'sender_type'     => 'system',
+                'user_id'         => null,
+                'is_ai'           => 0,
+                'body'            => "Te conectamos con $persona. Si necesitás un agente humano, podés pedirlo en cualquier momento.",
+            ]);
+            $this->logAudit($tenant->id, 'chat.ai.takeover_on', 'chat_conversation', $id, ['by' => $this->auth->userId()]);
+            $this->session->flash('success', 'IA activada para esta conversación.');
+        } else {
+            $this->db->run(
+                'UPDATE chat_conversations
+                    SET ai_takeover = 0,
+                        assigned_to = COALESCE(assigned_to, ?),
+                        status = CASE WHEN status = "open" THEN "assigned" ELSE status END,
+                        last_message_at = ?
+                  WHERE id = ? AND tenant_id = ?',
+                [$this->auth->userId(), date('Y-m-d H:i:s'), $id, $tenant->id]
+            );
+            $this->db->insert('chat_messages', [
+                'tenant_id'       => $tenant->id,
+                'conversation_id' => $id,
+                'sender_type'     => 'system',
+                'user_id'         => null,
+                'is_ai'           => 0,
+                'body'            => 'Un agente humano se incorporó a la conversación.',
+            ]);
+            $this->logAudit($tenant->id, 'chat.ai.takeover_off', 'chat_conversation', $id, ['by' => $this->auth->userId()]);
+            $this->session->flash('success', 'Tomaste el control de la conversación.');
+        }
+
+        $this->redirect('/t/' . $tenant->slug . '/chat/' . $id);
+    }
+
+    protected function logAudit(int $tenantId, string $action, string $entity, int $entityId, array $meta): void
+    {
+        try {
+            $this->db->insert('audit_logs', [
+                'tenant_id' => $tenantId,
+                'user_id'   => $this->auth->userId(),
+                'action'    => substr($action, 0, 100),
+                'entity'    => $entity,
+                'entity_id' => $entityId,
+                'meta'      => json_encode($meta),
+                'ip'        => $_SERVER['REMOTE_ADDR'] ?? null,
+                'ua'        => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
+            ]);
+        } catch (\Throwable $e) { /* swallow */ }
     }
 
     public function close(array $params): void

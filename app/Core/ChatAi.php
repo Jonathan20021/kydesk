@@ -43,12 +43,22 @@ class ChatAi
         $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
         if ($mode === 'off') return ['respond' => false, 'reason' => 'mode_off'];
         if (($convo['status'] ?? 'open') === 'closed') return ['respond' => false, 'reason' => 'closed'];
-        if (!empty($convo['ai_escalated_at'])) return ['respond' => false, 'reason' => 'escalated'];
+
+        $takeover = (int)($convo['ai_takeover'] ?? 0) === 1;
+
+        // Sin takeover explícito, una escalación previa bloquea respuestas IA.
+        // Con takeover, el agente está re-activando la IA a sabiendas.
+        if (!$takeover && !empty($convo['ai_escalated_at'])) {
+            return ['respond' => false, 'reason' => 'escalated'];
+        }
 
         $maxTurns = (int)($widget['ai_max_turns'] ?? 6);
         if ($maxTurns > 0 && (int)($convo['ai_turns'] ?? 0) >= $maxTurns) {
             return ['respond' => false, 'reason' => 'max_turns'];
         }
+
+        // Takeover explícito por un agente: la IA responde aunque la convo esté asignada.
+        if ($takeover) return ['respond' => true, 'reason' => 'takeover'];
 
         if ($mode === 'no_agent') {
             // Solo responde si nadie humano tomó la conversación.

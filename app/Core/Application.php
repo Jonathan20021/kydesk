@@ -252,6 +252,7 @@ class Application
         $r->post('/t/{slug}/chat/{id}/reply', ['App\Controllers\ChatController', 'reply']);
         $r->post('/t/{slug}/chat/{id}/close', ['App\Controllers\ChatController', 'close']);
         $r->post('/t/{slug}/chat/{id}/to-ticket', ['App\Controllers\ChatController', 'convertToTicket']);
+        $r->post('/t/{slug}/chat/{id}/ai-toggle', ['App\Controllers\ChatController', 'aiToggle']);
         $r->get('/chat-widget/{publicKey}.js', ['App\Controllers\ChatController', 'widgetScript']);
         $r->post('/chat-api/start', ['App\Controllers\ChatController', 'visitorStart']);
         $r->post('/chat-api/send', ['App\Controllers\ChatController', 'visitorSend']);
