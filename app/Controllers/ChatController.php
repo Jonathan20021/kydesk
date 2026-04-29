@@ -317,125 +317,248 @@ class ChatController extends Controller
 
     protected function buildWidgetJs(string $cfgJson): string
     {
-        return <<<JS
-(function(){
-  var cfg = $cfgJson;
+        $body = <<<'JS'
+  if (window.__kydChatLoaded) return;
+  window.__kydChatLoaded = true;
+
   var apiBase = cfg.apiUrl;
   var STORE_KEY = 'kydesk_chat_token_' + cfg.publicKey;
-  var lastId = 0; var pollTimer = null; var conversation = null;
+  var lastId = 0; var pollTimer = null;
 
-  // Styles
-  var css = `
-  .kyd-chat-bubble { position:fixed; bottom:20px; right:20px; width:60px; height:60px; border-radius:50%; background:\${cfg.color}; color:white; display:grid; place-items:center; cursor:pointer; box-shadow:0 8px 24px -6px rgba(0,0,0,.25); z-index:99999; transition:transform .2s; }
-  .kyd-chat-bubble:hover { transform:scale(1.05); }
-  .kyd-chat-bubble svg { width:28px; height:28px; }
-  .kyd-chat-panel { position:fixed; bottom:90px; right:20px; width:360px; max-width:calc(100vw - 40px); height:520px; max-height:calc(100vh - 110px); background:white; border-radius:18px; box-shadow:0 20px 50px -12px rgba(0,0,0,.25); z-index:99999; display:flex; flex-direction:column; overflow:hidden; font-family:system-ui,-apple-system,sans-serif; opacity:0; transform:translateY(10px); pointer-events:none; transition:all .25s; }
-  .kyd-chat-panel.open { opacity:1; transform:translateY(0); pointer-events:auto; }
-  .kyd-chat-header { padding:16px 18px; background:\${cfg.color}; color:white; }
-  .kyd-chat-header strong { font-weight:700; font-size:15px; }
-  .kyd-chat-header div { font-size:11.5px; opacity:.85; margin-top:2px; }
-  .kyd-chat-close { position:absolute; top:14px; right:14px; cursor:pointer; opacity:.8; }
-  .kyd-chat-msgs { flex:1; overflow-y:auto; padding:14px; background:#fafafb; display:flex; flex-direction:column; gap:8px; }
-  .kyd-msg { padding:8px 12px; border-radius:14px; font-size:13.5px; max-width:80%; word-wrap:break-word; line-height:1.45; }
-  .kyd-msg.agent, .kyd-msg.system { background:white; border:1px solid #ececef; align-self:flex-start; }
-  .kyd-msg.visitor { background:\${cfg.color}; color:white; align-self:flex-end; }
-  .kyd-chat-form { padding:10px; border-top:1px solid #ececef; display:flex; gap:8px; background:white; }
-  .kyd-chat-form input, .kyd-chat-form textarea { flex:1; border:1px solid #ececef; border-radius:10px; padding:8px 12px; font-size:13.5px; outline:none; resize:none; font-family:inherit; }
-  .kyd-chat-form input:focus, .kyd-chat-form textarea:focus { border-color:\${cfg.color}; }
-  .kyd-chat-form button { background:\${cfg.color}; color:white; border:none; border-radius:10px; padding:0 14px; cursor:pointer; font-weight:600; font-size:13px; }
-  .kyd-prestart { padding:18px; }
-  .kyd-prestart input { width:100%; padding:10px 14px; border:1px solid #ececef; border-radius:10px; font-size:13.5px; margin-top:8px; outline:none; }
-  .kyd-prestart input:focus { border-color:\${cfg.color}; }
-  .kyd-prestart button { width:100%; background:\${cfg.color}; color:white; border:none; border-radius:10px; padding:11px; cursor:pointer; font-weight:600; font-size:13.5px; margin-top:14px; }
-  .kyd-typing { display:inline-block; padding:8px 12px; background:white; border:1px solid #ececef; border-radius:14px; align-self:flex-start; font-size:12px; color:#8e8e9a; }
-  `;
-  var style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
+  function hexToRgb(h) {
+    var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h || '');
+    return m ? [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)] : [124,92,255];
+  }
+  function rgbToCss(rgb, a) { return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (a==null?1:a) + ')'; }
+  function luminance(r,g,b){ return 0.2126*r + 0.7152*g + 0.0722*b; }
+  function readableOn(rgb) { return luminance(rgb[0],rgb[1],rgb[2]) > 160 ? '#1a1a1a' : '#ffffff'; }
 
-  // Bubble
-  var bubble = document.createElement('div'); bubble.className='kyd-chat-bubble';
-  bubble.innerHTML = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>';
-  document.body.appendChild(bubble);
-
-  var panel = document.createElement('div'); panel.className='kyd-chat-panel';
-  document.body.appendChild(panel);
-
-  bubble.onclick = function() { panel.classList.toggle('open'); if (panel.classList.contains('open')) render(); };
-
-  function api(path, body, method) {
-    method = method || 'POST';
-    var opts = { method: method, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
-    if (body) {
-      opts.body = Object.keys(body).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(body[k]); }).join('&');
-    }
-    return fetch(apiBase + path, opts).then(function(r){ return r.json(); });
+  function detectHostTheme() {
+    try {
+      var el = document.body || document.documentElement;
+      while (el) {
+        var bg = window.getComputedStyle(el).backgroundColor;
+        var m = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\s*\)/.exec(bg);
+        if (m) {
+          var alpha = m[4] === undefined ? 1 : parseFloat(m[4]);
+          if (alpha > 0.05) {
+            var lum = luminance(+m[1], +m[2], +m[3]);
+            return lum < 128 ? 'dark' : 'light';
+          }
+        }
+        el = el.parentElement;
+      }
+    } catch(e) {}
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    } catch(e) {}
+    return 'light';
   }
 
-  function getToken() { try { return localStorage.getItem(STORE_KEY); } catch(e) { return null; } }
-  function setToken(t) { try { localStorage.setItem(STORE_KEY, t); } catch(e) {} }
+  function buildPalette(theme, color) {
+    var primaryRgb = hexToRgb(color);
+    var onPrimary = readableOn(primaryRgb);
+    if (theme === 'dark') {
+      return {
+        primary: color, onPrimary: onPrimary,
+        panelBg: '#1c1d24', panelText: '#f3f3f6',
+        listBg: '#15161c',
+        msgBg: '#272832', msgBorder: 'rgba(255,255,255,0.08)', msgText: '#f3f3f6',
+        inputBg: '#272832', inputText: '#f3f3f6', inputBorder: 'rgba(255,255,255,0.12)',
+        muted: '#9c9caa', divider: 'rgba(255,255,255,0.08)',
+        focusRing: rgbToCss(primaryRgb, 0.35)
+      };
+    }
+    return {
+      primary: color, onPrimary: onPrimary,
+      panelBg: '#ffffff', panelText: '#1a1a1a',
+      listBg: '#fafafb',
+      msgBg: '#ffffff', msgBorder: '#ececef', msgText: '#1a1a1a',
+      inputBg: '#ffffff', inputText: '#1a1a1a', inputBorder: '#ececef',
+      muted: '#8e8e9a', divider: '#ececef',
+      focusRing: rgbToCss(primaryRgb, 0.25)
+    };
+  }
 
-  function render() {
-    var token = getToken();
-    panel.innerHTML = '';
-    var header = document.createElement('div'); header.className='kyd-chat-header';
-    header.innerHTML = '<strong>'+ cfg.tenantName +'</strong><div>'+ cfg.welcome +'</div><span class="kyd-chat-close">×</span>';
-    panel.appendChild(header);
-    header.querySelector('.kyd-chat-close').onclick = function() { panel.classList.remove('open'); };
+  function init() {
+    var theme = detectHostTheme();
+    var p = buildPalette(theme, cfg.color);
 
-    if (!token) {
-      var pre = document.createElement('div'); pre.className='kyd-prestart';
-      pre.innerHTML = '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Empezá una conversación</div>'
-        + '<input id="kyd-name" placeholder="Tu nombre" />'
-        + (cfg.requireEmail ? '<input id="kyd-email" type="email" placeholder="Tu email" />' : '')
-        + '<button id="kyd-start">Iniciar chat</button>';
-      panel.appendChild(pre);
-      document.getElementById('kyd-start').onclick = function() {
-        var name = (document.getElementById('kyd-name')||{}).value || '';
-        var email = (document.getElementById('kyd-email')||{}).value || '';
-        api('/start', { public_key: cfg.publicKey, name: name, email: email, page_url: location.href }).then(function(r){
-          if (r.ok) { setToken(r.token); render(); }
+    var host = document.createElement('div');
+    host.id = 'kyd-chat-widget-host';
+    host.style.cssText = 'all: initial; position: static;';
+    document.body.appendChild(host);
+    var root = host.attachShadow ? host.attachShadow({mode:'open'}) : host;
+
+    var css = `
+      :host, .kyd-root { all: initial; }
+      .kyd-root, .kyd-root * { box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+      .kyd-bubble { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: ${p.primary}; color: ${p.onPrimary}; display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 24px -6px rgba(0,0,0,.25); z-index: 2147483647; transition: transform .2s; border: 0; padding: 0; }
+      .kyd-bubble:hover { transform: scale(1.05); }
+      .kyd-bubble svg { width: 28px; height: 28px; pointer-events: none; }
+      .kyd-panel { position: fixed; bottom: 90px; right: 20px; width: 360px; max-width: calc(100vw - 40px); height: 520px; max-height: calc(100vh - 110px); background: ${p.panelBg}; color: ${p.panelText}; border-radius: 18px; box-shadow: 0 20px 50px -12px rgba(0,0,0,.35); z-index: 2147483647; display: flex; flex-direction: column; overflow: hidden; opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .25s, transform .25s; }
+      .kyd-panel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+      .kyd-header { padding: 16px 44px 16px 18px; background: ${p.primary}; color: ${p.onPrimary}; position: relative; flex: 0 0 auto; }
+      .kyd-header strong { font-weight: 700; font-size: 15px; display: block; }
+      .kyd-header .kyd-sub { font-size: 11.5px; opacity: .9; margin-top: 2px; display: block; }
+      .kyd-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; background: transparent; border: 0; color: ${p.onPrimary}; opacity: .85; cursor: pointer; font-size: 20px; line-height: 1; padding: 0; border-radius: 6px; }
+      .kyd-close:hover { opacity: 1; background: rgba(0,0,0,0.15); }
+      .kyd-msgs { flex: 1 1 auto; overflow-y: auto; padding: 14px; background: ${p.listBg}; display: flex; flex-direction: column; gap: 8px; }
+      .kyd-msg { padding: 8px 12px; border-radius: 14px; font-size: 13.5px; max-width: 80%; word-wrap: break-word; line-height: 1.45; }
+      .kyd-msg.agent, .kyd-msg.system { background: ${p.msgBg}; color: ${p.msgText}; border: 1px solid ${p.msgBorder}; align-self: flex-start; }
+      .kyd-msg.visitor { background: ${p.primary}; color: ${p.onPrimary}; align-self: flex-end; }
+      .kyd-form { padding: 10px; border-top: 1px solid ${p.divider}; display: flex; gap: 8px; background: ${p.panelBg}; flex: 0 0 auto; }
+      .kyd-form textarea { flex: 1; border: 1px solid ${p.inputBorder}; background: ${p.inputBg}; color: ${p.inputText}; border-radius: 10px; padding: 9px 12px; font-size: 13.5px; outline: none; resize: none; font-family: inherit; line-height: 1.4; min-height: 38px; max-height: 120px; }
+      .kyd-form textarea:focus { border-color: ${p.primary}; box-shadow: 0 0 0 3px ${p.focusRing}; }
+      .kyd-form textarea::placeholder { color: ${p.muted}; opacity: 1; }
+      .kyd-form button { background: ${p.primary}; color: ${p.onPrimary}; border: 0; border-radius: 10px; padding: 0 14px; cursor: pointer; font-weight: 600; font-size: 13px; min-height: 38px; }
+      .kyd-prestart { padding: 18px; overflow-y: auto; }
+      .kyd-prestart h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px 0; color: ${p.panelText}; }
+      .kyd-prestart input { width: 100%; padding: 10px 14px; border: 1px solid ${p.inputBorder}; background: ${p.inputBg}; color: ${p.inputText}; border-radius: 10px; font-size: 13.5px; margin-top: 8px; outline: none; font-family: inherit; }
+      .kyd-prestart input:focus { border-color: ${p.primary}; box-shadow: 0 0 0 3px ${p.focusRing}; }
+      .kyd-prestart input::placeholder { color: ${p.muted}; opacity: 1; }
+      .kyd-prestart button { width: 100%; background: ${p.primary}; color: ${p.onPrimary}; border: 0; border-radius: 10px; padding: 11px; cursor: pointer; font-weight: 600; font-size: 13.5px; margin-top: 14px; }
+      .kyd-msgs::-webkit-scrollbar, .kyd-prestart::-webkit-scrollbar { width: 8px; }
+      .kyd-msgs::-webkit-scrollbar-thumb, .kyd-prestart::-webkit-scrollbar-thumb { background: ${p.inputBorder}; border-radius: 4px; }
+      @media (max-width: 480px) {
+        .kyd-panel { right: 10px; left: 10px; bottom: 86px; width: auto; max-width: none; height: calc(100vh - 110px); }
+        .kyd-bubble { right: 14px; bottom: 14px; }
+      }
+    `;
+
+    var styleEl = document.createElement('style');
+    styleEl.textContent = css;
+    root.appendChild(styleEl);
+
+    var rootDiv = document.createElement('div');
+    rootDiv.className = 'kyd-root';
+    root.appendChild(rootDiv);
+
+    var bubble = document.createElement('button');
+    bubble.type = 'button';
+    bubble.className = 'kyd-bubble';
+    bubble.setAttribute('aria-label', 'Abrir chat');
+    bubble.innerHTML = '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>';
+    rootDiv.appendChild(bubble);
+
+    var panel = document.createElement('div');
+    panel.className = 'kyd-panel';
+    rootDiv.appendChild(panel);
+
+    bubble.onclick = function() {
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) render(panel);
+      else stopPolling();
+    };
+
+    function api(path, body, method) {
+      method = method || 'POST';
+      var opts = { method: method, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
+      if (body) {
+        opts.body = Object.keys(body).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(body[k]); }).join('&');
+      }
+      return fetch(apiBase + path, opts).then(function(r){ return r.json(); });
+    }
+
+    function getToken() { try { return localStorage.getItem(STORE_KEY); } catch(e) { return null; } }
+    function setToken(t) { try { localStorage.setItem(STORE_KEY, t); } catch(e) {} }
+
+    function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+    function render(panelEl) {
+      var token = getToken();
+      panelEl.innerHTML = '';
+
+      var header = document.createElement('div');
+      header.className = 'kyd-header';
+      var hStrong = document.createElement('strong'); hStrong.textContent = cfg.tenantName || 'Chat';
+      var hSub = document.createElement('span'); hSub.className = 'kyd-sub'; hSub.textContent = cfg.welcome || '';
+      var hClose = document.createElement('button'); hClose.type = 'button'; hClose.className = 'kyd-close'; hClose.setAttribute('aria-label', 'Cerrar'); hClose.textContent = '×';
+      header.appendChild(hStrong); header.appendChild(hSub); header.appendChild(hClose);
+      panelEl.appendChild(header);
+      hClose.onclick = function() { panel.classList.remove('open'); stopPolling(); };
+
+      if (!token) {
+        var pre = document.createElement('div'); pre.className = 'kyd-prestart';
+        var h3 = document.createElement('h3'); h3.textContent = 'Empezá una conversación';
+        var nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.placeholder = 'Tu nombre';
+        pre.appendChild(h3); pre.appendChild(nameInput);
+        var emailInput = null;
+        if (cfg.requireEmail) {
+          emailInput = document.createElement('input'); emailInput.type = 'email'; emailInput.placeholder = 'Tu email';
+          pre.appendChild(emailInput);
+        }
+        var startBtn = document.createElement('button'); startBtn.type = 'button'; startBtn.textContent = 'Iniciar chat';
+        pre.appendChild(startBtn);
+        panelEl.appendChild(pre);
+        startBtn.onclick = function() {
+          api('/start', {
+            public_key: cfg.publicKey,
+            name: nameInput.value || '',
+            email: emailInput ? emailInput.value : '',
+            page_url: location.href
+          }).then(function(r){ if (r && r.ok) { setToken(r.token); render(panelEl); } });
+        };
+        setTimeout(function(){ try { nameInput.focus(); } catch(e){} }, 50);
+        return;
+      }
+
+      var msgsBox = document.createElement('div'); msgsBox.className = 'kyd-msgs';
+      panelEl.appendChild(msgsBox);
+      var form = document.createElement('form'); form.className = 'kyd-form';
+      var textarea = document.createElement('textarea'); textarea.rows = 1; textarea.placeholder = 'Escribí un mensaje...';
+      var sendBtn = document.createElement('button'); sendBtn.type = 'submit'; sendBtn.textContent = 'Enviar';
+      form.appendChild(textarea); form.appendChild(sendBtn);
+      panelEl.appendChild(form);
+
+      form.onsubmit = function(e) {
+        e.preventDefault();
+        var body = textarea.value.trim(); if (!body) return;
+        api('/send', { token: token, body: body }).then(function(r){
+          if (r && r.ok) { textarea.value = ''; poll(msgsBox); }
         });
       };
-      return;
+      textarea.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (typeof form.requestSubmit === 'function') form.requestSubmit();
+          else form.dispatchEvent(new Event('submit', {cancelable:true}));
+        }
+      });
+      setTimeout(function(){ try { textarea.focus(); } catch(e){} }, 50);
+
+      lastId = 0;
+      poll(msgsBox);
+      stopPolling();
+      pollTimer = setInterval(function(){
+        if (!msgsBox.isConnected) { stopPolling(); return; }
+        poll(msgsBox);
+      }, 3000);
     }
 
-    var msgs = document.createElement('div'); msgs.className='kyd-chat-msgs'; msgs.id='kyd-msgs';
-    panel.appendChild(msgs);
-    var form = document.createElement('form'); form.className='kyd-chat-form';
-    form.innerHTML = '<textarea id="kyd-input" rows="1" placeholder="Escribí un mensaje..."></textarea><button type="submit">Enviar</button>';
-    panel.appendChild(form);
-    form.onsubmit = function(e) {
-      e.preventDefault();
-      var input = document.getElementById('kyd-input');
-      var body = input.value.trim(); if (!body) return;
-      api('/send', { token: token, body: body }).then(function(r){
-        if (r.ok) { input.value=''; poll(); }
-      });
-    };
-    var input = form.querySelector('textarea');
-    input.addEventListener('keydown', function(e){ if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); form.dispatchEvent(new Event('submit')); } });
-
-    lastId = 0;
-    poll();
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(poll, 3000);
+    function poll(msgsBox) {
+      var token = getToken(); if (!token) return;
+      fetch(apiBase + '/poll?token=' + encodeURIComponent(token) + '&since=' + lastId).then(function(r){ return r.json(); }).then(function(r){
+        if (!r || !r.ok) return;
+        if (!msgsBox || !msgsBox.isConnected) return;
+        r.messages.forEach(function(m) {
+          if (m.id <= lastId) return;
+          lastId = m.id;
+          var el = document.createElement('div'); el.className = 'kyd-msg ' + m.sender;
+          el.textContent = m.body;
+          msgsBox.appendChild(el);
+        });
+        msgsBox.scrollTop = msgsBox.scrollHeight;
+      }).catch(function(){});
+    }
   }
 
-  function poll() {
-    var token = getToken(); if (!token) return;
-    fetch(apiBase + '/poll?token=' + encodeURIComponent(token) + '&since=' + lastId).then(function(r){ return r.json(); }).then(function(r){
-      if (!r.ok) return;
-      var box = document.getElementById('kyd-msgs'); if (!box) return;
-      r.messages.forEach(function(m) {
-        if (m.id <= lastId) return;
-        lastId = m.id;
-        var el = document.createElement('div'); el.className='kyd-msg ' + m.sender;
-        el.textContent = m.body;
-        box.appendChild(el);
-      });
-      box.scrollTop = box.scrollHeight;
-    });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
-})();
 JS;
+        return '(function(cfg){' . $body . '})(' . $cfgJson . ');';
     }
 }
