@@ -98,7 +98,6 @@ $publicUrl = rtrim($app->config['app']['url'], '/') . '/book/' . rawurlencode($p
             <div class="divide-y" style="border-color:var(--border)">
                 <?php foreach ($upcoming as $m):
                     $when = strtotime($m['scheduled_at']);
-                    $dayLabel = strftime ? '' : '';
                     $isToday = date('Y-m-d', $when) === date('Y-m-d');
                     $isTomorrow = date('Y-m-d', $when) === date('Y-m-d', strtotime('+1 day'));
                 ?>

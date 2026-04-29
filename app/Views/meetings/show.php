@@ -20,16 +20,7 @@ function conferencePanel(cfg) {
         ready: false,
         copied: false,
         joinUrl() {
-            if (cfg.provider === 'jitsi') {
-                let url = 'https://' + cfg.domain + '/' + encodeURIComponent(cfg.roomName);
-                if (cfg.jwt) url += '?jwt=' + encodeURIComponent(cfg.jwt);
-                if (cfg.userInfo && cfg.userInfo.displayName) {
-                    const sep = url.indexOf('#') === -1 ? '#' : '&';
-                    url += sep + 'userInfo.displayName="' + encodeURIComponent(cfg.userInfo.displayName) + '"';
-                }
-                return url;
-            }
-            return '';
+            return cfg.joinUrl || '';
         },
         copyLink() {
             navigator.clipboard.writeText(this.joinUrl());
@@ -41,9 +32,14 @@ function conferencePanel(cfg) {
                 alert(cfg.message || 'Provider no soportado');
                 return;
             }
+            // meet.jit.si gratis no soporta embed en producción → abrir en pestaña nueva
+            if (cfg.embedMode === 'new_tab') {
+                window.open(this.joinUrl(), '_blank', 'noopener');
+                return;
+            }
+            // Embed con SDK (8x8.vc o self-hosted)
             this.open = true;
             this.ready = false;
-            // Cargar el SDK de Jitsi una vez
             if (!window.JitsiMeetExternalAPI) {
                 await new Promise((resolve, reject) => {
                     const s = document.createElement('script');
@@ -122,13 +118,13 @@ function conferencePanel(cfg) {
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <?php if ($canJoin): ?>
+                    <?php if ($canJoin):
+                        $newTabMode = ($conferenceConfig['embedMode'] ?? 'iframe') === 'new_tab';
+                    ?>
                         <button @click="join()" class="inline-flex items-center gap-2 h-10 px-5 rounded-xl font-semibold text-[13.5px] transition" style="background:white;color:#0f0d18;box-shadow:0 4px 14px -4px rgba(255,255,255,.3)">
-                            <i class="lucide lucide-video text-[14px]"></i> Iniciar conferencia
+                            <i class="lucide lucide-<?= $newTabMode ? 'external-link' : 'video' ?> text-[14px]"></i>
+                            <?= $newTabMode ? 'Abrir conferencia' : 'Iniciar conferencia' ?>
                         </button>
-                        <a :href="joinUrl()" target="_blank" class="inline-flex items-center justify-center h-10 w-10 rounded-xl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.12)" data-tooltip="Abrir en nueva pestaña">
-                            <i class="lucide lucide-external-link text-[13px]"></i>
-                        </a>
                         <button @click="copyLink()" class="inline-flex items-center justify-center h-10 w-10 rounded-xl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.12)" :data-tooltip="copied ? '¡Copiado!' : 'Copiar enlace'">
                             <i class="lucide lucide-copy text-[13px]" x-show="!copied"></i>
                             <i class="lucide lucide-check text-[13px]" x-show="copied" x-cloak></i>
@@ -136,6 +132,12 @@ function conferencePanel(cfg) {
                     <?php endif; ?>
                 </div>
             </div>
+            <?php if (($conferenceConfig['embedMode'] ?? 'iframe') === 'new_tab'): ?>
+                <div class="px-5 py-2.5 text-[11.5px] flex items-center gap-2" style="background:#fffbeb;border-bottom:1px solid #fde68a;color:#92400e">
+                    <i class="lucide lucide-info text-[12px]"></i>
+                    <span><strong>meet.jit.si gratis:</strong> abrimos en pestaña nueva para evitar el límite de 5 min en embed. Para embebido sin cortes configurá <a href="<?= $url('/t/' . $slug . '/meetings/settings') ?>" class="underline font-semibold">8x8.vc o self-hosted</a>.</span>
+                </div>
+            <?php endif; ?>
             <?php if (!empty($m['meeting_url'])): ?>
                 <div class="px-5 py-2.5 text-[11.5px] flex items-center gap-2 truncate" style="background:#fafafb;border-bottom:1px solid var(--border);color:var(--ink-500)">
                     <i class="lucide lucide-link-2 text-[12px]"></i>

@@ -307,6 +307,7 @@ class Application
         $r->post('/t/{slug}/meetings/blocked/{id}/delete',     ['App\Controllers\MeetingController', 'blockedDelete']);
         $r->get('/t/{slug}/meetings/settings',                 ['App\Controllers\MeetingController', 'settings']);
         $r->post('/t/{slug}/meetings/settings',                ['App\Controllers\MeetingController', 'settingsUpdate']);
+        $r->post('/t/{slug}/meetings/conference/test',         ['App\Controllers\MeetingController', 'conferenceTest']);
         $r->get('/t/{slug}/meetings/manual',                   ['App\Controllers\MeetingController', 'manualCreate']);
         $r->post('/t/{slug}/meetings/manual',                  ['App\Controllers\MeetingController', 'manualStore']);
         $r->get('/t/{slug}/meetings/{id}',                     ['App\Controllers\MeetingController', 'show']);

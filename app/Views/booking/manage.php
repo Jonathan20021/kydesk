@@ -94,11 +94,12 @@ textarea.input { padding: 12px 16px; height: auto; }
                                 </div>
                             </div>
                         </div>
+                        <?php $newTabMode = ($conferenceConfig['embedMode'] ?? 'iframe') === 'new_tab'; ?>
                         <button @click="join()"
                                 <?= !$isLive ? 'disabled' : '' ?>
                                 class="inline-flex items-center gap-2 h-10 px-5 rounded-xl font-semibold text-[13px] transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 style="background:white;color:#0f0d18">
-                            <i class="lucide lucide-video text-[14px]"></i>
+                            <i class="lucide lucide-<?= $newTabMode ? 'external-link' : 'video' ?> text-[14px]"></i>
                             <?= $isLive ? 'Entrar a la reunión' : 'Aún no disponible' ?>
                         </button>
                     </div>
@@ -126,6 +127,11 @@ textarea.input { padding: 12px 16px; height: auto; }
                         cfg: cfg, api: null, open: false, ready: false,
                         async join() {
                             if (cfg.provider !== 'jitsi') { alert(cfg.message || 'Provider no soportado'); return; }
+                            // meet.jit.si gratis: abrir en pestaña nueva (sin límite de 5 min)
+                            if (cfg.embedMode === 'new_tab') {
+                                window.open(cfg.joinUrl, '_blank', 'noopener');
+                                return;
+                            }
                             this.open = true; this.ready = false;
                             if (!window.JitsiMeetExternalAPI) {
                                 await new Promise((resolve, reject) => {

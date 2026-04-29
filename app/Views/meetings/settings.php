@@ -171,32 +171,157 @@ $meetingAiUsage = $app->db->one(
             </div>
 
             <!-- Jitsi config -->
-            <div x-show="provider === 'jitsi'" x-cloak class="space-y-2 pt-2" style="border-top:1px solid var(--border)">
-                <div>
-                    <label class="text-[12px] font-semibold text-ink-700 mb-1 block">Dominio Jitsi</label>
-                    <input name="jitsi_domain" class="input" value="<?= $e($settings['jitsi_domain'] ?? 'meet.jit.si') ?>" placeholder="meet.jit.si">
-                    <p class="text-[10.5px] text-ink-400 mt-1">Default: <code class="font-mono">meet.jit.si</code> (gratis). Para producción usá <code class="font-mono">8x8.vc</code> o tu Jitsi self-hosted.</p>
+            <div x-show="provider === 'jitsi'" x-cloak class="space-y-3 pt-2"
+                 x-data="{
+                    domain: <?= json_encode($settings['jitsi_domain'] ?? 'meet.jit.si') ?>,
+                    appId: <?= json_encode($settings['jitsi_app_id'] ?? '') ?>,
+                    kid: <?= json_encode($settings['jitsi_kid'] ?? '') ?>,
+                    appSecret: <?= json_encode($settings['jitsi_app_secret'] ?? '') ?>,
+                    advanced: <?= !empty($settings['jitsi_app_id']) ? 'true' : 'false' ?>,
+                    testing: false, testResult: null,
+                    onAppIdInput(v) {
+                        this.appId = v;
+                        if (v.startsWith('vpaas-magic-cookie-') && this.domain === 'meet.jit.si') {
+                            this.domain = '8x8.vc';
+                        }
+                    },
+                    isJaaS() { return this.appId.startsWith('vpaas-magic-cookie-') || this.domain.includes('8x8.vc'); },
+                    isProduction() { return this.domain !== 'meet.jit.si' || !!this.appId; },
+                    isPemKey() { return this.appSecret && (this.appSecret.includes('BEGIN PRIVATE KEY') || this.appSecret.includes('BEGIN RSA PRIVATE KEY')); },
+                    async testConfig() {
+                        this.testing = true; this.testResult = null;
+                        try {
+                            const fd = new FormData();
+                            fd.append('_csrf', <?= json_encode($csrf) ?>);
+                            fd.append('domain', this.domain);
+                            fd.append('app_id', this.appId);
+                            fd.append('kid', this.kid);
+                            fd.append('app_secret', this.appSecret);
+                            const r = await fetch(<?= json_encode($url('/t/' . $slug . '/meetings/conference/test')) ?>, { method: 'POST', body: fd });
+                            this.testResult = await r.json();
+                        } catch (e) { this.testResult = { ok: false, error: 'Error de red' }; }
+                        this.testing = false;
+                    },
+                 }"
+                 style="border-top:1px solid var(--border)">
+
+                <!-- Status banner -->
+                <div class="rounded-xl p-3 text-[12px] flex items-start gap-2" x-show="!isProduction()" :style="'background:#fffbeb;border:1px solid #fde68a;color:#92400e'">
+                    <i class="lucide lucide-alert-triangle text-[14px] flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <strong>Modo demo (meet.jit.si gratis):</strong> embebido se corta a los 5 min · auto-fallback a "abrir en pestaña". Para producción seguí los pasos abajo.
+                    </div>
                 </div>
-                <label class="flex items-center justify-between gap-2 text-[13px]">
+                <div class="rounded-xl p-3 text-[12px] flex items-start gap-2" x-show="isProduction()" x-cloak :style="'background:#ecfdf5;border:1px solid #a7f3d0;color:#047857'">
+                    <i class="lucide lucide-check-circle text-[14px] flex-shrink-0 mt-0.5"></i>
                     <div>
-                        <div>Solo audio por defecto</div>
-                        <div class="text-[11px] text-ink-400">Inicia con la cámara apagada · útil para llamadas tipo "phone call"</div>
+                        <strong>Producción:</strong> embebido sin restricciones <span x-show="appId" x-cloak>· JWT activo · roles host/guest · grabación habilitada para hosts</span>
                     </div>
-                    <input type="checkbox" name="jitsi_audio_only" value="1" <?= (int)($settings['jitsi_audio_only'] ?? 0) ? 'checked' : '' ?>>
-                </label>
-                <button type="button" @click="advanced = !advanced" class="text-[11.5px] font-semibold text-brand-700 inline-flex items-center gap-1">
-                    <i class="lucide lucide-chevron-right text-[11px]" :class="advanced && 'rotate-90'" style="transition:transform .15s"></i>
-                    Avanzado · JWT (8x8.vc o self-hosted con auth)
-                </button>
-                <div x-show="advanced" x-cloak class="space-y-2">
+                </div>
+
+                <!-- Setup wizard 8x8.vc -->
+                <details class="rounded-xl border" style="border-color:var(--border)" <?= empty($settings['jitsi_app_id']) ? 'open' : '' ?>>
+                    <summary class="cursor-pointer px-3 py-2.5 flex items-center justify-between gap-2 text-[12.5px] font-semibold" style="background:#f3f0ff">
+                        <span class="flex items-center gap-2"><i class="lucide lucide-rocket text-[13px] text-brand-600"></i> Setup en 3 minutos · Jitsi as a Service</span>
+                        <i class="lucide lucide-chevron-down text-[12px]"></i>
+                    </summary>
+                    <ol class="p-4 space-y-3 text-[12.5px] text-ink-700">
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-700 grid place-items-center font-bold text-[11px]">1</span>
+                            <div>
+                                <div class="font-semibold mb-0.5">Creá una cuenta gratis en JaaS</div>
+                                <div class="text-[11.5px] text-ink-500">Tier gratuito: 25 usuarios/mes incluidos · sin tarjeta requerida.</div>
+                                <a href="https://jaas.8x8.vc/#/start-guide" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-[11.5px] font-semibold text-brand-700 mt-1">
+                                    Abrir jaas.8x8.vc <i class="lucide lucide-external-link text-[10px]"></i>
+                                </a>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-700 grid place-items-center font-bold text-[11px]">2</span>
+                            <div>
+                                <div class="font-semibold mb-0.5">Copiá el App ID</div>
+                                <div class="text-[11.5px] text-ink-500">Está en el dashboard, formato <code class="font-mono text-[11px] bg-ink-100 px-1 rounded">vpaas-magic-cookie-...</code>. Pegalo en el campo App ID abajo · el dominio cambia automáticamente a <code class="font-mono">8x8.vc</code>.</div>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-700 grid place-items-center font-bold text-[11px]">3</span>
+                            <div>
+                                <div class="font-semibold mb-0.5">Generá un Key Pair</div>
+                                <div class="text-[11.5px] text-ink-500">En el dashboard "API Keys" → "Add API Key" → descargá la clave privada (.pk). Pegá <strong>todo el contenido del .pk</strong> en el campo App Secret abajo (incluyendo <code class="font-mono text-[11px]">-----BEGIN PRIVATE KEY-----</code>).</div>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center font-bold text-[11px]">✓</span>
+                            <div>
+                                <div class="font-semibold mb-0.5">Test + Guardar</div>
+                                <div class="text-[11.5px] text-ink-500">Pulsá "Probar configuración" para validar el JWT. Si todo OK, guardá los ajustes y las próximas reuniones usarán 8x8.vc embebido.</div>
+                            </div>
+                        </li>
+                    </ol>
+                </details>
+
+                <!-- Form -->
+                <div class="space-y-2">
                     <div>
-                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">App ID</label>
-                        <input name="jitsi_app_id" class="input" value="<?= $e($settings['jitsi_app_id'] ?? '') ?>" placeholder="vpaas-magic-cookie-...">
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">Dominio Jitsi</label>
+                        <div class="flex gap-1">
+                            <button type="button" @click="domain='meet.jit.si'" :class="domain === 'meet.jit.si' ? 'bg-brand-50 border-brand-300 text-brand-700' : 'bg-white border-[#ececef] text-ink-500'" class="flex-1 px-3 py-2 rounded-lg border text-[12px] font-semibold transition">meet.jit.si</button>
+                            <button type="button" @click="domain='8x8.vc'" :class="domain === '8x8.vc' ? 'bg-brand-50 border-brand-300 text-brand-700' : 'bg-white border-[#ececef] text-ink-500'" class="flex-1 px-3 py-2 rounded-lg border text-[12px] font-semibold transition">8x8.vc</button>
+                            <input name="jitsi_domain" :value="domain" @input="domain = $event.target.value" class="input flex-1" style="height:38px" placeholder="meet.example.com">
+                        </div>
+                        <p class="text-[10.5px] text-ink-400 mt-1">Self-hosted: pegá tu dominio en el campo de texto (ej. <code class="font-mono">meet.tuempresa.com</code>).</p>
                     </div>
+
                     <div>
-                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">App Secret</label>
-                        <input type="password" name="jitsi_app_secret" class="input" value="<?= $e($settings['jitsi_app_secret'] ?? '') ?>" placeholder="dejá vacío para usar el actual">
-                        <p class="text-[10.5px] text-ink-400 mt-1">Si configurás ambos, generamos JWT por reunión con role host/guest.</p>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">
+                            App ID <span class="text-ink-400 font-normal">(obligatorio para 8x8.vc · opcional self-host)</span>
+                        </label>
+                        <input name="jitsi_app_id" :value="appId" @input="onAppIdInput($event.target.value)" class="input font-mono" style="font-size:11.5px" placeholder="vpaas-magic-cookie-1a2b3c... o tu app_id de Jitsi self-hosted">
+                        <p class="text-[10.5px] mt-1" :style="isJaaS() ? 'color:#047857' : 'color:#8e8e9a'" x-text="isJaaS() ? '✓ JaaS detectado · firmamos JWT con RS256' : 'Si pegás un app_id de JaaS, cambiamos el dominio automáticamente.'"></p>
+                    </div>
+
+                    <div x-show="isJaaS()" x-cloak>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">
+                            API Key ID <span class="text-ink-400 font-normal">(kid)</span>
+                            <span class="badge badge-purple text-[9px]">JaaS</span>
+                        </label>
+                        <input name="jitsi_kid" x-model="kid" class="input font-mono" style="font-size:11.5px" placeholder="abc1234d-5678-90ef-1234-567890abcdef">
+                        <p class="text-[10.5px] text-ink-400 mt-1">UUID que JaaS te da al crear la API Key (al lado del botón "Download Private Key").</p>
+                    </div>
+
+                    <div>
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">
+                            App Secret · Private Key
+                            <span x-show="isPemKey()" x-cloak class="text-emerald-600">· RSA detectado → RS256</span>
+                            <span x-show="appSecret && !isPemKey()" x-cloak class="text-ink-500">· shared secret → HS256</span>
+                        </label>
+                        <textarea name="jitsi_app_secret" x-model="appSecret" rows="4" class="input font-mono" style="height:auto;padding:10px 12px;font-size:11px;line-height:1.5" placeholder="-----BEGIN PRIVATE KEY-----&#10;MIIE...&#10;-----END PRIVATE KEY-----&#10;&#10;O dejá vacío para usar el actual"></textarea>
+                        <p class="text-[10.5px] text-ink-400 mt-1">Para JaaS: pegá el contenido completo del archivo <code class="font-mono">.pk</code>. Para self-hosted: tu shared secret HS256.</p>
+                    </div>
+
+                    <label class="flex items-center justify-between gap-2 text-[13px]">
+                        <div>
+                            <div>Solo audio por defecto</div>
+                            <div class="text-[11px] text-ink-400">Inicia con la cámara apagada · útil para llamadas tipo "phone call"</div>
+                        </div>
+                        <input type="checkbox" name="jitsi_audio_only" value="1" <?= (int)($settings['jitsi_audio_only'] ?? 0) ? 'checked' : '' ?>>
+                    </label>
+
+                    <!-- Test button -->
+                    <div class="flex items-center gap-2 pt-2" x-show="appId" x-cloak>
+                        <button type="button" @click="testConfig()" :disabled="testing" class="btn btn-soft btn-sm">
+                            <i class="lucide lucide-flask-conical text-[13px]" x-show="!testing"></i>
+                            <i class="lucide lucide-loader-2 text-[13px] animate-spin" x-show="testing" x-cloak></i>
+                            <span x-text="testing ? 'Probando...' : 'Probar configuración'"></span>
+                        </button>
+                        <span x-show="testResult && testResult.ok" x-cloak class="text-[12px] font-semibold inline-flex items-center gap-1" style="color:#047857">
+                            <i class="lucide lucide-check-circle-2 text-[13px]"></i> JWT firmado correctamente
+                        </span>
+                        <span x-show="testResult && !testResult.ok" x-cloak class="text-[12px] font-semibold inline-flex items-center gap-1" style="color:#b91c1c" x-text="'⚠ ' + (testResult ? testResult.error : '')"></span>
+                    </div>
+                    <div x-show="testResult && testResult.ok && testResult.preview" x-cloak class="rounded-lg p-3 text-[10.5px] font-mono" style="background:#0f0d18;color:#a7f3d0;word-break:break-all">
+                        <div class="text-[10px] uppercase tracking-[0.14em] mb-1" style="color:#86efac">JWT preview · valid for 2h</div>
+                        <span x-text="testResult.preview"></span>
                     </div>
                 </div>
             </div>

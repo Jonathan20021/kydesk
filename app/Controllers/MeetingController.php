@@ -582,6 +582,7 @@ class MeetingController extends Controller
             'conference_provider'=> in_array($this->input('conference_provider'), ['jitsi','livekit'], true) ? (string)$this->input('conference_provider') : 'jitsi',
             'jitsi_domain'       => trim((string)$this->input('jitsi_domain', 'meet.jit.si')) ?: 'meet.jit.si',
             'jitsi_app_id'       => trim((string)$this->input('jitsi_app_id','')) ?: null,
+            'jitsi_kid'          => trim((string)$this->input('jitsi_kid','')) ?: null,
             'jitsi_app_secret'   => trim((string)$this->input('jitsi_app_secret','')) ?: null,
             'jitsi_audio_only'   => (int)$this->input('jitsi_audio_only', 0) ? 1 : 0,
             'livekit_url'        => trim((string)$this->input('livekit_url','')) ?: null,
@@ -599,6 +600,77 @@ class MeetingController extends Controller
 
         $this->session->flash('success', 'Ajustes guardados.');
         $this->redirect('/t/' . $tenant->slug . '/meetings/settings');
+    }
+
+    /**
+     * Endpoint de test para la configuración de conferencia.
+     * Genera un JWT de prueba con las credenciales pasadas y devuelve preview.
+     * No persiste nada — solo valida que la firma funcione.
+     */
+    public function conferenceTest(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('meetings');
+        $this->requireCan('meetings.config');
+        $this->validateCsrf();
+
+        $domain    = trim((string)$this->input('domain', 'meet.jit.si')) ?: 'meet.jit.si';
+        $appId     = trim((string)$this->input('app_id', ''));
+        $kid       = trim((string)$this->input('kid', ''));
+        $secret    = trim((string)$this->input('app_secret', ''));
+
+        // Si el secret está vacío, intentar usar el guardado actualmente
+        if ($secret === '') {
+            $existing = $this->db->one('SELECT jitsi_app_secret, jitsi_kid FROM meeting_settings WHERE tenant_id=?', [$tenant->id]);
+            if ($existing) {
+                $secret = (string)($existing['jitsi_app_secret'] ?? '');
+                if ($kid === '') $kid = (string)($existing['jitsi_kid'] ?? '');
+            }
+        }
+
+        if ($appId === '' || $secret === '') {
+            $this->json(['ok' => false, 'error' => 'App ID y App Secret son obligatorios para probar']);
+        }
+
+        // Construir provider con las credenciales de test
+        $testSettings = [
+            'jitsi_domain'     => $domain,
+            'jitsi_app_id'     => $appId,
+            'jitsi_kid'        => $kid,
+            'jitsi_app_secret' => $secret,
+        ];
+        $provider = new \App\Core\Conference\JitsiProvider($testSettings);
+
+        try {
+            $fakeMeeting = [
+                'public_token'        => 'testtoken' . bin2hex(random_bytes(8)),
+                'conference_room_id'  => 'KydeskTestRoom' . bin2hex(random_bytes(4)),
+                'location_type'       => 'virtual',
+            ];
+            $config = $provider->embedConfig($tenant, $fakeMeeting, [
+                'name'  => 'Test Host',
+                'email' => 'test@kydesk.local',
+                'role'  => 'host',
+            ]);
+            if (empty($config['jwt'])) {
+                $this->json(['ok' => false, 'error' => 'No se generó JWT (¿faltan credenciales?)']);
+            }
+            $parts = explode('.', $config['jwt']);
+            if (count($parts) !== 3) {
+                $this->json(['ok' => false, 'error' => 'JWT malformado']);
+            }
+            $header = json_decode(base64_decode(strtr($parts[0], '-_', '+/')), true);
+            $alg = $header['alg'] ?? '?';
+            $this->json([
+                'ok'       => true,
+                'alg'      => $alg,
+                'kid'      => $header['kid'] ?? null,
+                'embed'    => $config['embedMode'] ?? 'iframe',
+                'preview'  => substr($config['jwt'], 0, 80) . '...' . substr($config['jwt'], -10),
+            ]);
+        } catch (\Throwable $e) {
+            $this->json(['ok' => false, 'error' => $e->getMessage()]);
+        }
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -920,6 +992,7 @@ class MeetingController extends Controller
                 'conference_provider' => 'jitsi',
                 'jitsi_domain'        => 'meet.jit.si',
                 'jitsi_app_id'        => null,
+                'jitsi_kid'           => null,
                 'jitsi_app_secret'    => null,
                 'jitsi_audio_only'    => 0,
                 'livekit_url'         => null,

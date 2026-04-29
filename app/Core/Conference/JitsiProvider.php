@@ -79,11 +79,18 @@ class JitsiProvider implements Provider
         $audioOnly = !empty($this->settings['jitsi_audio_only']) || (($meeting['location_type'] ?? '') === 'phone');
         $isHost = ($user['role'] ?? '') === 'host';
 
+        // meet.jit.si (gratis) corta embeds a los 5 min · forzar "abrir en pestaña nueva"
+        // Solo embedimos cuando hay JWT (8x8.vc, self-host con auth) o dominio custom self-hosted
+        $isFreeDemoDomain = strpos($this->domain(), 'meet.jit.si') !== false;
+        $canEmbed = $this->hasJwt() || !$isFreeDemoDomain;
+
         $config = [
             'provider'  => 'jitsi',
             'domain'    => $this->domain(),
             'roomName'  => $roomId,
             'jwt'       => $this->hasJwt() ? $this->generateJwt($tenant, $meeting, $user, $roomId) : null,
+            'embedMode' => $canEmbed ? 'iframe' : 'new_tab',
+            'joinUrl'   => $this->joinUrl($tenant, $meeting, $user),
             'userInfo'  => [
                 'displayName' => $user['name'] ?? '',
                 'email'       => $user['email'] ?? '',
@@ -135,18 +142,25 @@ class JitsiProvider implements Provider
         return 'https://' . $domain . '/' . $path;
     }
 
+    /**
+     * Genera JWT con la firma adecuada:
+     *   - Si el secret parece PEM (RSA private key) → RS256 + header kid (8x8.vc / JaaS)
+     *   - Caso contrario → HS256 con shared secret (Jitsi self-hosted)
+     */
     protected function generateJwt(Tenant $tenant, array $meeting, array $user, string $roomId): string
     {
-        $appId = (string)($this->settings['jitsi_app_id'] ?? '');
+        $appId  = (string)($this->settings['jitsi_app_id'] ?? '');
         $secret = (string)($this->settings['jitsi_app_secret'] ?? '');
+        $kid    = (string)($this->settings['jitsi_kid'] ?? '');
         $isHost = ($user['role'] ?? '') === 'host';
+        $isJaaS = $this->isJaaS();
         $now = time();
 
         $payload = [
             'aud'  => 'jitsi',
-            'iss'  => $appId,
-            'sub'  => strpos($this->domain(), '8x8.vc') !== false ? $appId : $this->domain(),
-            'room' => $roomId,
+            'iss'  => $isJaaS ? 'chat' : $appId,
+            'sub'  => $isJaaS ? $appId : $this->domain(),
+            'room' => $isJaaS ? '*' : $roomId,
             'exp'  => $now + 7200,
             'nbf'  => $now - 30,
             'context' => [
@@ -154,6 +168,7 @@ class JitsiProvider implements Provider
                     'name'      => (string)($user['name'] ?? 'Invitado'),
                     'email'     => (string)($user['email'] ?? ''),
                     'moderator' => $isHost ? 'true' : 'false',
+                    'id'        => $isJaaS ? ('user-' . md5(($user['email'] ?? 'guest') . $roomId)) : null,
                 ],
                 'features' => [
                     'recording'      => $isHost ? 'true' : 'false',
@@ -163,6 +178,25 @@ class JitsiProvider implements Provider
                 ],
             ],
         ];
+        // Limpiar id null si no es JaaS
+        if (!$isJaaS) unset($payload['context']['user']['id']);
+
+        if (Jwt::looksLikePem($secret)) {
+            $extraHeader = [];
+            // JaaS requiere kid = "appId/apiKeyId"
+            if ($isJaaS && $kid !== '') {
+                $extraHeader['kid'] = $appId . '/' . $kid;
+            } elseif ($kid !== '') {
+                $extraHeader['kid'] = $kid;
+            }
+            return Jwt::signRS256($payload, $secret, $extraHeader);
+        }
         return Jwt::signHS256($payload, $secret);
+    }
+
+    protected function isJaaS(): bool
+    {
+        return strpos($this->domain(), '8x8.vc') !== false
+            || strpos((string)($this->settings['jitsi_app_id'] ?? ''), 'vpaas-magic-cookie-') === 0;
     }
 }
