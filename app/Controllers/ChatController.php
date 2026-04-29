@@ -322,7 +322,7 @@ class ChatController extends Controller
         if (!$widget) { http_response_code(404); echo '// widget not found'; return; }
 
         header('Content-Type: application/javascript');
-        header('Cache-Control: public, max-age=300');
+        header('Cache-Control: public, max-age=60');
         $appUrl = rtrim($this->app->config['app']['url'] ?? '', '/');
         $cfg = [
             'apiUrl' => $appUrl . '/chat-api',
@@ -379,7 +379,7 @@ class ChatController extends Controller
         $body = trim((string)$this->input('body',''));
         if ($body === '') $this->json(['ok'=>false,'error'=>'empty'], 400);
 
-        $this->db->insert('chat_messages', [
+        $msgId = $this->db->insert('chat_messages', [
             'tenant_id' => (int)$convo['tenant_id'],
             'conversation_id' => (int)$convo['id'],
             'sender_type' => 'visitor',
@@ -387,10 +387,63 @@ class ChatController extends Controller
         ]);
         $this->db->update('chat_conversations', ['last_message_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => (int)$convo['id']]);
 
-        // Disparamos respuesta IA (si el widget está en modo no_agent / always y plan Enterprise).
-        $this->maybeTriggerAi($widget, $convo);
+        // ¿Va a responder la IA? Le decimos al visitante para que muestre typing indicator.
+        $aiPending = $this->aiWillRespond($widget, $convo);
 
-        $this->json(['ok'=>true]);
+        // Mandamos la respuesta al cliente YA, después corremos la IA en background
+        // para que el send no bloquee al visitante con la latencia del modelo (~3-10s).
+        $this->respondAndContinue([
+            'ok' => true,
+            'msg_id' => (int)$msgId,
+            'ai_pending' => $aiPending,
+        ], function() use ($widget, $convo) {
+            $this->maybeTriggerAi($widget, $convo);
+        });
+    }
+
+    /**
+     * Responde al cliente HTTP y libera la conexión para que el resto del trabajo
+     * (Anthropic call ~3-10s) corra sin bloquearlo. Funciona en FPM (fastcgi_finish_request)
+     * y en mod_php (Connection: close + flush). Si nada sirve, ejecuta sync como fallback.
+     */
+    protected function respondAndContinue(array $payload, callable $deferred): void
+    {
+        $body = json_encode($payload);
+        ignore_user_abort(true);
+        @set_time_limit(60);
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (function_exists('fastcgi_finish_request')) {
+            echo $body;
+            fastcgi_finish_request();
+        } else {
+            // mod_php / cgi: cerramos la conexión manualmente.
+            header('Content-Length: ' . strlen($body));
+            header('Connection: close');
+            // Aseguramos que no haya gzip en el medio que impida flush inmediato.
+            @ini_set('zlib.output_compression', '0');
+            while (ob_get_level() > 0) { @ob_end_clean(); }
+            echo $body;
+            @ob_flush();
+            @flush();
+        }
+
+        try { $deferred(); } catch (\Throwable $e) { error_log('deferred chat task failed: ' . $e->getMessage()); }
+        exit;
+    }
+
+    /** Determina sin disparar nada si la IA va a responder a este turno. */
+    protected function aiWillRespond(?array $widget, array $convo): bool
+    {
+        if (!$widget) return false;
+        $fresh = $this->db->one('SELECT * FROM chat_conversations WHERE id = ?', [(int)$convo['id']]);
+        if (!$fresh) return false;
+        $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
+        $takeover = (int)($fresh['ai_takeover'] ?? 0) === 1;
+        if ($mode === 'off' && !$takeover) return false;
+        $d = \App\Core\ChatAi::shouldRespond($widget, $fresh);
+        return !empty($d['respond']);
     }
 
     /**
@@ -404,12 +457,15 @@ class ChatController extends Controller
     protected function maybeTriggerAi(?array $widget, array $convo): void
     {
         if (!$widget) return;
-        $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
-        if ($mode === 'off') return;
 
-        // Releemos la convo (los counters ai_turns / status pueden haber cambiado).
+        // Re-leemos la convo: ai_takeover, ai_turns, status pueden haber cambiado entre requests.
         $fresh = $this->db->one('SELECT * FROM chat_conversations WHERE id = ?', [(int)$convo['id']]);
         if (!$fresh) return;
+
+        $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
+        $takeover = (int)($fresh['ai_takeover'] ?? 0) === 1;
+        // Fast path: ni modo automático, ni takeover → ni siquiera intentamos.
+        if ($mode === 'off' && !$takeover) return;
 
         $decision = \App\Core\ChatAi::shouldRespond($widget, $fresh);
         if (!$decision['respond']) return;
@@ -580,6 +636,11 @@ class ChatController extends Controller
       .kyd-msg.visitor { background: ${p.primary}; color: ${p.onPrimary}; align-self: flex-end; }
       .kyd-msg.system { font-size: 12px; opacity: .85; font-style: italic; }
       .kyd-msg.ai { background: ${p.msgBg}; border: 1px solid ${p.primary}; }
+      .kyd-typing { align-self: flex-start; display: flex; gap: 3px; padding: 10px 14px; background: ${p.msgBg}; color: ${p.muted}; border: 1px solid ${p.msgBorder}; border-radius: 14px; font-size: 13px; align-items: center; }
+      .kyd-typing span { width: 6px; height: 6px; border-radius: 50%; background: ${p.primary}; opacity: .55; animation: kyd-bounce 1.2s infinite; }
+      .kyd-typing span:nth-child(2) { animation-delay: .15s; }
+      .kyd-typing span:nth-child(3) { animation-delay: .3s; }
+      @keyframes kyd-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-4px); opacity: 1; } }
       .kyd-form { padding: 10px; border-top: 1px solid ${p.divider}; display: flex; gap: 8px; background: ${p.panelBg}; flex: 0 0 auto; }
       .kyd-form textarea { flex: 1; border: 1px solid ${p.inputBorder}; background: ${p.inputBg}; color: ${p.inputText}; border-radius: 10px; padding: 9px 12px; font-size: 13.5px; outline: none; resize: none; font-family: inherit; line-height: 1.4; min-height: 38px; max-height: 120px; }
       .kyd-form textarea:focus { border-color: ${p.primary}; box-shadow: 0 0 0 3px ${p.focusRing}; }
@@ -687,9 +748,18 @@ class ChatController extends Controller
       form.onsubmit = function(e) {
         e.preventDefault();
         var body = textarea.value.trim(); if (!body) return;
+        textarea.value = '';
+        // Optimistic render: mostramos el mensaje del visitante instantáneo, sin esperar el poll.
+        renderMessage({ sender: 'visitor', body: body, is_ai: 0, agent_name: null }, msgsBox);
+        msgsBox.scrollTop = msgsBox.scrollHeight;
         api('/send', { token: token, body: body }).then(function(r){
-          if (r && r.ok) { textarea.value = ''; poll(msgsBox); }
-        });
+          if (r && r.ok) {
+            // Avanzamos lastId para evitar que el poll re-renderice el mensaje del visitante.
+            if (r.msg_id && r.msg_id > lastId) lastId = r.msg_id;
+            if (r.ai_pending) showTyping(msgsBox);
+            poll(msgsBox);
+          }
+        }).catch(function(){});
       };
       textarea.addEventListener('keydown', function(e){
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -706,7 +776,21 @@ class ChatController extends Controller
       pollTimer = setInterval(function(){
         if (!msgsBox.isConnected) { stopPolling(); return; }
         poll(msgsBox);
-      }, 3000);
+      }, 1500);
+    }
+
+    function showTyping(msgsBox) {
+      hideTyping(msgsBox);
+      var t = document.createElement('div');
+      t.className = 'kyd-typing'; t.id = 'kyd-typing-indicator';
+      t.innerHTML = '<span></span><span></span><span></span>';
+      msgsBox.appendChild(t);
+      msgsBox.scrollTop = msgsBox.scrollHeight;
+    }
+    function hideTyping(msgsBox) {
+      if (!msgsBox) return;
+      var t = msgsBox.querySelector('#kyd-typing-indicator');
+      if (t) t.remove();
     }
 
     function renderMessage(m, msgsBox) {
@@ -753,11 +837,15 @@ class ChatController extends Controller
       fetch(apiBase + '/poll?token=' + encodeURIComponent(token) + '&since=' + lastId).then(function(r){ return r.json(); }).then(function(r){
         if (!r || !r.ok) return;
         if (!msgsBox || !msgsBox.isConnected) return;
+        var sawNonVisitor = false;
         r.messages.forEach(function(m) {
           if (m.id <= lastId) return;
           lastId = m.id;
+          if (m.sender !== 'visitor') sawNonVisitor = true;
           renderMessage(m, msgsBox);
         });
+        // Cualquier mensaje del agente / sistema / IA limpia el "está escribiendo".
+        if (sawNonVisitor) hideTyping(msgsBox);
         msgsBox.scrollTop = msgsBox.scrollHeight;
       }).catch(function(){});
     }

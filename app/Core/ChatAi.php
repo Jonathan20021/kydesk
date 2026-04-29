@@ -88,7 +88,10 @@ class ChatAi
         $cfg    = $guard['cfg'];
         $global = $guard['global'];
         $apiKey = (string)$global['ai_api_key'];
-        $model  = (string)($cfg['model'] ?: ($global['ai_default_model'] ?? self::DEFAULT_MODEL));
+        // Para chat priorizamos Haiku — latencia baja, suficiente para soporte conversacional.
+        // Si el workspace forzó un modelo Haiku-family, lo respetamos; sino Haiku 4.5 por default.
+        $cfgModel = (string)($cfg['model'] ?? '');
+        $model = stripos($cfgModel, 'haiku') !== false ? $cfgModel : self::DEFAULT_MODEL;
 
         // Reconstruimos el historial de la conversación.
         $history = self::loadHistory($db, (int)$convo['id']);
@@ -368,31 +371,27 @@ class ChatAi
     }
 
     /**
-     * Convierte el historial a la lista de messages que espera Anthropic.
-     * - sender_type=visitor          → role=user
-     * - sender_type=agent            → role=assistant
-     * - sender_type=system           → role=user con prefijo [sistema] (las API messages no aceptan role=system aquí)
-     * Combina mensajes consecutivos del mismo rol.
+     * Convierte el historial conversacional a messages para Anthropic.
+     * - sender_type=visitor → role=user
+     * - sender_type=agent   → role=assistant
+     * - sender_type=system  → IGNORADO (son notificaciones internas — handoff, escalación previa,
+     *   away-message — que confundirían al modelo si las leyera como diálogo).
+     * Combina mensajes consecutivos del mismo rol para cumplir con el formato de la API.
      */
     protected static function historyToMessages(array $history): array
     {
         $messages = [];
         foreach ($history as $m) {
             $sender = (string)$m['sender_type'];
+            if ($sender === 'system') continue;
             $body = (string)$m['body'];
-            if ($sender === 'visitor') {
-                $role = 'user'; $content = $body;
-            } elseif ($sender === 'agent') {
-                $role = 'assistant'; $content = $body;
-            } else {
-                $role = 'user'; $content = "[sistema] $body";
-            }
+            $role = $sender === 'visitor' ? 'user' : 'assistant';
 
             $last = end($messages);
             if ($last && $last['role'] === $role && is_string($last['content'])) {
-                $messages[count($messages)-1]['content'] .= "\n\n" . $content;
+                $messages[count($messages)-1]['content'] .= "\n\n" . $body;
             } else {
-                $messages[] = ['role' => $role, 'content' => $content];
+                $messages[] = ['role' => $role, 'content' => $body];
             }
         }
         // Anthropic exige que el primer mensaje sea role=user.
