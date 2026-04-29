@@ -1,10 +1,10 @@
 <?php
 $navLinks = [
-    ['/features',         'Producto',     'sparkles'],
-    ['/pricing',          'Precios',      'tag'],
-    ['/developers',       'Developers',   'code'],
-    ['/changelog',        'Novedades',    'newspaper'],
-    ['/contact',          'Contacto',     'mail'],
+    ['/features',         __('landing.nav.product'),    'sparkles'],
+    ['/pricing',          __('landing.nav.pricing'),    'tag'],
+    ['/developers',       __('landing.nav.developers'), 'code'],
+    ['/changelog',        __('landing.nav.changelog'),  'newspaper'],
+    ['/contact',          __('landing.nav.contact'),    'mail'],
 ];
 ?>
 <nav class="fixed top-3 sm:top-4 inset-x-0 z-50 px-3 sm:px-4" x-data="{ mobileMenu: false }" @keydown.escape.window="mobileMenu = false" :class="mobileMenu && 'mobile-menu-open'">
@@ -19,18 +19,19 @@ $navLinks = [
             <div class="hidden lg:flex items-center gap-0.5 text-[13px] font-medium text-ink-500 ml-4">
                 <?php foreach ($navLinks as [$href, $label, $icon]): ?>
                     <a href="<?= $url($href) ?>" class="px-3 py-1.5 rounded-full hover:bg-[#f3f4f6] hover:text-ink-900 transition flex items-center gap-1">
-                        <?= $label ?>
+                        <?= $e($label) ?>
                     </a>
                 <?php endforeach; ?>
             </div>
 
             <div class="flex items-center gap-1.5 ml-auto">
-                <a href="<?= $url('/demo') ?>" class="btn btn-ghost btn-sm hidden md:inline-flex"><i class="lucide lucide-play-circle text-[13px]"></i> Demo</a>
-                <a href="<?= $url('/auth/login') ?>" class="btn btn-ghost btn-sm hidden md:inline-flex">Entrar</a>
-                <a href="<?= $url('/auth/register') ?>" class="btn btn-dark btn-sm hidden sm:inline-flex">Empezar gratis <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+                <?php include APP_PATH . '/Views/partials/lang_switcher.php'; ?>
+                <a href="<?= $url('/demo') ?>" class="btn btn-ghost btn-sm hidden md:inline-flex"><i class="lucide lucide-play-circle text-[13px]"></i> <?= $te('common.demo') ?></a>
+                <a href="<?= $url('/auth/login') ?>" class="btn btn-ghost btn-sm hidden md:inline-flex"><?= $te('common.login') ?></a>
+                <a href="<?= $url('/auth/register') ?>" class="btn btn-dark btn-sm hidden sm:inline-flex"><?= $te('common.signup') ?> <i class="lucide lucide-arrow-right text-[13px]"></i></a>
 
                 <!-- Mobile menu toggle -->
-                <button type="button" @click="mobileMenu = !mobileMenu" :aria-expanded="mobileMenu" aria-controls="mobile-menu" aria-label="Abrir menú"
+                <button type="button" @click="mobileMenu = !mobileMenu" :aria-expanded="mobileMenu" aria-controls="mobile-menu" aria-label="<?= $te('common.menu_open') ?>"
                     class="lg:hidden w-10 h-10 rounded-full grid place-items-center transition border flex-shrink-0"
                     :class="mobileMenu ? 'bg-ink-900 text-white border-ink-900' : 'bg-white text-ink-700 border-[#ececef] hover:border-brand-200'">
                     <i class="lucide" :class="mobileMenu ? 'lucide-x' : 'lucide-menu'" style="width:18px;height:18px"></i>
@@ -55,18 +56,18 @@ $navLinks = [
                        @click="mobileMenu = false"
                        class="flex items-center gap-3 px-4 py-3 rounded-2xl text-[14px] font-semibold text-ink-700 hover:bg-[#f3f4f6] hover:text-ink-900 transition">
                         <span class="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 grid place-items-center"><i class="lucide lucide-<?= $icon ?> text-[14px]"></i></span>
-                        <span class="flex-1"><?= $label ?></span>
+                        <span class="flex-1"><?= $e($label) ?></span>
                         <i class="lucide lucide-chevron-right text-[14px] text-ink-400"></i>
                     </a>
                 <?php endforeach; ?>
             </div>
             <div class="p-3 border-t border-[#ececef] grid gap-2" style="background:#fafafb">
                 <a href="<?= $url('/demo') ?>" @click="mobileMenu = false" class="btn btn-soft w-full justify-center" style="height:44px">
-                    <i class="lucide lucide-play-circle text-[14px]"></i> Probar demo · 24h gratis
+                    <i class="lucide lucide-play-circle text-[14px]"></i> <?= $te('common.try_demo_24') ?>
                 </a>
                 <div class="grid grid-cols-2 gap-2">
-                    <a href="<?= $url('/auth/login') ?>" @click="mobileMenu = false" class="btn btn-outline w-full justify-center" style="height:44px">Entrar</a>
-                    <a href="<?= $url('/auth/register') ?>" @click="mobileMenu = false" class="btn btn-dark w-full justify-center" style="height:44px">Empezar gratis</a>
+                    <a href="<?= $url('/auth/login') ?>" @click="mobileMenu = false" class="btn btn-outline w-full justify-center" style="height:44px"><?= $te('common.login') ?></a>
+                    <a href="<?= $url('/auth/register') ?>" @click="mobileMenu = false" class="btn btn-dark w-full justify-center" style="height:44px"><?= $te('common.signup') ?></a>
                 </div>
             </div>
         </div>

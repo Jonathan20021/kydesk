@@ -19,6 +19,15 @@ class View
         $data['url']  = fn(string $path = '') => $this->url($path);
         $data['e']    = fn($v) => htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
         $data['asset']= fn(string $p) => $this->url('public/' . ltrim($p, '/'));
+        // i18n helpers available in every template:
+        //   $t('key', ['name' => 'value'])  -> translated string (raw, may contain HTML)
+        //   $te('key', [...])               -> translated + html-escaped (safe for plain text)
+        //   $locale                         -> current locale code ('es' | 'en')
+        //   $locales                        -> ['es' => 'Español', 'en' => 'English']
+        $data['t']        = fn(string $k, array $v = []) => Lang::t($k, $v);
+        $data['te']       = fn(string $k, array $v = []) => htmlspecialchars(Lang::t($k, $v), ENT_QUOTES, 'UTF-8');
+        $data['locale']   = Lang::current();
+        $data['locales']  = Lang::available();
 
         $content = $this->renderFile(APP_PATH . '/Views/' . $tpl . '.php', $data);
 

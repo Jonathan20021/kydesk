@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="<?= $e($locale ?? 'es') ?>" class="scroll-smooth">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -58,16 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
 <footer class="border-t border-[#ececef] bg-white mt-16">
     <div class="max-w-[1100px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12.5px]">
         <a href="https://kydesk.kyrosrd.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition">
-            <span>Powered by</span>
+            <span><?= $te('public.powered_by') ?></span>
             <span class="flex items-center gap-1.5">
                 <span class="w-5 h-5 rounded-md text-white grid place-items-center font-display font-bold text-[10px]" style="background:linear-gradient(135deg,#7c5cff,#a78bfa)">K</span>
                 <span class="font-display font-bold text-ink-900">Kydesk</span>
             </span>
         </a>
         <div class="flex items-center gap-5 text-ink-400">
-            <a href="https://kydesk.kyrosrd.com/privacy" target="_blank" rel="noopener" class="hover:text-ink-900 transition">Privacidad</a>
-            <a href="https://kydesk.kyrosrd.com/terms"   target="_blank" rel="noopener" class="hover:text-ink-900 transition">Términos</a>
-            <a href="https://kydesk.kyrosrd.com"          target="_blank" rel="noopener" class="hover:text-ink-900 transition">¿Qué es Kydesk?</a>
+            <?php $variant = 'light'; $align = 'right'; $compact = true; include APP_PATH . '/Views/partials/lang_switcher.php'; ?>
+            <a href="https://kydesk.kyrosrd.com/privacy" target="_blank" rel="noopener" class="hover:text-ink-900 transition"><?= $te('public.privacy') ?></a>
+            <a href="https://kydesk.kyrosrd.com/terms"   target="_blank" rel="noopener" class="hover:text-ink-900 transition"><?= $te('public.terms') ?></a>
+            <a href="https://kydesk.kyrosrd.com"          target="_blank" rel="noopener" class="hover:text-ink-900 transition"><?= $te('public.what_is') ?></a>
         </div>
     </div>
 </footer>

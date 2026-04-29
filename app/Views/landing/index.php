@@ -15,33 +15,33 @@
             <?php
             $pillText = !empty($featuredChangelog)
                 ? ($featuredChangelog['hero_pill_label'] ?: $featuredChangelog['title'])
-                : 'Tablero Kanban + Automatizaciones IA';
+                : __('landing.hero.pill_default');
             ?>
             <a href="<?= $url('/changelog') ?>" class="inline-flex justify-center">
                 <div class="aura-pill hover:shadow-md transition cursor-pointer">
-                    <span class="aura-pill-tag"><i class="lucide lucide-sparkles"></i> NUEVO</span>
+                    <span class="aura-pill-tag"><i class="lucide lucide-sparkles"></i> <?= $te('landing.hero.pill_new') ?></span>
                     <span class="text-ink-700 font-medium"><?= $e($pillText) ?></span>
                     <i class="lucide lucide-arrow-right text-[12px] text-ink-400"></i>
                 </div>
             </a>
 
             <h1 class="display-xl mt-8" style="text-wrap:balance">
-                El helpdesk para equipos<br>
-                <span class="gradient-shift">que resuelven en serio.</span>
+                <?= $te('landing.hero.title_pre') ?><br>
+                <span class="gradient-shift"><?= $te('landing.hero.title_post') ?></span>
             </h1>
 
-            <p class="mt-7 text-[19px] max-w-xl mx-auto leading-relaxed text-ink-500">Tickets, SLAs, escalamientos, automatizaciones, base de conocimiento y activos. Una plataforma multi-tenant que se siente <span class="text-ink-900 font-semibold">rápida</span>.</p>
+            <p class="mt-7 text-[19px] max-w-xl mx-auto leading-relaxed text-ink-500"><?= __('landing.hero.subtitle') ?></p>
 
             <div class="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="<?= $url('/demo') ?>" class="btn btn-lg glow-purple" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white"><i class="lucide lucide-play"></i> Probar demo · 24h gratis</a>
-                <a href="<?= $url('/auth/register') ?>" class="btn btn-outline btn-lg">Crear cuenta <i class="lucide lucide-arrow-right"></i></a>
+                <a href="<?= $url('/demo') ?>" class="btn btn-lg glow-purple" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white"><i class="lucide lucide-play"></i> <?= $te('landing.hero.cta_primary') ?></a>
+                <a href="<?= $url('/auth/register') ?>" class="btn btn-outline btn-lg"><?= $te('landing.hero.cta_secondary') ?> <i class="lucide lucide-arrow-right"></i></a>
             </div>
 
             <div class="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px] text-ink-400">
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> 14 días gratis</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> Sin tarjeta</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> Setup 5 minutos</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> SOC 2 Tipo II</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> <?= $te('landing.hero.bullet1') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> <?= $te('landing.hero.bullet2') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> <?= $te('landing.hero.bullet3') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600"></i> <?= $te('landing.hero.bullet4') ?></span>
             </div>
         </div>
 
@@ -51,22 +51,22 @@
             <div class="float-chip delay-1 hidden xl:flex absolute z-30" style="top:84px;left:-32px;">
                 <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 grid place-items-center"><i class="lucide lucide-check-circle-2"></i></div>
                 <div>
-                    <div class="text-[10px] uppercase tracking-wider font-bold text-ink-400">SLA cumplido</div>
-                    <div class="font-display font-bold text-[13px]">+98.7%</div>
+                    <div class="text-[10px] uppercase tracking-wider font-bold text-ink-400"><?= $te('landing.hero.chip_sla_label') ?></div>
+                    <div class="font-display font-bold text-[13px]"><?= $te('landing.hero.chip_sla_value') ?></div>
                 </div>
             </div>
             <div class="float-chip delay-2 hidden xl:flex absolute z-30" style="top:38%;right:-32px;">
                 <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-700 grid place-items-center"><i class="lucide lucide-zap"></i></div>
                 <div>
-                    <div class="text-[10px] uppercase tracking-wider font-bold text-ink-400">Resolución</div>
-                    <div class="font-display font-bold text-[13px]">2.4× más rápido</div>
+                    <div class="text-[10px] uppercase tracking-wider font-bold text-ink-400"><?= $te('landing.hero.chip_resolution_label') ?></div>
+                    <div class="font-display font-bold text-[13px]"><?= $te('landing.hero.chip_resolution_value') ?></div>
                 </div>
             </div>
             <div class="float-chip delay-3 hidden xl:flex absolute z-30" style="bottom:72px;left:-28px;">
                 <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 grid place-items-center"><i class="lucide lucide-bell-ring"></i></div>
                 <div>
-                    <div class="text-[10px] uppercase tracking-wider font-bold text-ink-400">Nueva alerta</div>
-                    <div class="font-display font-bold text-[13px]">VPN desconectada</div>
+                    <div class="text-[10px] uppercase tracking-wider font-bold text-ink-400"><?= $te('landing.hero.chip_alert_label') ?></div>
+                    <div class="font-display font-bold text-[13px]"><?= $te('landing.hero.chip_alert_value') ?></div>
                 </div>
             </div>
 
@@ -84,23 +84,23 @@
                                 <div class="w-8 h-8 rounded-lg text-white grid place-items-center font-display font-bold text-sm" style="background:linear-gradient(135deg,#7c5cff,#a78bfa)">A</div>
                                 <div>
                                     <div class="font-display font-bold text-[12.5px]">Acme Corp</div>
-                                    <div class="text-[9.5px] text-ink-400 uppercase tracking-wider">Plan Pro</div>
+                                    <div class="text-[9.5px] text-ink-400 uppercase tracking-wider"><?= __e('mock.plan') ?></div>
                                 </div>
                             </div>
-                            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-400 px-2 mb-2">General</div>
+                            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-400 px-2 mb-2"><?= __e('mock.section.general') ?></div>
                             <div class="space-y-0.5">
-                                <?php foreach ([['layout-dashboard','Dashboard',true,null],['inbox','Tickets',false,'12'],['kanban-square','Tablero',false,null],['line-chart','Reportes',false,null]] as [$ic,$lbl,$on,$cnt]): ?>
+                                <?php foreach ([['layout-dashboard',__('mock.nav.dashboard'),true,null],['inbox',__('mock.nav.tickets'),false,'12'],['kanban-square',__('mock.nav.board'),false,null],['line-chart',__('mock.nav.reports'),false,null]] as [$ic,$lbl,$on,$cnt]): ?>
                                     <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[12.5px] <?= $on?'bg-brand-50 text-brand-700 font-semibold':'text-ink-500 font-medium' ?>">
-                                        <i class="lucide lucide-<?= $ic ?> text-[14px]"></i><span class="flex-1"><?= $lbl ?></span>
+                                        <i class="lucide lucide-<?= $ic ?> text-[14px]"></i><span class="flex-1"><?= $e($lbl) ?></span>
                                         <?php if ($cnt): ?><span class="bg-brand-500 text-white px-1.5 rounded-full text-[9.5px] font-semibold"><?= $cnt ?></span><?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-                            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-400 px-2 mt-4 mb-2">Gestión</div>
+                            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-400 px-2 mt-4 mb-2"><?= __e('mock.section.management') ?></div>
                             <div class="space-y-0.5">
-                                <?php foreach ([['building-2','Empresas'],['server','Activos'],['book-open','Conocimiento']] as [$ic,$lbl]): ?>
+                                <?php foreach ([['building-2',__('mock.nav.companies')],['server',__('mock.nav.assets')],['book-open',__('mock.nav.kb')]] as [$ic,$lbl]): ?>
                                     <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[12.5px] text-ink-500 font-medium">
-                                        <i class="lucide lucide-<?= $ic ?> text-[14px]"></i><?= $lbl ?>
+                                        <i class="lucide lucide-<?= $ic ?> text-[14px]"></i><?= $e($lbl) ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -109,33 +109,33 @@
                             <div class="flex items-center gap-2 mb-4">
                                 <div class="flex-1 h-9 rounded-full bg-white border border-[#ececef] flex items-center px-4 gap-2">
                                     <i class="lucide lucide-search text-ink-400 text-sm"></i>
-                                    <span class="text-[11px] text-ink-400">Buscar tickets…</span>
+                                    <span class="text-[11px] text-ink-400"><?= __e('mock.search') ?></span>
                                 </div>
                                 <div class="w-9 h-9 rounded-full bg-white border border-[#ececef] grid place-items-center"><i class="lucide lucide-bell text-sm text-ink-700"></i></div>
                                 <div class="w-9 h-9 rounded-full text-white grid place-items-center text-[10px] font-bold" style="background:linear-gradient(135deg,#7c5cff,#a78bfa)">AD</div>
                             </div>
                             <div class="hero-card relative" style="padding: 22px 26px; border-radius: 18px;">
                                 <div class="hero-stars" style="opacity:.3;"><svg viewBox="0 0 280 200"><path d="M150 20 L155 50 L185 55 L155 60 L150 90 L145 60 L115 55 L145 50 Z" fill="white"/><path d="M70 80 L73 95 L88 98 L73 101 L70 116 L67 101 L52 98 L67 95 Z" fill="white"/><path d="M220 130 L223 145 L238 148 L223 151 L220 166 L217 151 L202 148 L217 145 Z" fill="white"/></svg></div>
-                                <div class="hero-tag">Soporte profesional</div>
-                                <div class="hero-title" style="font-size:22px; margin-top:6px;">Resuelve más,<br>más rápido</div>
+                                <div class="hero-tag"><?= __e('mock.support_tag') ?></div>
+                                <div class="hero-title" style="font-size:22px; margin-top:6px;"><?= __('mock.solve_more') ?></div>
                                 <div class="hero-cta" style="font-size:11.5px; padding:4px 6px 4px 14px; margin-top:14px;">
-                                    Nuevo ticket
+                                    <?= __e('mock.new_ticket') ?>
                                     <span class="hero-cta-arrow" style="width:22px;height:22px"><i class="lucide lucide-arrow-right text-[11px]"></i></span>
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-2.5 mt-3">
-                                <?php foreach ([['Abiertos','24/120','#f3e8ff','#7e22ce','grid-2x2'],['En progreso','12/120','#fef3c7','#b45309','refresh-cw'],['Resueltos','189/220','#d1fae5','#047857','book-open']] as [$l,$v,$bg,$col,$ic]): ?>
+                                <?php foreach ([[__('mock.kpi.open'),'24/120','#f3e8ff','#7e22ce','grid-2x2'],[__('mock.kpi.in_progress'),'12/120','#fef3c7','#b45309','refresh-cw'],[__('mock.kpi.resolved'),'189/220','#d1fae5','#047857','book-open']] as [$l,$v,$bg,$col,$ic]): ?>
                                 <div class="bg-white border border-[#ececef] rounded-2xl p-3 flex items-center gap-2.5">
                                     <div class="w-8 h-8 rounded-lg grid place-items-center" style="background:<?= $bg ?>;color:<?= $col ?>"><i class="lucide lucide-<?= $ic ?> text-sm"></i></div>
                                     <div>
                                         <div class="text-[9.5px] text-ink-400"><?= $v ?></div>
-                                        <div class="font-display font-bold text-[12px]"><?= $l ?></div>
+                                        <div class="font-display font-bold text-[12px]"><?= $e($l) ?></div>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
                             <div class="flex items-center justify-between mt-4 mb-2.5">
-                                <div class="font-display font-bold text-[14px]">Tickets recientes</div>
+                                <div class="font-display font-bold text-[14px]"><?= __e('mock.recent_tickets') ?></div>
                                 <div class="flex gap-1.5">
                                     <div class="w-6 h-6 rounded-full bg-white border border-[#ececef] grid place-items-center text-ink-500"><i class="lucide lucide-chevron-left text-[11px]"></i></div>
                                     <div class="w-6 h-6 rounded-full bg-brand-500 text-white grid place-items-center"><i class="lucide lucide-chevron-right text-[11px]"></i></div>
@@ -144,17 +144,17 @@
                             <div class="grid grid-cols-3 gap-2">
                                 <?php
                                 $cards = [
-                                    ['HARDWARE', 'Impresora 3er piso offline', 'María T.', 'MT', '#7c5cff', '#fef3c7'],
-                                    ['REDES', 'VPN se desconecta cada 10 min', 'Carlos I.', 'CI', '#f59e0b', '#dbeafe'],
-                                    ['SOFTWARE', 'Error 500 reporte mensual', 'Juan S.', 'JS', '#ec4899', '#fce7f3'],
+                                    [__('mock.tag.hardware'), __('mock.ticket1'), 'María T.', 'MT', '#7c5cff', '#fef3c7'],
+                                    [__('mock.tag.networks'), __('mock.ticket2'), 'Carlos I.', 'CI', '#f59e0b', '#dbeafe'],
+                                    [__('mock.tag.software'), __('mock.ticket3'), 'Juan S.',  'JS', '#ec4899', '#fce7f3'],
                                 ];
-                                foreach ($cards as [$tag,$t,$n,$in,$col,$bg]): ?>
+                                foreach ($cards as [$tag,$cardTitle,$n,$in,$col,$bg]): ?>
                                 <div class="bg-white border border-[#ececef] rounded-2xl overflow-hidden">
                                     <div class="h-16 grid place-items-center relative" style="background: linear-gradient(135deg,<?= $bg ?>,#fff);">
-                                        <span class="absolute top-1.5 left-1.5 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/85 text-brand-700"><?= $tag ?></span>
+                                        <span class="absolute top-1.5 left-1.5 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/85 text-brand-700"><?= $e($tag) ?></span>
                                     </div>
                                     <div class="p-2.5">
-                                        <div class="text-[10.5px] font-display font-bold leading-tight line-clamp-2"><?= $t ?></div>
+                                        <div class="text-[10.5px] font-display font-bold leading-tight line-clamp-2"><?= $e($cardTitle) ?></div>
                                         <div class="h-1 rounded-full bg-[#f3f4f6] mt-2 overflow-hidden"><div class="h-full bg-brand-500" style="width:<?= rand(30,80) ?>%"></div></div>
                                         <div class="flex items-center gap-1.5 mt-2">
                                             <div class="w-4 h-4 rounded-full grid place-items-center text-white text-[7px] font-bold" style="background:<?= $col ?>"><?= $in ?></div>
@@ -167,7 +167,7 @@
                         </div>
                         <div class="col-span-3 bg-white border-l border-[#ececef] p-4">
                             <div class="flex items-center justify-between mb-3">
-                                <div class="font-display font-bold text-[13px]">Estadística</div>
+                                <div class="font-display font-bold text-[13px]"><?= __e('mock.statistic') ?></div>
                                 <i class="lucide lucide-more-vertical text-ink-400 text-sm"></i>
                             </div>
                             <div class="relative w-[140px] h-[140px] mx-auto">
@@ -183,7 +183,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="font-display font-bold text-[13px] text-center mt-3">Excelente trabajo 🔥</div>
+                            <div class="font-display font-bold text-[13px] text-center mt-3"><?= __e('mock.great_job') ?></div>
                             <div class="flex items-end gap-3 h-[72px] mt-4 px-1 pb-2 border-b border-[#ececef]">
                                 <div class="flex-1 rounded-t-md bg-brand-200" style="height:50%"></div>
                                 <div class="flex-1 rounded-t-md bg-brand-500" style="height:90%"></div>
@@ -191,7 +191,7 @@
                                 <div class="flex-1 rounded-t-md bg-brand-200" style="height:65%"></div>
                             </div>
                             <div class="flex items-center justify-between mt-4 mb-2">
-                                <div class="font-display font-bold text-[13px]">Tu equipo</div>
+                                <div class="font-display font-bold text-[13px]"><?= __e('mock.your_team') ?></div>
                                 <div class="w-6 h-6 rounded-full bg-brand-50 grid place-items-center text-brand-700"><i class="lucide lucide-plus text-[11px]"></i></div>
                             </div>
                             <?php foreach ([['María T.','MT','#ec4899'],['Carlos I.','CI','#f59e0b']] as [$n,$in,$c]): ?>
@@ -199,7 +199,7 @@
                                     <div class="w-7 h-7 rounded-full grid place-items-center text-white text-[9px] font-bold" style="background:<?= $c ?>"><?= $in ?></div>
                                     <div class="flex-1 min-w-0">
                                         <div class="font-display font-bold text-[10.5px] truncate"><?= $n ?></div>
-                                        <div class="text-[8.5px] text-ink-400">Técnico</div>
+                                        <div class="text-[8.5px] text-ink-400"><?= __e('mock.role.agent') ?></div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -214,22 +214,22 @@
             <div class="grid grid-cols-3 gap-3 text-center">
                 <div class="rounded-2xl bg-white border border-[#ececef] p-4">
                     <div class="font-display font-extrabold text-[22px] tracking-[-0.02em] text-brand-700 leading-none">82%</div>
-                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5">SLA</div>
+                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5"><?= $te('landing.hero.mobile.sla') ?></div>
                 </div>
                 <div class="rounded-2xl bg-white border border-[#ececef] p-4">
                     <div class="font-display font-extrabold text-[22px] tracking-[-0.02em] text-emerald-600 leading-none">2.4×</div>
-                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5">Resolución</div>
+                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5"><?= $te('landing.hero.mobile.resolution') ?></div>
                 </div>
                 <div class="rounded-2xl bg-white border border-[#ececef] p-4">
                     <div class="font-display font-extrabold text-[22px] tracking-[-0.02em] text-rose-600 leading-none">+98%</div>
-                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5">Cumplido</div>
+                    <div class="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-400 mt-1.5"><?= $te('landing.hero.mobile.fulfilled') ?></div>
                 </div>
             </div>
             <div class="mt-4 rounded-2xl p-5 text-white text-center" style="background:linear-gradient(135deg,#7c5cff 0%,#a78bfa 60%,#d946ef 110%);box-shadow:0 24px 48px -16px rgba(124,92,255,.5)">
-                <div class="text-[10px] uppercase tracking-[0.16em] font-bold opacity-90">Soporte profesional</div>
-                <div class="font-display font-extrabold text-[22px] mt-1.5 leading-tight">Resuelve más,<br>más rápido</div>
+                <div class="text-[10px] uppercase tracking-[0.16em] font-bold opacity-90"><?= $te('landing.hero.mobile.support') ?></div>
+                <div class="font-display font-extrabold text-[22px] mt-1.5 leading-tight"><?= __('landing.hero.mobile.title') ?></div>
                 <a href="<?= $url('/auth/register') ?>" class="inline-flex items-center gap-2 mt-4 bg-white text-ink-900 font-semibold text-[12.5px] px-4 py-2 rounded-full">
-                    Empezar gratis <i class="lucide lucide-arrow-right text-[12px]"></i>
+                    <?= $te('landing.hero.mobile.cta') ?> <i class="lucide lucide-arrow-right text-[12px]"></i>
                 </a>
             </div>
         </div>
@@ -239,7 +239,7 @@
 <!-- ========== TRUSTED LOGOS — MARQUEE ========== -->
 <section id="customers" class="py-14 border-y border-[#ececef] bg-white relative">
     <div class="max-w-[1240px] mx-auto px-6 mb-8">
-        <p class="text-center text-[11.5px] font-bold uppercase tracking-[0.18em] text-ink-400">Equipos de soporte que confían en Kydesk</p>
+        <p class="text-center text-[11.5px] font-bold uppercase tracking-[0.18em] text-ink-400"><?= $te('landing.trusted.heading') ?></p>
     </div>
     <div class="marquee">
         <div class="marquee-track">
@@ -262,31 +262,31 @@
     <div class="max-w-[1240px] mx-auto px-6 relative">
         <div class="text-center max-w-3xl mx-auto reveal" data-reveal>
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.16em] mb-4" style="background:linear-gradient(135deg,rgba(124,92,255,.12),rgba(217,70,239,.08));color:#5a3aff;border:1px solid rgba(124,92,255,.25)">
-                <i class="lucide lucide-sparkles text-[12px]"></i> RELEASE v4.6 · LA MÁS GRANDE HASTA AHORA
+                <i class="lucide lucide-sparkles text-[12px]"></i> <?= __e('wn.release_pill') ?>
             </div>
-            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">10 módulos nuevos.<br><span class="gradient-shift">1 sola actualización.</span></h2>
-            <p class="mt-6 text-[16px] text-ink-500 max-w-2xl mx-auto">Email-to-Ticket, Live Chat, Kyros IA, CSAT/NPS, ITSM, Time Tracking, Status Page, Customer Portal, Reports Builder, Custom Fields. La suite enterprise completa lista para producción.</p>
+            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance"><?= __e('wn.title_pre') ?><br><span class="gradient-shift"><?= __e('wn.title_post') ?></span></h2>
+            <p class="mt-6 text-[16px] text-ink-500 max-w-2xl mx-auto"><?= __e('wn.subtitle') ?></p>
         </div>
 
         <!-- 10 modules grid -->
         <div class="mt-14 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 reveal-stagger" data-reveal>
             <?php foreach ([
-                ['email_inbound', 'Email-to-Ticket', 'mail-open', '#0369a1', '#e0f2fe', 'PRO'],
-                ['live_chat', 'Live Chat', 'message-square', '#047857', '#ecfdf5', 'BUSINESS'],
-                ['ai_assist', 'Kyros IA', 'sparkles', '#7e22ce', '#f3e8ff', 'ENTERPRISE'],
-                ['csat', 'CSAT / NPS', 'smile', '#b45309', '#fef3c7', 'TODOS'],
-                ['itsm', 'ITSM · ITIL', 'workflow', '#0284c7', '#dbeafe', 'BUSINESS'],
-                ['time_tracking', 'Time Tracking', 'timer', '#b91c1c', '#fee2e2', 'PRO'],
-                ['status_page', 'Status Page', 'activity', '#047857', '#d1fae5', 'TODOS'],
-                ['customer_portal', 'Portal Login', 'lock-keyhole', '#7c2d12', '#f3e8ff', 'TODOS'],
-                ['reports_builder', 'Reports Builder', 'bar-chart-3', '#7e22ce', '#f3e8ff', 'BUSINESS'],
-                ['custom_fields', 'Custom Fields', 'list-plus', '#0e7490', '#cffafe', 'TODOS'],
+                ['email_inbound', __('module.email_inbound.name'), 'mail-open', '#0369a1', '#e0f2fe', 'PRO'],
+                ['live_chat',     __('module.live_chat.name'),     'message-square', '#047857', '#ecfdf5', 'BUSINESS'],
+                ['ai_assist',     __('module.ai_assist.name'),     'sparkles', '#7e22ce', '#f3e8ff', 'ENTERPRISE'],
+                ['csat',          __('module.csat.name'),          'smile', '#b45309', '#fef3c7', 'TODOS'],
+                ['itsm',          __('module.itsm.name'),          'workflow', '#0284c7', '#dbeafe', 'BUSINESS'],
+                ['time_tracking', __('module.time_tracking.name'), 'timer', '#b91c1c', '#fee2e2', 'PRO'],
+                ['status_page',   __('module.status_page.name'),   'activity', '#047857', '#d1fae5', 'TODOS'],
+                ['customer_portal', __('module.customer_portal.name'), 'lock-keyhole', '#7c2d12', '#f3e8ff', 'TODOS'],
+                ['reports_builder', __('module.reports_builder.name'), 'bar-chart-3', '#7e22ce', '#f3e8ff', 'BUSINESS'],
+                ['custom_fields', __('module.custom_fields.name'), 'list-plus', '#0e7490', '#cffafe', 'TODOS'],
             ] as [$key, $title, $icon, $color, $bg, $tier]): ?>
                 <a href="<?= $url('/features/' . $key) ?>" class="group relative rounded-2xl p-5 transition" style="background:white;border:1px solid #ececef" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 20px 40px -16px rgba(22,21,27,.12)';this.style.borderColor='<?= $color ?>33';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none';this.style.borderColor='#ececef';">
-                    <div class="absolute top-3 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-[0.1em]" style="background:<?= $bg ?>;color:<?= $color ?>"><?= $tier ?></div>
+                    <div class="absolute top-3 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-[0.1em]" style="background:<?= $bg ?>;color:<?= $color ?>"><?= __e('wn.tier.' . $tier) ?></div>
                     <div class="w-11 h-11 rounded-xl grid place-items-center mb-3" style="background:<?= $bg ?>;color:<?= $color ?>"><i class="lucide lucide-<?= $icon ?> text-[18px]"></i></div>
-                    <div class="font-display font-bold text-[13.5px] tracking-[-0.01em]"><?= $title ?></div>
-                    <div class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition" style="color:<?= $color ?>">Ver <i class="lucide lucide-arrow-right text-[10px]"></i></div>
+                    <div class="font-display font-bold text-[13.5px] tracking-[-0.01em]"><?= $e($title) ?></div>
+                    <div class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition" style="color:<?= $color ?>"><?= __e('wn.go') ?> <i class="lucide lucide-arrow-right text-[10px]"></i></div>
                 </a>
             <?php endforeach; ?>
         </div>
@@ -297,16 +297,16 @@
                 <div class="absolute" style="width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.4),transparent 60%);top:-120px;right:-80px;filter:blur(40px)"></div>
                 <div class="relative">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10.5px] font-bold uppercase tracking-[0.16em]" style="background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)">
-                        <i class="lucide lucide-sparkles text-[11px]"></i> ENTERPRISE EXCLUSIVE
+                        <i class="lucide lucide-sparkles text-[11px]"></i> <?= __e('wn.ai_eyebrow') ?>
                     </div>
-                    <h3 class="font-display font-extrabold text-[28px] md:text-[36px] tracking-[-0.025em] mt-5 leading-tight">Kyros IA integrada<br>en cada ticket.</h3>
-                    <p class="mt-4 text-[14.5px]" style="color:rgba(255,255,255,.78)">Sugerí respuestas, resumí hilos, auto-categorizá tickets, detectá sentiment y traducí entre idiomas. Todo gestionado por Kydesk · vos solo elegís qué acciones usar.</p>
+                    <h3 class="font-display font-extrabold text-[28px] md:text-[36px] tracking-[-0.025em] mt-5 leading-tight"><?= __e('wn.ai_title_pre') ?><br><?= __e('wn.ai_title_post') ?></h3>
+                    <p class="mt-4 text-[14.5px]" style="color:rgba(255,255,255,.78)"><?= __e('wn.ai_para') ?></p>
                     <div class="mt-6 flex flex-wrap gap-2">
-                        <?php foreach ([['Sugerir respuesta','message-square-quote'],['Resumir hilo','file-text'],['Auto-categorizar','tag'],['Sentiment','heart-pulse'],['Traducir','languages']] as [$lbl,$ic]): ?>
-                            <span class="inline-flex items-center gap-1.5 text-[11.5px] px-2.5 py-1 rounded-full" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.12)"><i class="lucide lucide-<?= $ic ?> text-[11px]"></i> <?= $lbl ?></span>
+                        <?php foreach ([[__('wn.ai_cap1'),'message-square-quote'],[__('wn.ai_cap2'),'file-text'],[__('wn.ai_cap3'),'tag'],[__('wn.ai_cap4'),'heart-pulse'],[__('wn.ai_cap5'),'languages']] as [$lbl,$ic]): ?>
+                            <span class="inline-flex items-center gap-1.5 text-[11.5px] px-2.5 py-1 rounded-full" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.12)"><i class="lucide lucide-<?= $ic ?> text-[11px]"></i> <?= $e($lbl) ?></span>
                         <?php endforeach; ?>
                     </div>
-                    <a href="<?= $url('/features/ai_assist') ?>" class="mt-7 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-[13px] transition" style="background:white;color:#1a1825" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">Ver detalle <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+                    <a href="<?= $url('/features/ai_assist') ?>" class="mt-7 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-[13px] transition" style="background:white;color:#1a1825" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'"><?= __e('wn.ai_cta') ?> <i class="lucide lucide-arrow-right text-[13px]"></i></a>
                 </div>
             </div>
 
@@ -314,24 +314,24 @@
                 <div class="card card-pad" style="background:linear-gradient(135deg,#ecfdf5,white)">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white grid place-items-center"><i class="lucide lucide-mail-open text-[15px]"></i></div>
-                        <div class="font-display font-bold text-[14px]">Email-to-Ticket inbound</div>
+                        <div class="font-display font-bold text-[14px]"><?= __e('wn.email_title') ?></div>
                     </div>
-                    <p class="text-[12.5px] text-ink-500">La entrada #1 de soporte real. IMAP + forward webhook con threading RFC-compliant.</p>
-                    <a href="<?= $url('/features/email_inbound') ?>" class="text-[11.5px] font-semibold text-emerald-700 mt-2 inline-flex items-center gap-1">Saber más <i class="lucide lucide-arrow-right text-[11px]"></i></a>
+                    <p class="text-[12.5px] text-ink-500"><?= __e('wn.email_desc') ?></p>
+                    <a href="<?= $url('/features/email_inbound') ?>" class="text-[11.5px] font-semibold text-emerald-700 mt-2 inline-flex items-center gap-1"><?= __e('wn.know_more') ?> <i class="lucide lucide-arrow-right text-[11px]"></i></a>
                 </div>
                 <div class="card card-pad" style="background:linear-gradient(135deg,#dbeafe,white)">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="w-9 h-9 rounded-xl text-white grid place-items-center" style="background:#0284c7"><i class="lucide lucide-workflow text-[15px]"></i></div>
-                        <div class="font-display font-bold text-[14px]">ITSM · ITIL v4</div>
+                        <div class="font-display font-bold text-[14px]"><?= __e('wn.itsm_title') ?></div>
                     </div>
-                    <p class="text-[12.5px] text-ink-500">Service Catalog, Change Management con multi-step approvals, Problem tracking.</p>
-                    <a href="<?= $url('/features/itsm') ?>" class="text-[11.5px] font-semibold text-blue-700 mt-2 inline-flex items-center gap-1">Saber más <i class="lucide lucide-arrow-right text-[11px]"></i></a>
+                    <p class="text-[12.5px] text-ink-500"><?= __e('wn.itsm_desc') ?></p>
+                    <a href="<?= $url('/features/itsm') ?>" class="text-[11.5px] font-semibold text-blue-700 mt-2 inline-flex items-center gap-1"><?= __e('wn.know_more') ?> <i class="lucide lucide-arrow-right text-[11px]"></i></a>
                 </div>
             </div>
         </div>
 
         <div class="text-center mt-10">
-            <a href="<?= $url('/changelog') ?>" class="inline-flex items-center gap-2 text-[13px] font-semibold text-brand-700 hover:gap-3 transition-all">Ver changelog completo <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+            <a href="<?= $url('/changelog') ?>" class="inline-flex items-center gap-2 text-[13px] font-semibold text-brand-700 hover:gap-3 transition-all"><?= __e('wn.see_full_changelog') ?> <i class="lucide lucide-arrow-right text-[13px]"></i></a>
         </div>
     </div>
 </section>
@@ -340,76 +340,80 @@
 <section id="features" class="py-32 relative">
     <div class="max-w-[1240px] mx-auto px-6">
         <div class="text-center max-w-2xl mx-auto reveal" data-reveal>
-            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3">PLATAFORMA</div>
-            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">Todo lo que tu equipo<br>necesita en <span class="gradient-shift">una plataforma</span>.</h2>
-            <p class="mt-6 text-[16px] text-ink-500 max-w-lg mx-auto">Diseñado desde cero para soporte moderno. Sin complejidad, sin fricción.</p>
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3"><?= __e('feat.eyebrow') ?></div>
+            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance"><?= __e('feat.title_pre') ?><br><?= __e('feat.title_mid') ?> <span class="gradient-shift"><?= __e('feat.title_post') ?></span>.</h2>
+            <p class="mt-6 text-[16px] text-ink-500 max-w-lg mx-auto"><?= __e('feat.subtitle') ?></p>
         </div>
 
         <div class="mt-16 grid grid-cols-12 gap-4 reveal-stagger" data-reveal>
             <div class="col-span-12 lg:col-span-7 bento spotlight-card" style="min-height:400px;">
                 <div class="bento-glow"></div>
-                <span class="badge badge-purple"><i class="lucide lucide-inbox text-[11px]"></i> BANDEJA UNIFICADA</span>
-                <h3 class="font-display font-extrabold text-[28px] mt-4 tracking-[-0.025em]">Una bandeja para todo.</h3>
-                <p class="text-[14.5px] text-ink-500 mt-2 max-w-md leading-relaxed">Portal, email, teléfono, chat e interno convergen en una sola vista priorizada por SLA.</p>
+                <span class="badge badge-purple"><i class="lucide lucide-inbox text-[11px]"></i> <?= __e('feat.inbox_badge') ?></span>
+                <h3 class="font-display font-extrabold text-[28px] mt-4 tracking-[-0.025em]"><?= __e('feat.inbox_title') ?></h3>
+                <p class="text-[14.5px] text-ink-500 mt-2 max-w-md leading-relaxed"><?= __e('feat.inbox_para') ?></p>
                 <div class="mt-7 space-y-2.5">
-                    <?php foreach ([['globe','Portal · Acme','VPN se desconecta cada 10 min','#ef4444','Urgente'],['mail','Email · Globex','No recibe correo corporativo','#f59e0b','Alta'],['phone','Teléfono · Initech','Impresora 3er piso offline','#7c5cff','Media']] as [$ic,$ch,$s,$c,$pl]): ?>
+                    <?php foreach ([
+                        ['globe', __('feat.ticker1_ch'), __('feat.ticker1_s'), '#ef4444', __('feat.ticker1_pl')],
+                        ['mail',  __('feat.ticker2_ch'), __('feat.ticker2_s'), '#f59e0b', __('feat.ticker2_pl')],
+                        ['phone', __('feat.ticker3_ch'), __('feat.ticker3_s'), '#7c5cff', __('feat.ticker3_pl')],
+                    ] as [$ic,$ch,$tickS,$c,$pl]): ?>
                         <div class="ticker-row">
                             <div class="w-10 h-10 rounded-xl bg-white border border-[#ececef] grid place-items-center text-ink-500"><i class="lucide lucide-<?= $ic ?> text-[15px]"></i></div>
                             <div class="flex-1 min-w-0">
-                                <div class="text-[10.5px] text-ink-400 mb-0.5"><?= $ch ?></div>
-                                <div class="text-[13px] font-semibold truncate"><?= $s ?></div>
+                                <div class="text-[10.5px] text-ink-400 mb-0.5"><?= $e($ch) ?></div>
+                                <div class="text-[13px] font-semibold truncate"><?= $e($tickS) ?></div>
                             </div>
-                            <span class="status-pill" style="background:<?= $c ?>1f;color:<?= $c ?>"><?= $pl ?></span>
+                            <span class="status-pill" style="background:<?= $c ?>1f;color:<?= $c ?>"><?= $e($pl) ?></span>
                         </div>
                     <?php endforeach; ?>
                 </div>
-                <a href="<?= $url('/features/inbox') ?>" class="inline-flex items-center gap-1 mt-6 text-[13px] font-semibold text-brand-700 hover:gap-2 transition-all">Saber más sobre Bandeja unificada <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+                <a href="<?= $url('/features/inbox') ?>" class="inline-flex items-center gap-1 mt-6 text-[13px] font-semibold text-brand-700 hover:gap-2 transition-all"><?= __e('feat.inbox_more') ?> <i class="lucide lucide-arrow-right text-[13px]"></i></a>
             </div>
 
             <div class="col-span-12 lg:col-span-5 bento spotlight-card" style="min-height:400px;">
                 <div class="bento-glow"></div>
-                <span class="badge badge-amber"><i class="lucide lucide-gauge text-[11px]"></i> SLA EN VIVO</span>
-                <h3 class="font-display font-extrabold text-[28px] mt-4 tracking-[-0.025em]">Reloj SLA que late.</h3>
-                <p class="text-[14.5px] text-ink-500 mt-2 leading-relaxed">Políticas por prioridad. Alertas antes de la brecha.</p>
+                <span class="badge badge-amber"><i class="lucide lucide-gauge text-[11px]"></i> <?= __e('feat.sla_badge') ?></span>
+                <h3 class="font-display font-extrabold text-[28px] mt-4 tracking-[-0.025em]"><?= __e('feat.sla_title') ?></h3>
+                <p class="text-[14.5px] text-ink-500 mt-2 leading-relaxed"><?= __e('feat.sla_para') ?></p>
                 <div class="mt-7 space-y-3.5">
-                    <?php foreach ([['Urgente','15m',88,'#ef4444'],['Alta','1h 30m',64,'#f59e0b'],['Media','4h 12m',38,'#7c5cff']] as [$l,$t,$p,$c]): ?>
+                    <?php foreach ([[__('feat.priority.urgent'),'15m',88,'#ef4444'],[__('feat.priority.high'),'1h 30m',64,'#f59e0b'],[__('feat.priority.medium'),'4h 12m',38,'#7c5cff']] as [$l,$slaT,$p,$c]): ?>
                         <div class="border border-[#ececef] rounded-2xl p-4 hover:border-brand-200 transition">
                             <div class="flex items-center justify-between text-[12.5px] mb-2.5">
-                                <span class="font-display font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:<?= $c ?>"></span><?= $l ?></span>
-                                <span class="font-mono text-ink-500 text-[12px] font-semibold"><?= $t ?></span>
+                                <span class="font-display font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:<?= $c ?>"></span><?= $e($l) ?></span>
+                                <span class="font-mono text-ink-500 text-[12px] font-semibold"><?= $e($slaT) ?></span>
                             </div>
                             <div class="progress"><div class="progress-bar" style="width:<?= $p ?>%; background:<?= $c ?>"></div></div>
                         </div>
                     <?php endforeach; ?>
                 </div>
-                <a href="<?= $url('/features/sla') ?>" class="inline-flex items-center gap-1 mt-6 text-[13px] font-semibold text-amber-700 hover:gap-2 transition-all">Saber más sobre SLA <i class="lucide lucide-arrow-right text-[13px]"></i></a>
+                <a href="<?= $url('/features/sla') ?>" class="inline-flex items-center gap-1 mt-6 text-[13px] font-semibold text-amber-700 hover:gap-2 transition-all"><?= __e('feat.sla_more') ?> <i class="lucide lucide-arrow-right text-[13px]"></i></a>
             </div>
 
             <?php
             $bentos = [
-                ['email_inbound','Email-to-Ticket','IMAP + forward webhook · threading RFC.','mail-open','#e0f2fe','#0369a1'],
-                ['live_chat','Live Chat','Widget embebible para tu sitio.','message-square','#ecfdf5','#047857'],
-                ['ai_assist','Kyros IA','Sugerir, resumir, sentiment, traducir.','sparkles','#f3e8ff','#7e22ce'],
-                ['csat','CSAT / NPS','Encuestas post-resolución con dashboard.','smile','#fef3c7','#b45309'],
-                ['itsm','ITSM · ITIL','Service Catalog, Changes, Approvals.','workflow','#dbeafe','#0284c7'],
-                ['time_tracking','Time Tracking','Cronómetro integrado a Igualas.','timer','#fee2e2','#b91c1c'],
-                ['status_page','Status Page','Pública con suscripción email.','activity','#d1fae5','#047857'],
-                ['customer_portal','Portal con login','Histórico autenticado de tickets.','lock-keyhole','#f3e8ff','#7c2d12'],
-                ['reports_builder','Reports Builder','10 widgets · drag & drop.','bar-chart-3','#f3e8ff','#7e22ce'],
-                ['meetings','Agenda + Video','Calendly + Jitsi/LiveKit embebido.','calendar-clock','#f3f0ff','#7c5cff'],
-                ['retainers','Igualas','Contratos recurrentes configurables.','handshake','#ecfdf5','#047857'],
-                ['kanban','Tablero Kanban','Drag & drop. Tu flujo, tu forma.','kanban-square','#dbeafe','#1d4ed8'],
-                ['automations','Automatizaciones','Reglas que ejecutan acciones solas.','workflow','#f3e8ff','#7e22ce'],
+                ['email_inbound',  __('module.email_inbound.name'),  __('module.email_inbound.desc'), 'mail-open','#e0f2fe','#0369a1'],
+                ['live_chat',      __('module.live_chat.name'),      __('module.live_chat.desc'),      'message-square','#ecfdf5','#047857'],
+                ['ai_assist',      __('module.ai_assist.name'),      __('module.ai_assist.desc'),      'sparkles','#f3e8ff','#7e22ce'],
+                ['csat',           __('module.csat.name'),           __('module.csat.desc'),           'smile','#fef3c7','#b45309'],
+                ['itsm',           __('module.itsm.name'),           __('module.itsm.desc'),           'workflow','#dbeafe','#0284c7'],
+                ['time_tracking',  __('module.time_tracking.name'),  __('module.time_tracking.desc'),  'timer','#fee2e2','#b91c1c'],
+                ['status_page',    __('module.status_page.name'),    __('module.status_page.desc'),    'activity','#d1fae5','#047857'],
+                ['customer_portal',__('module.customer_portal.name'),__('module.customer_portal.desc'),'lock-keyhole','#f3e8ff','#7c2d12'],
+                ['reports_builder',__('module.reports_builder.name'),__('module.reports_builder.desc'),'bar-chart-3','#f3e8ff','#7e22ce'],
+                ['meetings',       __('module.meetings.name'),       __('module.meetings.desc'),       'calendar-clock','#f3f0ff','#7c5cff'],
+                ['retainers',      __('module.retainers.name'),      __('module.retainers.desc'),      'handshake','#ecfdf5','#047857'],
+                ['kanban',         __('module.kanban.name'),         __('module.kanban.desc'),         'kanban-square','#dbeafe','#1d4ed8'],
+                ['automations',    __('module.automations.name'),    __('module.automations.desc'),    'workflow','#f3e8ff','#7e22ce'],
             ];
-            foreach ($bentos as [$key,$t,$d,$ic,$bg,$col]): ?>
+            foreach ($bentos as [$key,$bTitle,$bDesc,$ic,$bg,$col]): ?>
                 <a href="<?= $url('/features/' . $key) ?>" class="col-span-12 sm:col-span-6 lg:col-span-4 bento spotlight-card group block">
                     <div class="bento-glow"></div>
                     <div class="bento-icon" style="background:<?= $bg ?>;color:<?= $col ?>">
                         <i class="lucide lucide-<?= $ic ?> text-[22px] relative z-10"></i>
                     </div>
-                    <h3 class="font-display font-extrabold text-[20px] mt-5 tracking-[-0.02em]"><?= $t ?></h3>
-                    <p class="text-[13.5px] text-ink-500 mt-2 leading-relaxed"><?= $d ?></p>
-                    <span class="inline-flex items-center gap-1 mt-4 text-[12.5px] font-semibold transition" style="color:<?= $col ?>">Saber más <i class="lucide lucide-arrow-right text-[12px] group-hover:translate-x-1 transition"></i></span>
+                    <h3 class="font-display font-extrabold text-[20px] mt-5 tracking-[-0.02em]"><?= $e($bTitle) ?></h3>
+                    <p class="text-[13.5px] text-ink-500 mt-2 leading-relaxed"><?= $e($bDesc) ?></p>
+                    <span class="inline-flex items-center gap-1 mt-4 text-[12.5px] font-semibold transition" style="color:<?= $col ?>"><?= __e('wn.know_more') ?> <i class="lucide lucide-arrow-right text-[12px] group-hover:translate-x-1 transition"></i></span>
                 </a>
             <?php endforeach; ?>
         </div>
@@ -424,18 +428,18 @@
     </div>
     <div class="max-w-[1240px] mx-auto px-6 relative">
         <div class="text-center max-w-2xl mx-auto reveal" data-reveal>
-            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-300 mb-3">RESULTADOS REALES</div>
-            <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3.5rem)">Equipos que ya operan al máximo.</h2>
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-300 mb-3"><?= __e('stats.eyebrow') ?></div>
+            <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3.5rem)"><?= __e('stats.title') ?></h2>
         </div>
         <div class="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-8 reveal-stagger" data-reveal>
-            <?php foreach ([['42','%','menos tiempo de respuesta','clock'],['3.8','×','productividad por técnico','zap'],['99.99','%','uptime del servicio','activity'],['12','K+','tickets/mes resueltos','inbox']] as [$n,$suffix,$l,$ic]): ?>
+            <?php foreach ([['42','%',__('stats.s1'),'clock'],['3.8','×',__('stats.s2'),'zap'],['99.99','%',__('stats.s3'),'activity'],['12','K+',__('stats.s4'),'inbox']] as [$n,$suffix,$l,$ic]): ?>
                 <div class="border-t border-white/15 pt-7">
                     <i class="lucide lucide-<?= $ic ?> text-[18px] text-brand-300"></i>
                     <div class="mt-5 flex items-baseline gap-1">
                         <span class="font-display font-extrabold text-[64px] tracking-[-0.04em] leading-none gradient-shift" data-counter="<?= $n ?>"><?= $n ?></span>
                         <span class="font-display font-extrabold text-[28px] text-white/70"><?= $suffix ?></span>
                     </div>
-                    <div class="mt-3 text-[13.5px] text-white/70 max-w-[200px] leading-snug"><?= $l ?></div>
+                    <div class="mt-3 text-[13.5px] text-white/70 max-w-[200px] leading-snug"><?= $e($l) ?></div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -599,14 +603,14 @@
         <div class="text-center reveal" data-reveal>
             <div class="ix2-eyebrow">
                 <span class="ix2-eyebrow-dot"></span>
-                <span>Marketplace · 12+ proveedores en vivo</span>
+                <span><?= __e('ix.eyebrow') ?></span>
             </div>
             <h2 class="ix2-title mt-7">
-                Cada evento de Kydesk,<br>
-                <span class="ix2-grad">en tu stack favorito</span>.
+                <?= __e('ix.title_pre') ?><br>
+                <span class="ix2-grad"><?= __e('ix.title_post') ?></span>.
             </h2>
             <p class="ix2-sub">
-                Cuando algo pasa en tu helpdesk — un ticket, un SLA, una resolución — Kydesk lo dispara automáticamente a Slack, Discord, Teams, Zapier y 8 plataformas más. Sin escribir código, en tiempo real.
+                <?= __e('ix.sub') ?>
             </p>
         </div>
 
@@ -619,8 +623,8 @@
                     <div class="ix2-source-head">
                         <div class="ix2-source-logo">K</div>
                         <div class="flex-1">
-                            <div class="ix2-source-meta">Kydesk · Helpdesk</div>
-                            <div class="ix2-source-title">Nuevo ticket creado</div>
+                            <div class="ix2-source-meta"><?= __e('ix.source_meta') ?></div>
+                            <div class="ix2-source-title"><?= __e('ix.source_title') ?></div>
                         </div>
                     </div>
                     <div class="ix2-source-event">ticket.created</div>
@@ -634,9 +638,9 @@
                     </div>
                 </div>
                 <div class="ix2-source-floats">
-                    <span class="ix2-float-pill"><i class="lucide lucide-check text-emerald-400 text-[10px]"></i> Webhook firmado</span>
+                    <span class="ix2-float-pill"><i class="lucide lucide-check text-emerald-400 text-[10px]"></i> <?= __e('ix.source_pill1') ?></span>
                     <span class="ix2-float-pill"><i class="lucide lucide-zap text-amber-400 text-[10px]"></i> 38ms</span>
-                    <span class="ix2-float-pill"><i class="lucide lucide-shield text-blue-400 text-[10px]"></i> HMAC SHA256</span>
+                    <span class="ix2-float-pill"><i class="lucide lucide-shield text-blue-400 text-[10px]"></i> <?= __e('ix.source_pill3') ?></span>
                 </div>
             </div>
 
@@ -709,9 +713,9 @@
                         <div>
                             <div class="ix2-notif-app">Slack <span style="color:rgba(255,255,255,.4);font-weight:500">· #soporte-urgente</span></div>
                         </div>
-                        <div class="ix2-notif-time">ahora</div>
+                        <div class="ix2-notif-time"><?= __e('common.now') ?></div>
                     </div>
-                    <div class="ix2-notif-msg">🎫 <strong>Nuevo ticket [TKT-1042]</strong> · VPN se desconecta</div>
+                    <div class="ix2-notif-msg"><?= __('ix.notif_slack_msg') ?></div>
                     <div class="ix2-notif-tags">
                         <span class="ix2-notif-tag">priority: high</span>
                         <span class="ix2-notif-tag">maria@acme.com</span>
@@ -725,9 +729,9 @@
                         <div>
                             <div class="ix2-notif-app">Discord <span style="color:rgba(255,255,255,.4);font-weight:500">· #alertas</span></div>
                         </div>
-                        <div class="ix2-notif-time">ahora</div>
+                        <div class="ix2-notif-time"><?= __e('common.now') ?></div>
                     </div>
-                    <div class="ix2-notif-msg">📢 <strong>Embed entregado</strong> con título, descripción y campos automáticos.</div>
+                    <div class="ix2-notif-msg"><?= __('ix.notif_discord_msg') ?></div>
                     <div class="ix2-notif-tags">
                         <span class="ix2-notif-tag">embed</span>
                         <span class="ix2-notif-tag">color: #3b82f6</span>
@@ -741,9 +745,9 @@
                         <div>
                             <div class="ix2-notif-app">Telegram <span style="color:rgba(255,255,255,.4);font-weight:500">· @kydesk_bot</span></div>
                         </div>
-                        <div class="ix2-notif-time">ahora</div>
+                        <div class="ix2-notif-time"><?= __e('common.now') ?></div>
                     </div>
-                    <div class="ix2-notif-msg">📲 Push enviado al chat con HTML formatting y disable preview.</div>
+                    <div class="ix2-notif-msg"><?= __('ix.notif_telegram_msg') ?></div>
                     <div class="ix2-notif-tags">
                         <span class="ix2-notif-tag">parse_mode: HTML</span>
                     </div>
@@ -786,24 +790,24 @@
         <div class="ix2-grid-cards reveal-stagger" data-reveal>
             <?php
             $grid = [
-                ['Slack',          'slack',          '#4A154B', 'Chat',          'Notifica a un canal con attachments coloreados'],
-                ['Discord',        'message-square', '#5865F2', 'Chat',          'Embeds ricos con fields, color y timestamp'],
-                ['Telegram',       'send',           '#0088CC', 'Chat',          'Bot con sendMessage HTML a canales o grupos'],
-                ['Microsoft Teams','users-2',        '#5059C9', 'Chat',          'MessageCard adaptativa con theme color'],
-                ['Zapier',         'zap',            '#FF4A00', 'Automation',    'Conecta con miles de apps via Zaps'],
-                ['n8n',            'workflow',       '#EA4B71', 'Automation',    'Workflows open-source self-hosted'],
-                ['Make',           'cpu',            '#6D00CC', 'Automation',    'Escenarios visuales drag & drop'],
-                ['Webhook',        'webhook',        '#0ea5e9', 'DevOps',        'POST/PUT/PATCH con HMAC opcional'],
+                ['Slack',          'slack',          '#4A154B', __('ix.cat_chat'),       __('ix.card_slack_desc')],
+                ['Discord',        'message-square', '#5865F2', __('ix.cat_chat'),       __('ix.card_discord_desc')],
+                ['Telegram',       'send',           '#0088CC', __('ix.cat_chat'),       __('ix.card_telegram_desc')],
+                ['Microsoft Teams','users-2',        '#5059C9', __('ix.cat_chat'),       __('ix.card_teams_desc')],
+                ['Zapier',         'zap',            '#FF4A00', __('ix.cat_automation'), __('ix.card_zapier_desc')],
+                ['n8n',            'workflow',       '#EA4B71', __('ix.cat_automation'), __('ix.card_n8n_desc')],
+                ['Make',           'cpu',            '#6D00CC', __('ix.cat_automation'), __('ix.card_make_desc')],
+                ['Webhook',        'webhook',        '#0ea5e9', __('ix.cat_devops'),     __('ix.card_webhook_desc')],
             ];
             foreach ($grid as [$name, $icon, $color, $cat, $desc]): ?>
                 <div class="ix2-card" style="--ix-glow:<?= $color ?>">
-                    <div class="ix2-card-status">activo</div>
+                    <div class="ix2-card-status"><?= __e('common.active') ?></div>
                     <div class="ix2-card-icon" style="background:<?= $color ?>22; border:1px solid <?= $color ?>50">
                         <i class="lucide lucide-<?= $icon ?> text-[20px]" style="color:<?= $color ?>"></i>
                     </div>
-                    <div class="ix2-card-cat"><?= $cat ?></div>
-                    <div class="ix2-card-name"><?= $name ?></div>
-                    <div class="ix2-card-desc"><?= $desc ?></div>
+                    <div class="ix2-card-cat"><?= $e($cat) ?></div>
+                    <div class="ix2-card-name"><?= $e($name) ?></div>
+                    <div class="ix2-card-desc"><?= $e($desc) ?></div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -812,19 +816,19 @@
         <div class="ix2-stats reveal" data-reveal>
             <div class="ix2-stat">
                 <div class="ix2-stat-value grad">12+</div>
-                <div class="ix2-stat-label">Proveedores listos</div>
+                <div class="ix2-stat-label"><?= __e('ix.stat_providers') ?></div>
             </div>
             <div class="ix2-stat">
                 <div class="ix2-stat-value grad">12</div>
-                <div class="ix2-stat-label">Eventos disparadores</div>
+                <div class="ix2-stat-label"><?= __e('ix.stat_events') ?></div>
             </div>
             <div class="ix2-stat">
                 <div class="ix2-stat-value grad">&lt;2 min</div>
-                <div class="ix2-stat-label">Setup desde la UI</div>
+                <div class="ix2-stat-label"><?= __e('ix.stat_setup') ?></div>
             </div>
             <div class="ix2-stat">
                 <div class="ix2-stat-value grad">∞</div>
-                <div class="ix2-stat-label">En Enterprise</div>
+                <div class="ix2-stat-label"><?= __e('ix.stat_enterprise') ?></div>
             </div>
         </div>
 
@@ -832,14 +836,14 @@
         <div class="ix2-cta-row reveal" data-reveal>
             <a href="<?= $url('/features/integrations') ?>" class="ix2-cta">
                 <i class="lucide lucide-plug text-[15px]"></i>
-                Explorar marketplace completo
+                <?= __e('ix.cta') ?>
                 <i class="lucide lucide-arrow-right text-[15px]"></i>
             </a>
             <div class="mt-5 inline-flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12.5px]" style="color:rgba(255,255,255,.5)">
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> Disponible desde Pro</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> Configuración 100% UI</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> Logs y métricas en vivo</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> HMAC firmado</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> <?= __e('ix.bullet1') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> <?= __e('ix.bullet2') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> <?= __e('ix.bullet3') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-400 text-[13px]"></i> <?= __e('ix.bullet4') ?></span>
             </div>
         </div>
     </div>
@@ -861,13 +865,13 @@
                 <span class="apx-eyebrow-dot"></span>
                 <span class="font-mono">REST API</span>
                 <span class="apx-eyebrow-sep">·</span>
-                <span>v1 estable</span>
+                <span><?= __e('api.eyebrow_stable') ?></span>
             </div>
             <h2 class="apx-title mt-6">
-                Construido para <span class="apx-grad">desarrolladores</span>.
+                <?= __e('api.title_pre') ?> <span class="apx-grad"><?= __e('api.title_post') ?></span>.
             </h2>
             <p class="apx-sub mt-6">
-                API REST limpia, JSON tipado, autenticación Bearer y rate limiting. Integra Kydesk con cualquier stack en minutos.
+                <?= __e('api.sub') ?>
             </p>
         </div>
 
@@ -887,7 +891,7 @@
                     </div>
                     <button @click="copy()" class="apx-copy-btn">
                         <i class="lucide lucide-copy text-[12px]"></i>
-                        <span x-text="copied ? '¡Copiado!' : 'Copiar'"></span>
+                        <span x-text="copied ? <?= htmlspecialchars(json_encode(__('api.copied')), ENT_QUOTES) ?> : <?= htmlspecialchars(json_encode(__('api.copy')), ENT_QUOTES) ?>"></span>
                     </button>
                 </div>
 
@@ -906,14 +910,14 @@
                     <!-- Request -->
                     <div class="apx-pane">
                         <div class="apx-pane-header">
-                            <span class="apx-pane-label"><i class="lucide lucide-send text-[11px]"></i> Request</span>
+                            <span class="apx-pane-label"><i class="lucide lucide-send text-[11px]"></i> <?= __e('api.request') ?></span>
                         </div>
                         <pre class="apx-code"><code x-html="rendered"></code><span class="apx-caret"></span></pre>
                     </div>
                     <!-- Response -->
                     <div class="apx-pane apx-pane-response">
                         <div class="apx-pane-header">
-                            <span class="apx-pane-label"><i class="lucide lucide-arrow-down-left text-[11px]"></i> Response</span>
+                            <span class="apx-pane-label"><i class="lucide lucide-arrow-down-left text-[11px]"></i> <?= __e('api.response') ?></span>
                             <span class="apx-status" x-show="showResponse" x-cloak>
                                 <span class="apx-status-dot"></span>
                                 <span class="font-mono" x-text="statusLine"></span>
@@ -933,22 +937,22 @@
         <!-- Capability strip -->
         <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-[980px] mx-auto reveal" data-reveal>
             <?php foreach ([
-                ['Bearer Auth','key','#7c5cff', 'Tokens con scopes'],
-                ['~ 42ms P95','zap','#10b981', 'Latencia promedio'],
-                ['99.99% uptime','activity','#38bdf8', 'SLA enterprise'],
-                ['Rate-limit','timer','#f59e0b', '60 req/min'],
+                [__('api.feat_bearer_label'), 'key',     '#7c5cff', __('api.feat_bearer_sub')],
+                [__('api.feat_latency_label'),'zap',     '#10b981', __('api.feat_latency_sub')],
+                [__('api.feat_uptime_label'), 'activity','#38bdf8', __('api.feat_uptime_sub')],
+                [__('api.feat_rate_label'),   'timer',   '#f59e0b', __('api.feat_rate_sub')],
             ] as [$lbl, $ic, $c, $sub]): ?>
                 <div class="apx-feat" style="--c:<?= $c ?>">
                     <div class="apx-feat-icon"><i class="lucide lucide-<?= $ic ?>"></i></div>
-                    <div class="apx-feat-label"><?= $lbl ?></div>
-                    <div class="apx-feat-sub"><?= $sub ?></div>
+                    <div class="apx-feat-label"><?= $e($lbl) ?></div>
+                    <div class="apx-feat-sub"><?= $e($sub) ?></div>
                 </div>
             <?php endforeach; ?>
         </div>
 
         <!-- Endpoints marquee -->
         <div class="mt-14 reveal" data-reveal>
-            <div class="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-ink-400 mb-4">Endpoints disponibles · Todos sobre <code class="font-mono text-ink-700">/api/v1</code></div>
+            <div class="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-ink-400 mb-4"><?= __e('api.endpoints_caption') ?> <code class="font-mono text-ink-700">/api/v1</code></div>
             <div class="apx-marquee">
                 <div class="apx-marquee-track">
                     <?php
@@ -1006,12 +1010,12 @@
         <div class="mt-16 text-center reveal" data-reveal>
             <a href="<?= $url('/auth/register') ?>" class="apx-cta">
                 <i class="lucide lucide-key"></i>
-                Genera tu primer API token
+                <?= __e('api.cta') ?>
                 <i class="lucide lucide-arrow-right text-[14px]"></i>
             </a>
             <div class="mt-5 flex items-center justify-center gap-5 text-[12px] text-ink-400">
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600 text-[13px]"></i> Disponible en todos los planes</span>
-                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600 text-[13px]"></i> Docs interactivas dentro del workspace</span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600 text-[13px]"></i> <?= __e('api.cta_b1') ?></span>
+                <span class="flex items-center gap-1.5"><i class="lucide lucide-check text-emerald-600 text-[13px]"></i> <?= __e('api.cta_b2') ?></span>
             </div>
         </div>
     </div>
@@ -1029,9 +1033,9 @@ function apiDemo() {
         timer: null,
         methodColors: { GET: '#10b981', POST: '#7c5cff', PATCH: '#f59e0b', DELETE: '#ef4444' },
         tabs: [
-            { method: 'POST', label: 'Crear ticket' },
-            { method: 'GET',  label: 'Listar' },
-            { method: 'GET',  label: 'Métricas' },
+            { method: 'POST', label: <?= json_encode(__('api.tab_create')) ?> },
+            { method: 'GET',  label: <?= json_encode(__('api.tab_list')) ?> },
+            { method: 'GET',  label: <?= json_encode(__('api.tab_metrics')) ?> },
         ],
         snippets: [
             {
@@ -1136,27 +1140,27 @@ function apiDemo() {
 <section id="testimonials" class="py-32">
     <div class="max-w-[1240px] mx-auto px-6">
         <div class="text-center max-w-2xl mx-auto reveal" data-reveal>
-            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3">TESTIMONIOS</div>
-            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">Aman <span class="gradient-shift">cómo se siente</span>.</h2>
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3"><?= __e('testi.eyebrow') ?></div>
+            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance"><?= __e('testi.title_pre') ?> <span class="gradient-shift"><?= __e('testi.title_post') ?></span>.</h2>
         </div>
 
         <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-5 reveal-stagger" data-reveal>
             <?php foreach ([
-                ['Reducimos el tiempo de primera respuesta de 6h a 38min en el primer mes. Sencillamente revolucionario.','Laura Méndez','CTO · Globex','LM','#ec4899'],
-                ['Por fin un helpdesk que mi equipo abre sin gemir. La velocidad y los atajos son adictivos.','Carlos Rivera','Lead de Soporte · Acme','CR','#7c5cff'],
-                ['Las automatizaciones cierran solas el 30% de los tickets. Me devolvió tiempo a mí y a mis técnicos.','Ana Torres','Ops Manager · Initech','AT','#f59e0b'],
+                [__('testi.q1'),'Laura Méndez',__('testi.r1'),'LM','#ec4899'],
+                [__('testi.q2'),'Carlos Rivera',__('testi.r2'),'CR','#7c5cff'],
+                [__('testi.q3'),'Ana Torres',__('testi.r3'),'AT','#f59e0b'],
             ] as [$q,$n,$r,$in,$c]): ?>
                 <div class="testi spotlight-card">
                     <div class="testi-quote">"</div>
                     <div class="flex items-center gap-1 mb-4">
                         <?php for ($s=0;$s<5;$s++): ?><i class="lucide lucide-star text-amber-400 text-[14px]" style="fill:#f59e0b"></i><?php endfor; ?>
                     </div>
-                    <p class="text-[14.5px] leading-relaxed text-ink-700">"<?= $q ?>"</p>
+                    <p class="text-[14.5px] leading-relaxed text-ink-700">"<?= $e($q) ?>"</p>
                     <div class="flex items-center gap-3 mt-6 pt-5 border-t border-[#ececef]">
-                        <div class="avatar avatar-md" style="background:<?= $c ?>;color:white"><?= $in ?></div>
+                        <div class="avatar avatar-md" style="background:<?= $c ?>;color:white"><?= $e($in) ?></div>
                         <div>
-                            <div class="font-display font-bold text-[13.5px]"><?= $n ?></div>
-                            <div class="text-[11.5px] text-ink-400"><?= $r ?></div>
+                            <div class="font-display font-bold text-[13.5px]"><?= $e($n) ?></div>
+                            <div class="text-[11.5px] text-ink-400"><?= $e($r) ?></div>
                         </div>
                     </div>
                 </div>
@@ -1169,42 +1173,42 @@ function apiDemo() {
 <section id="pricing-preview" class="py-24 relative">
     <div class="max-w-[1240px] mx-auto px-6">
         <div class="text-center max-w-2xl mx-auto reveal" data-reveal>
-            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3">PRECIOS</div>
-            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance">Empezá <span class="gradient-shift">gratis</span>. Crecé sin sorpresas.</h2>
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3"><?= __e('pricing.eyebrow') ?></div>
+            <h2 class="display-xl" style="font-size:clamp(2.2rem,4vw + 1rem,4rem);text-wrap:balance"><?= __e('pricing.title_pre') ?> <span class="gradient-shift"><?= __e('pricing.title_mid') ?></span><?= __e('pricing.title_post') ?></h2>
         </div>
 
         <?php
         $homePlans = $plans ?? [];
         $homeFeatureLabels = [
-            'tickets' => 'Tickets',
-            'kb' => 'Base de conocimiento',
-            'notes' => 'Notas',
-            'todos' => 'Tareas',
-            'companies' => 'Empresas',
-            'assets' => 'Activos',
-            'reports' => 'Reportes',
-            'users' => 'Usuarios',
-            'roles' => 'Roles',
-            'settings' => 'Ajustes',
-            'automations' => 'Automatizaciones IA',
-            'sla' => 'SLA + Escalamientos',
-            'audit' => 'Auditoría',
-            'departments' => 'Departamentos',
-            'integrations' => 'Integraciones',
-            'retainers' => 'Igualas (contratos recurrentes)',
-            'csat' => 'CSAT / NPS',
-            'status_page' => 'Status Page pública',
-            'customer_portal' => 'Portal con login',
-            'custom_fields' => 'Custom Fields',
-            'email_inbound' => 'Email-to-Ticket',
-            'time_tracking' => 'Time Tracking',
-            'live_chat' => 'Live Chat',
-            'reports_builder' => 'Reports Builder',
-            'itsm' => 'ITSM (ITIL)',
-            'ai_assist' => 'Kyros IA Asistente',
-            'meetings' => 'Agenda + Video conferencia',
-            'sso' => 'SSO + SAML',
-            'custom_branding' => 'Marca personalizada',
+            'tickets' => __('pricing.feat.tickets'),
+            'kb' => __('pricing.feat.kb'),
+            'notes' => __('pricing.feat.notes'),
+            'todos' => __('pricing.feat.todos'),
+            'companies' => __('pricing.feat.companies'),
+            'assets' => __('pricing.feat.assets'),
+            'reports' => __('pricing.feat.reports'),
+            'users' => __('pricing.feat.users'),
+            'roles' => __('pricing.feat.roles'),
+            'settings' => __('pricing.feat.settings'),
+            'automations' => __('pricing.feat.automations'),
+            'sla' => __('pricing.feat.sla'),
+            'audit' => __('pricing.feat.audit'),
+            'departments' => __('pricing.feat.departments'),
+            'integrations' => __('pricing.feat.integrations'),
+            'retainers' => __('pricing.feat.retainers'),
+            'csat' => __('pricing.feat.csat'),
+            'status_page' => __('pricing.feat.status_page'),
+            'customer_portal' => __('pricing.feat.customer_portal'),
+            'custom_fields' => __('pricing.feat.custom_fields'),
+            'email_inbound' => __('pricing.feat.email_inbound'),
+            'time_tracking' => __('pricing.feat.time_tracking'),
+            'live_chat' => __('pricing.feat.live_chat'),
+            'reports_builder' => __('pricing.feat.reports_builder'),
+            'itsm' => __('pricing.feat.itsm'),
+            'ai_assist' => __('pricing.feat.ai_assist'),
+            'meetings' => __('pricing.feat.meetings'),
+            'sso' => __('pricing.feat.sso'),
+            'custom_branding' => __('pricing.feat.custom_branding'),
         ];
         $homeCols = max(2, min(4, count($homePlans) ?: 3));
         ?>
@@ -1215,29 +1219,29 @@ function apiDemo() {
                 $features = json_decode($hp['features'] ?? '[]', true) ?: [];
                 $highlightFeatures = array_slice($features, 0, 6);
                 $feats = [];
-                if ((int)$hp['max_users'] >= 9999) $feats[] = 'Técnicos ilimitados';
-                else $feats[] = 'Hasta ' . (int)$hp['max_users'] . ' técnicos';
-                if ((int)$hp['max_tickets_month'] >= 99999) $feats[] = 'Tickets ilimitados';
-                else $feats[] = number_format($hp['max_tickets_month']) . ' tickets/mes';
+                if ((int)$hp['max_users'] >= 9999) $feats[] = __('pricing.unlimited_users');
+                else $feats[] = __('pricing.up_to_users', ['n' => (int)$hp['max_users']]);
+                if ((int)$hp['max_tickets_month'] >= 99999) $feats[] = __('pricing.unlimited_tickets');
+                else $feats[] = __('pricing.tickets_month', ['n' => number_format($hp['max_tickets_month'])]);
                 foreach ($highlightFeatures as $hf) $feats[] = $homeFeatureLabels[$hf] ?? ucfirst($hf);
                 $feats = array_slice($feats, 0, 6);
             ?>
                 <div class="price-card <?= $isFeat ? 'featured' : '' ?>">
                     <?php if ($isFeat): ?>
-                        <div class="absolute -top-3 left-1/2 -translate-x-1/2"><span class="aura-pill-tag">RECOMENDADO</span></div>
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2"><span class="aura-pill-tag"><?= __e('pricing.recommended') ?></span></div>
                     <?php endif; ?>
                     <div class="text-[11px] uppercase tracking-[0.16em] font-bold <?= $isFeat ? 'text-brand-300 relative' : 'text-ink-400' ?>"><?= $e($hp['name']) ?></div>
                     <div class="mt-3 <?= $isFeat ? 'relative' : '' ?>">
                         <span class="price-amount <?= $isFeat ? 'gradient-shift' : '' ?>">$<?= number_format($hp['price_monthly'], 0) ?></span>
-                        <span class="<?= $isFeat ? 'text-white/60' : 'text-ink-400' ?> text-[14px] ml-2">/ mes</span>
+                        <span class="<?= $isFeat ? 'text-white/60' : 'text-ink-400' ?> text-[14px] ml-2"><?= __e('pricing.per_month') ?></span>
                     </div>
                     <?php if (!empty($hp['description'])): ?>
                         <p class="text-[13px] mt-3 <?= $isFeat ? 'text-white/70 relative' : 'text-ink-500' ?>"><?= $e($hp['description']) ?></p>
                     <?php endif; ?>
                     <?php if ($isFeat): ?>
-                        <a href="<?= $url('/auth/register') ?>" class="btn btn-lg w-full mt-6 justify-center relative" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 10px 24px -8px rgba(124,92,255,.6)"><?= (int)$hp['trial_days'] > 0 ? 'Probar ' . (int)$hp['trial_days'] . ' días gratis' : 'Empezar ' . $e($hp['name']) ?></a>
+                        <a href="<?= $url('/auth/register') ?>" class="btn btn-lg w-full mt-6 justify-center relative" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white;box-shadow:0 10px 24px -8px rgba(124,92,255,.6)"><?= (int)$hp['trial_days'] > 0 ? $e(__('pricing.try_n_days', ['n' => (int)$hp['trial_days']])) : $e(__('pricing.start_plan', ['plan' => $hp['name']])) ?></a>
                     <?php else: ?>
-                        <a href="<?= $url($isFree ? '/auth/register' : '/pricing') ?>" class="btn btn-outline btn-sm w-full mt-6 justify-center"><?= $isFree ? 'Empezar gratis' : 'Probar ' . $e($hp['name']) ?></a>
+                        <a href="<?= $url($isFree ? '/auth/register' : '/pricing') ?>" class="btn btn-outline btn-sm w-full mt-6 justify-center"><?= $isFree ? __e('pricing.start_free') : $e(__('pricing.try_plan', ['plan' => $hp['name']])) ?></a>
                     <?php endif; ?>
                     <div class="mt-6 pt-6 <?= $isFeat ? 'border-t border-white/10 relative' : 'border-t border-[#ececef]' ?> space-y-1">
                         <?php foreach ($feats as $f): ?>
@@ -1247,12 +1251,12 @@ function apiDemo() {
                 </div>
             <?php endforeach; ?>
             <?php if (empty($homePlans)): ?>
-                <div class="md:col-span-3 text-center py-12 text-ink-400">Estamos preparando los planes — vuelve pronto.</div>
+                <div class="md:col-span-3 text-center py-12 text-ink-400"><?= __e('pricing.preparing') ?></div>
             <?php endif; ?>
         </div>
 
         <div class="text-center mt-10">
-            <a href="<?= $url('/pricing') ?>" class="text-[13px] font-semibold text-brand-700 inline-flex items-center gap-1.5 hover:gap-2 transition-all">Ver detalle completo de planes <i class="lucide lucide-arrow-right text-[14px]"></i></a>
+            <a href="<?= $url('/pricing') ?>" class="text-[13px] font-semibold text-brand-700 inline-flex items-center gap-1.5 hover:gap-2 transition-all"><?= __e('pricing.see_full') ?> <i class="lucide lucide-arrow-right text-[14px]"></i></a>
         </div>
     </div>
 </section>
@@ -1261,20 +1265,20 @@ function apiDemo() {
 <section class="py-24">
     <div class="max-w-3xl mx-auto px-6">
         <div class="text-center mb-14 reveal" data-reveal>
-            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3">FAQ</div>
-            <h2 class="display-xl" style="font-size:clamp(2rem,3vw + 1rem,3rem)">Preguntas frecuentes</h2>
+            <div class="text-[11.5px] font-bold uppercase tracking-[0.18em] text-brand-600 mb-3"><?= __e('faq.eyebrow') ?></div>
+            <h2 class="display-xl" style="font-size:clamp(2rem,3vw + 1rem,3rem)"><?= __e('faq.heading') ?></h2>
         </div>
         <div class="reveal" data-reveal x-data="{open:0}">
             <?php $faqs = [
-                ['¿Necesito tarjeta de crédito para empezar?','No. Tu prueba de 14 días es completamente gratis y sin tarjeta. Te avisamos antes de que termine.'],
-                ['¿Puedo migrar tickets desde otra herramienta?','Sí. Importamos desde Zendesk, Freshdesk, Atera, ServiceNow y CSV. Nuestro equipo te asiste sin costo en el plan Pro.'],
-                ['¿Qué pasa si supero los técnicos del plan?','Nada se rompe. Te notificamos para sumarlos al siguiente ciclo. Sin sorpresas en la factura.'],
-                ['¿Cómo funciona la seguridad multi-tenant?','Cada organización vive en su propio espacio aislado a nivel de datos. Roles granulares por módulo y auditoría completa.'],
-                ['¿Tienen API y webhooks?','Sí. API REST documentada + webhooks para integrar con Slack, Teams, Jira y lo que necesites.'],
+                [__('faq.q1'), __('faq.a1')],
+                [__('faq.q2'), __('faq.a2')],
+                [__('faq.q3'), __('faq.a3')],
+                [__('faq.q4'), __('faq.a4')],
+                [__('faq.q5'), __('faq.a5')],
             ]; foreach ($faqs as $i => [$q,$a]): ?>
                 <div class="faq-item" :class="open===<?= $i ?> ? 'open' : ''" @click="open = open===<?= $i ?> ? -1 : <?= $i ?>">
-                    <div class="faq-q"><?= $q ?><div class="faq-icon"><i class="lucide lucide-plus text-[16px]"></i></div></div>
-                    <div class="faq-a"><?= $a ?></div>
+                    <div class="faq-q"><?= $e($q) ?><div class="faq-icon"><i class="lucide lucide-plus text-[16px]"></i></div></div>
+                    <div class="faq-a"><?= $e($a) ?></div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -1287,12 +1291,12 @@ function apiDemo() {
         <div class="hero-card text-center reveal glow-purple" data-reveal style="padding:96px 48px;border-radius:36px;">
             <div class="hero-stars" style="top:24px;right:24px;transform:none;opacity:.45"><svg viewBox="0 0 280 200"><path d="M150 20 L155 50 L185 55 L155 60 L150 90 L145 60 L115 55 L145 50 Z" fill="white"/><path d="M70 80 L73 95 L88 98 L73 101 L70 116 L67 101 L52 98 L67 95 Z" fill="white"/><path d="M220 130 L223 145 L238 148 L223 151 L220 166 L217 151 L202 148 L217 145 Z" fill="white"/><path d="M40 30 L42 38 L50 40 L42 42 L40 50 L38 42 L30 40 L38 38 Z" fill="white"/></svg></div>
             <div class="relative max-w-2xl mx-auto">
-                <div class="aura-pill mx-auto" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)"><span class="text-white/90 font-medium">Únete a 12K+ equipos</span></div>
-                <h2 class="display-xl text-white mt-7" style="font-size:clamp(2.4rem,4.5vw + 1rem,4.5rem);text-wrap:balance">Dale a tu equipo<br>la herramienta correcta.</h2>
-                <p class="mt-7 text-[18px] text-white/85 max-w-md mx-auto">En 5 minutos tu organización está operando.</p>
+                <div class="aura-pill mx-auto" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)"><span class="text-white/90 font-medium"><?= __e('cta.pill') ?></span></div>
+                <h2 class="display-xl text-white mt-7" style="font-size:clamp(2.4rem,4.5vw + 1rem,4.5rem);text-wrap:balance"><?= __e('cta.title_pre') ?><br><?= __e('cta.title_post') ?></h2>
+                <p class="mt-7 text-[18px] text-white/85 max-w-md mx-auto"><?= __e('cta.subtitle') ?></p>
                 <div class="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-                    <a href="<?= $url('/auth/register') ?>" class="btn btn-lg" style="background:white;color:#16151b">Empezar gratis <i class="lucide lucide-arrow-right"></i></a>
-                    <a href="<?= $url('/contact') ?>" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px)">Hablar con ventas</a>
+                    <a href="<?= $url('/auth/register') ?>" class="btn btn-lg" style="background:white;color:#16151b"><?= __e('cta.start_free') ?> <i class="lucide lucide-arrow-right"></i></a>
+                    <a href="<?= $url('/contact') ?>" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px)"><?= __e('cta.contact') ?></a>
                 </div>
             </div>
         </div>

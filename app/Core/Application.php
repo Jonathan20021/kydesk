@@ -21,6 +21,11 @@ class Application
         $this->session = new Session($config['session']);
         $this->session->start();
 
+        // Load global i18n helpers (`__()`, `__e()`) into the root namespace,
+        // then resolve and persist the active locale before any view is rendered.
+        require_once APP_PATH . '/Core/lang_helpers.php';
+        Lang::boot();
+
         $this->db = new Database($config['db']);
         $this->auth = new Auth($this->db, $this->session);
         $this->superAuth = new SuperAuth($this->db, $this->session);
@@ -50,6 +55,10 @@ class Application
     protected function registerRoutes(): void
     {
         $r = $this->router;
+
+        // i18n
+        $r->get('/lang/{code}',  ['App\Controllers\LangController', 'set']);
+        $r->post('/lang/{code}', ['App\Controllers\LangController', 'set']);
 
         // Públicas
         $r->get('/', ['App\Controllers\LandingController', 'index']);

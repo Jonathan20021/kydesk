@@ -13,12 +13,12 @@
         <div class="max-w-3xl mx-auto text-center">
             <div class="inline-flex justify-center">
                 <div class="aura-pill">
-                    <span class="aura-pill-tag"><i class="lucide lucide-sparkles"></i> CHANGELOG</span>
-                    <span class="text-ink-700 font-medium">Lo nuevo, semana a semana</span>
+                    <span class="aura-pill-tag"><i class="lucide lucide-sparkles"></i> <?= __e('changelog.eyebrow') ?></span>
+                    <span class="text-ink-700 font-medium"><?= __e('changelog2.pill') ?></span>
                 </div>
             </div>
-            <h1 class="display-xl mt-8" style="text-wrap:balance;font-size:clamp(2.4rem,5vw + 1rem,4.5rem)">Mejoramos <span class="gradient-shift">cada semana</span>.</h1>
-            <p class="mt-7 text-[16px] text-ink-500 max-w-xl mx-auto leading-relaxed">Cada cambio que hacemos en el producto. Features, fixes y mejoras. Sin asteriscos.</p>
+            <h1 class="display-xl mt-8" style="text-wrap:balance;font-size:clamp(2.4rem,5vw + 1rem,4.5rem)"><?= __e('changelog2.title_pre') ?> <span class="gradient-shift"><?= __e('changelog2.title_post') ?></span>.</h1>
+            <p class="mt-7 text-[16px] text-ink-500 max-w-xl mx-auto leading-relaxed"><?= __e('changelog2.subtitle') ?></p>
         </div>
     </div>
 </section>
@@ -36,24 +36,24 @@
             }
             $releases[] = [date('Y-m-d', strtotime($en['published_at'])), $en['version'], $en['release_type'], $en['title'], $items];
         }
-        // Fallback si no hay nada en BD
+        // Fallback if no DB entries
         if (empty($releases)) {
             $releases = [
-                [date('Y-m-d'), 'v0.0.0', 'minor', 'Próximamente', [
-                    ['feature', 'Estamos preparando las primeras notas de versión.'],
+                [date('Y-m-d'), 'v0.0.0', 'minor', __('changelog2.fallback_title'), [
+                    ['feature', __('changelog2.fallback_text')],
                 ]],
             ];
         }
 
         $typeColors = [
-            'feature' => ['#7c5cff','#f3f0ff','feature'],
-            'fix' => ['#f59e0b','#fef3c7','fix'],
-            'improvement' => ['#22c55e','#dcfce7','mejora'],
+            'feature'     => ['#7c5cff', '#f3f0ff', __('changelog2.type.feature')],
+            'fix'         => ['#f59e0b', '#fef3c7', __('changelog2.type.fix')],
+            'improvement' => ['#22c55e', '#dcfce7', __('changelog2.type.improvement')],
         ];
         $tagColors = [
-            'major' => ['#d946ef','#fae8ff','MAJOR'],
-            'minor' => ['#7c5cff','#f3f0ff','MINOR'],
-            'patch' => ['#22c55e','#dcfce7','PATCH'],
+            'major' => ['#d946ef', '#fae8ff', __('changelog2.tag.major')],
+            'minor' => ['#7c5cff', '#f3f0ff', __('changelog2.tag.minor')],
+            'patch' => ['#22c55e', '#dcfce7', __('changelog2.tag.patch')],
         ];
         foreach ($releases as $i => [$date, $version, $tag, $title, $changes]):
             [$tCol, $tBg, $tLbl] = $tagColors[$tag];
@@ -67,7 +67,7 @@
                 <div class="rounded-2xl p-7 bg-white border border-[#ececef]">
                     <div class="flex items-center gap-3 mb-3 flex-wrap">
                         <span class="font-mono text-[12px] font-bold"><?= $e($version) ?></span>
-                        <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] px-2 py-0.5 rounded-full" style="background:<?= $tBg ?>;color:<?= $tCol ?>"><?= $tLbl ?></span>
+                        <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] px-2 py-0.5 rounded-full" style="background:<?= $tBg ?>;color:<?= $tCol ?>"><?= $e($tLbl) ?></span>
                         <span class="text-[12px] text-ink-400"><?= $e($date) ?></span>
                     </div>
                     <h2 class="font-display font-extrabold text-[22px] tracking-[-0.02em]"><?= $e($title) ?></h2>

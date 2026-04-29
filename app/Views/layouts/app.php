@@ -20,41 +20,41 @@ $planName = Plan::tenantPlan($tenant);
 $planLabel = Plan::label($tenant);
 
 $navOps = [
-    ['Dashboard','layout-dashboard','/dashboard',null,'tickets'],
-    ['Tickets','inbox','/tickets','tickets.view','tickets'],
-    ['Tablero','kanban-square','/tickets/board','tickets.view','tickets'],
-    ['Categorías','tags','/categories','tickets.view','tickets'],
-    ['Plantillas','zap','/macros','tickets.comment','tickets'],
-    ['Tareas','check-square','/todos','todos.view','todos'],
-    ['Notas','notebook-pen','/notes','notes.view','notes'],
+    [__('nav.dashboard'),  'layout-dashboard','/dashboard',null,'tickets'],
+    [__('nav.tickets'),    'inbox',           '/tickets','tickets.view','tickets'],
+    [__('nav.board'),      'kanban-square',   '/tickets/board','tickets.view','tickets'],
+    [__('nav.categories'), 'tags',            '/categories','tickets.view','tickets'],
+    [__('nav.macros'),     'zap',             '/macros','tickets.comment','tickets'],
+    [__('nav.todos'),      'check-square',    '/todos','todos.view','todos'],
+    [__('nav.notes'),      'notebook-pen',    '/notes','notes.view','notes'],
 ];
 $navManagement = [
-    ['Departamentos','layers','/departments','departments.view','departments'],
-    ['Empresas','building-2','/companies','companies.view','companies'],
-    ['Igualas','handshake','/retainers','retainers.view','retainers'],
-    ['Reuniones','calendar-clock','/meetings','meetings.view','meetings'],
-    ['Time Tracking','timer','/time','time.view','time_tracking'],
-    ['Activos','server','/assets','assets.view','assets'],
-    ['Conocimiento','book-open','/kb','kb.view','kb'],
-    ['Live Chat','message-square','/chat','chat.view','live_chat'],
-    ['Reportes','line-chart','/reports','reports.view','reports'],
-    ['Reports Builder','bar-chart-3','/reports-builder','reports.builder','reports_builder'],
+    [__('nav.departments'), 'layers',         '/departments','departments.view','departments'],
+    [__('nav.companies'),   'building-2',     '/companies','companies.view','companies'],
+    [__('nav.retainers'),   'handshake',      '/retainers','retainers.view','retainers'],
+    [__('nav.meetings'),    'calendar-clock', '/meetings','meetings.view','meetings'],
+    [__('nav.time'),        'timer',          '/time','time.view','time_tracking'],
+    [__('nav.assets'),      'server',         '/assets','assets.view','assets'],
+    [__('nav.kb'),          'book-open',      '/kb','kb.view','kb'],
+    [__('nav.live_chat'),   'message-square', '/chat','chat.view','live_chat'],
+    [__('nav.reports'),     'line-chart',     '/reports','reports.view','reports'],
+    [__('nav.reports_builder'),'bar-chart-3', '/reports-builder','reports.builder','reports_builder'],
 ];
 $navAdmin = [
-    ['Automatizaciones','workflow','/automations','automations.view','automations'],
-    ['Integraciones','plug','/integrations','integrations.view','integrations'],
-    ['Email-to-Ticket','mail-open','/email-inbound','email.view','email_inbound'],
-    ['IA Asistente','sparkles','/ai','ai.config','ai_assist'],
-    ['ITSM','workflow','/itsm','itsm.view','itsm'],
-    ['SLA','gauge','/sla','sla.view','sla'],
-    ['Auditoría','history','/audit','audit.view','audit'],
-    ['CSAT / NPS','smile','/csat','csat.view','csat'],
-    ['Status Page','activity','/status','status.view','status_page'],
-    ['Custom Fields','list-plus','/custom-fields','custom_fields.view','custom_fields'],
-    ['Usuarios Portal','lock-keyhole','/portal-users','portal.manage','customer_portal'],
-    ['Usuarios','users','/users','users.view','users'],
-    ['Roles','shield','/roles','roles.view','roles'],
-    ['Facturación','wallet','/billing',null,'tickets'],
+    [__('nav.automations'),  'workflow',     '/automations','automations.view','automations'],
+    [__('nav.integrations'), 'plug',         '/integrations','integrations.view','integrations'],
+    [__('nav.email_inbound'),'mail-open',    '/email-inbound','email.view','email_inbound'],
+    [__('nav.ai'),           'sparkles',     '/ai','ai.config','ai_assist'],
+    [__('nav.itsm'),         'workflow',     '/itsm','itsm.view','itsm'],
+    [__('nav.sla'),          'gauge',        '/sla','sla.view','sla'],
+    [__('nav.audit'),        'history',      '/audit','audit.view','audit'],
+    [__('nav.csat'),         'smile',        '/csat','csat.view','csat'],
+    [__('nav.status_page'),  'activity',     '/status','status.view','status_page'],
+    [__('nav.custom_fields'),'list-plus',    '/custom-fields','custom_fields.view','custom_fields'],
+    [__('nav.portal_users'), 'lock-keyhole', '/portal-users','portal.manage','customer_portal'],
+    [__('nav.users'),        'users',        '/users','users.view','users'],
+    [__('nav.roles'),        'shield',       '/roles','roles.view','roles'],
+    [__('nav.billing'),      'wallet',       '/billing',null,'tickets'],
 ];
 
 $openTickets = (int)$app->db->val("SELECT COUNT(*) FROM tickets WHERE tenant_id=? AND status IN ('open','in_progress')", [$tenant->id ?? 0]);
@@ -71,7 +71,7 @@ if (!$isDemo) {
 }
 $showLicenseBanner = $license && $license['is_usable'] && in_array($license['state'], ['trial','past_due'], true);
 ?><!DOCTYPE html>
-<html lang="es">
+<html lang="<?= $e($locale ?? 'es') ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -130,14 +130,14 @@ window.renderIcons = kydeskRenderIcons;
             <div class="brand">
                 <div class="brand-logo"><i class="lucide lucide-zap text-base"></i></div>
                 <div class="brand-name">Kydesk</div>
-                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="(sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú') + ' (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'" aria-label="Alternar menú">
+                <button type="button" @click.stop="toggleSidebar()" class="sidebar-toggle" :data-tooltip="(sidebarCollapsed ? <?= htmlspecialchars(json_encode(__('app.expand_menu')), ENT_QUOTES) ?> : <?= htmlspecialchars(json_encode(__('app.collapse_menu')), ENT_QUOTES) ?>) + ' (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'" aria-label="<?= __e('app.toggle_menu') ?>">
                     <i class="lucide lucide-chevrons-left" x-show="!sidebarCollapsed"></i>
                     <i class="lucide lucide-chevrons-right" x-show="sidebarCollapsed" x-cloak></i>
                 </button>
             </div>
 
             <nav class="nav-section">
-                <div class="nav-heading">General</div>
+                <div class="nav-heading"><?= __e('app.section.general') ?></div>
                 <?php foreach ($navOps as [$l,$ic,$p,$perm,$feat]):
                     if ($perm && !$can($perm)) continue;
                     if ($feat && !$planHas($feat)) continue;
@@ -151,7 +151,7 @@ window.renderIcons = kydeskRenderIcons;
 
             <?php $visMgmt = array_filter($navManagement, fn($i) => (!$i[3] || $can($i[3])) && $planHas($i[4])); if ($visMgmt): ?>
             <nav class="nav-section">
-                <div class="nav-heading">Gestión</div>
+                <div class="nav-heading"><?= __e('app.section.management') ?></div>
                 <?php foreach ($visMgmt as [$l,$ic,$p,$perm,$feat]): $active = $isActive($p); ?>
                     <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>" data-tooltip="<?= $e($l) ?>">
                         <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label"><?= $l ?></span>
@@ -171,14 +171,14 @@ window.renderIcons = kydeskRenderIcons;
             }
             if ($visAdmin || $lockedAdmin): ?>
             <nav class="nav-section">
-                <div class="nav-heading">Admin</div>
+                <div class="nav-heading"><?= __e('app.section.admin') ?></div>
                 <?php foreach ($visAdmin as [$l,$ic,$p,$perm,$feat]): $active = $isActive($p); ?>
                     <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item <?= $active?'active':'' ?>" data-tooltip="<?= $e($l) ?>">
                         <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label"><?= $l ?></span>
                     </a>
                 <?php endforeach; ?>
                 <?php foreach ($lockedAdmin as [$l,$ic,$p,$perm,$feat]): ?>
-                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item" style="opacity:.5" data-tooltip="<?= $e($l) ?> · Disponible en Pro">
+                    <a href="<?= $url('/t/' . $slug . $p) ?>" class="nav-item" style="opacity:.5" data-tooltip="<?= $e($l) ?> · <?= __e('app.locked.available_pro') ?>">
                         <i class="lucide lucide-<?= $ic ?>"></i><span class="nav-label flex-1"><?= $l ?></span>
                         <i class="lucide lucide-lock text-[11px] text-ink-400 nav-lock"></i>
                     </a>
@@ -200,8 +200,8 @@ window.renderIcons = kydeskRenderIcons;
                             <i class="lucide lucide-sparkles text-[14px]" style="color:#c4b5fd"></i>
                             <span class="text-[10.5px] font-bold uppercase tracking-[0.14em]" style="color:#c4b5fd">Plan <?= $e($planLabel) ?></span>
                         </div>
-                        <div class="font-display font-bold text-[12.5px] leading-tight">Desbloquea <?= $e(strtolower($lockedSummary)) ?>.</div>
-                        <a href="<?= $url('/pricing') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa">Ver planes <i class="lucide lucide-arrow-right text-[10px]"></i></a>
+                        <div class="font-display font-bold text-[12.5px] leading-tight"><?= $e(__('app.locked.unlock', ['items' => strtolower($lockedSummary)])) ?></div>
+                        <a href="<?= $url('/pricing') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa"><?= __e('app.locked.see_plans') ?> <i class="lucide lucide-arrow-right text-[10px]"></i></a>
                     </div>
                 </div>
             </div>
@@ -214,8 +214,8 @@ window.renderIcons = kydeskRenderIcons;
                             <i class="lucide lucide-check-circle-2 text-[14px]" style="color:#86efac"></i>
                             <span class="text-[10.5px] font-bold uppercase tracking-[0.14em]" style="color:#86efac">Plan <?= $e($planLabel) ?></span>
                         </div>
-                        <div class="font-display font-bold text-[12.5px] leading-tight">Tenés todas las funciones desbloqueadas.</div>
-                        <a href="<?= $url('/auth/register') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa">Quedárme con este plan <i class="lucide lucide-arrow-right text-[10px]"></i></a>
+                        <div class="font-display font-bold text-[12.5px] leading-tight"><?= __e('app.demo.unlocked_full') ?></div>
+                        <a href="<?= $url('/auth/register') ?>" class="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold" style="color:#a78bfa"><?= __e('app.demo.keep_plan') ?> <i class="lucide lucide-arrow-right text-[10px]"></i></a>
                     </div>
                 </div>
             </div>
@@ -227,20 +227,21 @@ window.renderIcons = kydeskRenderIcons;
 
         <div class="main">
             <div class="topbar">
-                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" :data-tooltip="'Menú (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'">
+                <button @click="window.innerWidth >= 1024 ? toggleSidebar() : (sidebarOpen=true)" class="icon-btn" :data-tooltip="<?= htmlspecialchars(json_encode(__('app.menu')), ENT_QUOTES) ?> + ' (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘B' : 'Ctrl+B') + ')'">
                     <i class="lucide lucide-menu"></i>
                 </button>
                 <div class="search-pill">
                     <i class="lucide lucide-search"></i>
-                    <input @click="cmd=true" placeholder="Buscar tickets, empresas, artículos..." readonly>
+                    <input @click="cmd=true" placeholder="<?= __e('app.search_placeholder') ?>" readonly>
                 </div>
-                <button @click="cmd=true" class="icon-btn" :data-tooltip="'Buscar (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘K' : 'Ctrl+K') + ')'"><i class="lucide lucide-command"></i></button>
+                <button @click="cmd=true" class="icon-btn" :data-tooltip="<?= htmlspecialchars(json_encode(__('app.search_tooltip')), ENT_QUOTES) ?> + ' (' + ((window.KYDESK_OS||'win')==='mac' ? '⌘K' : 'Ctrl+K') + ')'"><i class="lucide lucide-command"></i></button>
+                <?php $variant = 'light'; $align = 'right'; $compact = false; include APP_PATH . '/Views/partials/lang_switcher.php'; ?>
                 <div class="relative">
-                    <button @click="notifMenu=!notifMenu" class="icon-btn" data-tooltip="Notificaciones"><i class="lucide lucide-bell"></i><span class="dot-notif"></span></button>
+                    <button @click="notifMenu=!notifMenu" class="icon-btn" data-tooltip="<?= __e('app.notifications') ?>"><i class="lucide lucide-bell"></i><span class="dot-notif"></span></button>
                     <div x-show="notifMenu" @click.away="notifMenu=false" x-cloak class="popover absolute right-0 mt-2 z-30 notif-dropdown" x-transition>
                         <div class="px-3 py-2.5 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
-                            <div class="font-display font-bold text-[14px]">Notificaciones</div>
-                            <button class="text-[11.5px] text-brand-600 font-semibold">Marcar todas</button>
+                            <div class="font-display font-bold text-[14px]"><?= __e('app.notifications') ?></div>
+                            <button class="text-[11.5px] text-brand-600 font-semibold"><?= __e('app.mark_all') ?></button>
                         </div>
                         <div class="p-2 max-h-80 overflow-y-auto">
                             <?php
@@ -255,10 +256,10 @@ window.renderIcons = kydeskRenderIcons;
                                 </a>
                             <?php endforeach; ?>
                             <?php if (empty($latestTickets)): ?>
-                                <div class="text-center py-6 text-[12px] text-ink-400">Sin notificaciones</div>
+                                <div class="text-center py-6 text-[12px] text-ink-400"><?= __e('app.no_notifications') ?></div>
                             <?php endif; ?>
                         </div>
-                        <a href="<?= $url('/t/' . $slug . '/tickets') ?>" class="block text-center py-2.5 text-[12.5px] font-semibold text-brand-700 border-t" style="border-color:var(--border)">Ver toda la actividad</a>
+                        <a href="<?= $url('/t/' . $slug . '/tickets') ?>" class="block text-center py-2.5 text-[12.5px] font-semibold text-brand-700 border-t" style="border-color:var(--border)"><?= __e('app.see_all_activity') ?></a>
                     </div>
                 </div>
                 <div class="relative">
@@ -272,16 +273,16 @@ window.renderIcons = kydeskRenderIcons;
                             <div class="font-display font-bold text-[13.5px]"><?= $e($user['name']) ?></div>
                             <div class="text-[11.5px] text-ink-400"><?= $e($user['email']) ?></div>
                         </div>
-                        <a href="<?= $url('/t/' . $slug . '/profile') ?>" class="popover-item"><i class="lucide lucide-user text-sm"></i><span>Mi perfil</span></a>
-                        <a href="<?= $url('/t/' . $slug . '/preferences') ?>" class="popover-item"><i class="lucide lucide-palette text-sm"></i><span>Personalizar panel</span></a>
+                        <a href="<?= $url('/t/' . $slug . '/profile') ?>" class="popover-item"><i class="lucide lucide-user text-sm"></i><span><?= __e('app.user.my_profile') ?></span></a>
+                        <a href="<?= $url('/t/' . $slug . '/preferences') ?>" class="popover-item"><i class="lucide lucide-palette text-sm"></i><span><?= __e('app.user.customize') ?></span></a>
                         <?php if ($can('settings.view')): ?>
-                        <a href="<?= $url('/t/' . $slug . '/settings') ?>" class="popover-item"><i class="lucide lucide-settings text-sm"></i><span>Ajustes</span></a>
+                        <a href="<?= $url('/t/' . $slug . '/settings') ?>" class="popover-item"><i class="lucide lucide-settings text-sm"></i><span><?= __e('app.user.settings') ?></span></a>
                         <?php endif; ?>
-                        <button @click="cmd=true" class="popover-item"><i class="lucide lucide-search text-sm"></i><span>Buscar</span><span class="shortcut">⌘K</span></button>
+                        <button @click="cmd=true" class="popover-item"><i class="lucide lucide-search text-sm"></i><span><?= __e('app.user.search') ?></span><span class="shortcut">⌘K</span></button>
                         <div class="my-1" style="height:1px;background:var(--border)"></div>
                         <form method="POST" action="<?= $url('/auth/logout') ?>">
                             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                            <button class="popover-item" style="color:#ef4444"><i class="lucide lucide-log-out text-sm"></i><span>Cerrar sesión</span></button>
+                            <button class="popover-item" style="color:#ef4444"><i class="lucide lucide-log-out text-sm"></i><span><?= __e('app.user.logout') ?></span></button>
                         </form>
                     </div>
                 </div>
@@ -302,9 +303,9 @@ window.renderIcons = kydeskRenderIcons;
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2">
                                     <span class="font-display font-extrabold text-[14px] tracking-[-0.015em]">Demo <?= $e(ucfirst((string)$demoPlan)) ?></span>
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-[0.12em]" style="background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.3)">EN VIVO</span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-[0.12em]" style="background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.3)"><?= __e('app.demo.live') ?></span>
                                 </div>
-                                <div class="text-[11.5px] mt-0.5" style="color:rgba(255,255,255,.55)">Workspace efímero · Datos se borran al expirar</div>
+                                <div class="text-[11.5px] mt-0.5" style="color:rgba(255,255,255,.55)"><?= __e('app.demo.subtitle') ?></div>
                             </div>
                         </div>
 
@@ -313,7 +314,7 @@ window.renderIcons = kydeskRenderIcons;
                                 <i class="lucide lucide-key-round text-[13px]" style="color:rgba(255,255,255,.4)"></i>
                                 <div class="font-mono text-[11px] leading-tight">
                                     <div style="color:rgba(255,255,255,.85)"><?= $e($demoCreds['email']) ?></div>
-                                    <div style="color:rgba(255,255,255,.5)">contraseña: <span style="color:#c4b5fd"><?= $e($demoCreds['password']) ?></span></div>
+                                    <div style="color:rgba(255,255,255,.5)"><?= __e('app.demo.password') ?>: <span style="color:#c4b5fd"><?= $e($demoCreds['password']) ?></span></div>
                                 </div>
                                 <button type="button" onclick="navigator.clipboard.writeText('<?= $e($demoCreds['email']) ?> / <?= $e($demoCreds['password']) ?>'); this.querySelector('i').setAttribute('data-lucide','check'); window.renderIcons && window.renderIcons();" class="ml-1 w-7 h-7 rounded-lg grid place-items-center transition" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6)" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'"><i class="lucide lucide-copy text-[12px]"></i></button>
                             </div>
