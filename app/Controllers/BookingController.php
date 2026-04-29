@@ -446,6 +446,70 @@ class BookingController extends Controller
         ]);
     }
 
+    /**
+     * Endpoint JSON con el estado actual de la reunión + ventana de acceso.
+     * El JS de la página manage hace polling para detectar:
+     *   - conference_started_at seteado por webhook → "En curso, podés entrar"
+     *   - 15 min antes del scheduled_at → "Disponible"
+     *   - reunión finalizada / cancelada → bloquear
+     */
+    public function manageStatus(array $params): void
+    {
+        [$tenant, $settings] = $this->resolveContext((string)$params['slug']);
+        $meeting = $this->db->one(
+            "SELECT m.*, mt.allow_cancel, mt.allow_reschedule
+             FROM meetings m LEFT JOIN meeting_types mt ON mt.id = m.meeting_type_id
+             WHERE m.tenant_id=? AND m.public_token=?",
+            [$tenant->id, (string)$params['token']]
+        );
+        if (!$meeting) $this->json(['ok' => false, 'error' => 'not_found'], 404);
+
+        $now = time();
+        $startTs = strtotime((string)$meeting['scheduled_at']);
+        $endTs   = strtotime((string)$meeting['ends_at']);
+        $hasConference = !empty($meeting['conference_room_id']);
+        $isCancelled   = in_array($meeting['status'], ['cancelled','no_show'], true);
+        $isCompleted   = $meeting['status'] === 'completed' || !empty($meeting['conference_ended_at']);
+
+        // En curso: webhook seteó started_at y todavía no hay ended_at
+        $isLiveByWebhook = !empty($meeting['conference_started_at']) && empty($meeting['conference_ended_at']);
+        // Ventana de tiempo: 15 min antes hasta 30 min después del fin
+        $isInWindow = $now >= ($startTs - 900) && $now < ($endTs + 1800);
+
+        $canJoin = $hasConference && !$isCancelled && !$isCompleted && ($isLiveByWebhook || $isInWindow);
+
+        // Etiqueta y countdown
+        $minutesToStart = (int)floor(($startTs - $now) / 60);
+        $label = '';
+        $state = 'unknown';
+        if ($isCancelled)         { $state = 'cancelled';   $label = 'Reunión cancelada'; }
+        elseif ($isCompleted)     { $state = 'finished';    $label = 'Reunión finalizada'; }
+        elseif ($isLiveByWebhook) { $state = 'live';        $label = 'En curso · entrá ahora'; }
+        elseif ($isInWindow)      { $state = 'available';   $label = 'Disponible'; }
+        elseif ($minutesToStart > 0) {
+            $state = 'waiting';
+            if ($minutesToStart > 90)       $label = 'Faltan ' . floor($minutesToStart / 60) . 'h ' . ($minutesToStart % 60) . 'm';
+            elseif ($minutesToStart > 15)   $label = 'Faltan ' . $minutesToStart . ' min · se habilita 15 min antes';
+            else                            $label = 'Faltan ' . $minutesToStart . ' min';
+        } else { $state = 'finished'; $label = 'Reunión finalizada'; }
+
+        $this->json([
+            'ok'              => true,
+            'status'          => $meeting['status'],
+            'state'           => $state,
+            'label'           => $label,
+            'can_join'        => $canJoin,
+            'is_live'         => $isLiveByWebhook,
+            'is_in_window'    => $isInWindow,
+            'minutes_to_start'=> $minutesToStart,
+            'started_at'      => $meeting['conference_started_at'],
+            'ended_at'        => $meeting['conference_ended_at'],
+            'now_iso'         => date('c', $now),
+            'scheduled_iso'   => date('c', $startTs),
+            'ends_iso'        => date('c', $endTs),
+        ]);
+    }
+
     public function cancelByToken(array $params): void
     {
         [$tenant, $settings] = $this->resolveContext((string)$params['slug']);

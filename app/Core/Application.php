@@ -332,6 +332,7 @@ class Application
         $r->post('/book/{slug}/ai/suggest',                                  ['App\Controllers\MeetingAiController', 'suggest']);
         $r->get('/book/{slug}/confirmation/{token}',                         ['App\Controllers\BookingController', 'confirmation']);
         $r->get('/book/{slug}/manage/{token}',                               ['App\Controllers\BookingController', 'manage']);
+        $r->get('/book/{slug}/manage/{token}/status.json',                   ['App\Controllers\BookingController', 'manageStatus']);
         $r->post('/book/{slug}/manage/{token}/cancel',                       ['App\Controllers\BookingController', 'cancelByToken']);
         $r->post('/book/{slug}/manage/{token}/reschedule',                   ['App\Controllers\BookingController', 'rescheduleByToken']);
         $r->get('/book/{slug}/{type}',                                       ['App\Controllers\BookingController', 'show']);

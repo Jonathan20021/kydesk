@@ -69,39 +69,55 @@ textarea.input { padding: 12px 16px; height: auto; }
 
             <?php if (!empty($conferenceConfig) && !in_array($meeting['status'], ['cancelled','no_show'], true)):
                 $isAudioOnly = !empty($conferenceConfig['audioOnly']);
-                $whenTs = strtotime($meeting['scheduled_at']);
-                $endTs  = strtotime($meeting['ends_at']);
-                $minutesToStart = (int)(($whenTs - time()) / 60);
-                $isLive = time() >= $whenTs - 900 && time() < $endTs + 1800; // 15 min antes a 30 min después
+                $statusUrl = $url('/book/' . rawurlencode($publicSlug) . '/manage/' . $meeting['public_token'] . '/status.json');
+                $newTabMode = ($conferenceConfig['embedMode'] ?? 'iframe') === 'new_tab';
             ?>
                 <div class="px-6 py-4" style="background:linear-gradient(135deg,#0f0d18 0%,#1a1530 60%,#2a1f3d 100%);border-bottom:1px solid #ececef;color:white"
-                     x-data="customerConferencePanel(<?= htmlspecialchars(json_encode($conferenceConfig), ENT_QUOTES) ?>)">
+                     x-data='customerConferencePanel(<?= htmlspecialchars(json_encode([
+                         'cfg' => $conferenceConfig,
+                         'statusUrl' => $statusUrl,
+                         'newTab' => $newTabMode,
+                         'audioOnly' => $isAudioOnly,
+                     ]), ENT_QUOTES) ?>)'
+                     x-init="init()"
+                     @beforeunload.window="stopPolling()">
                     <div class="flex items-center justify-between gap-3 flex-wrap">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0" style="background:rgba(167,139,250,.18);color:#c4b5fd">
+                            <div class="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0"
+                                 :style="state === 'live' ? 'background:rgba(34,197,94,.22);color:#86efac;border:1px solid rgba(34,197,94,.4)' : 'background:rgba(167,139,250,.18);color:#c4b5fd'">
                                 <i class="lucide lucide-<?= $isAudioOnly ? 'phone' : 'video' ?> text-[16px]"></i>
                             </div>
                             <div class="min-w-0">
-                                <div class="font-display font-bold text-[14px]"><?= $isAudioOnly ? 'Llamada de audio' : 'Video conferencia' ?></div>
-                                <div class="text-[11.5px]" style="color:rgba(255,255,255,.6)">
-                                    <?php if ($minutesToStart > 60): ?>
-                                        Se habilita 15 min antes
-                                    <?php elseif ($isLive): ?>
-                                        <span style="color:#86efac">● Disponible ahora</span>
-                                    <?php else: ?>
-                                        Reunión finalizada
-                                    <?php endif; ?>
+                                <div class="font-display font-bold text-[14px] flex items-center gap-2">
+                                    <?= $isAudioOnly ? 'Llamada de audio' : 'Video conferencia' ?>
+                                    <span x-show="state === 'live'" x-cloak class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-[0.14em]" style="background:rgba(34,197,94,.22);color:#86efac;border:1px solid rgba(34,197,94,.4)">
+                                        <span class="relative inline-flex w-1.5 h-1.5"><span class="absolute inset-0 rounded-full bg-emerald-400" style="animation:pulse-ring 2s ease-out infinite"></span><span class="relative w-1.5 h-1.5 rounded-full bg-emerald-400"></span></span>
+                                        En vivo
+                                    </span>
                                 </div>
+                                <div class="text-[11.5px]" :style="state === 'live' ? 'color:#86efac' : 'color:rgba(255,255,255,.6)'" x-text="label || '...'"></div>
                             </div>
                         </div>
-                        <?php $newTabMode = ($conferenceConfig['embedMode'] ?? 'iframe') === 'new_tab'; ?>
                         <button @click="join()"
-                                <?= !$isLive ? 'disabled' : '' ?>
+                                :disabled="!canJoin"
                                 class="inline-flex items-center gap-2 h-10 px-5 rounded-xl font-semibold text-[13px] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                style="background:white;color:#0f0d18">
+                                :style="state === 'live' ? 'background:#22c55e;color:white;box-shadow:0 4px 14px -4px rgba(34,197,94,.6)' : 'background:white;color:#0f0d18'">
                             <i class="lucide lucide-<?= $newTabMode ? 'external-link' : 'video' ?> text-[14px]"></i>
-                            <?= $isLive ? 'Entrar a la reunión' : 'Aún no disponible' ?>
+                            <span x-text="
+                                state === 'live'      ? 'Entrar ahora' :
+                                state === 'available' ? 'Entrar a la reunión' :
+                                state === 'waiting'   ? 'Aún no disponible' :
+                                state === 'finished'  ? 'Reunión finalizada' :
+                                state === 'cancelled' ? 'Reunión cancelada' : 'Cargando...'
+                            "></span>
                         </button>
+                    </div>
+
+                    <!-- Countdown · solo cuando state === 'waiting' y faltan menos de 24h -->
+                    <div x-show="state === 'waiting' && minutesToStart >= 0 && minutesToStart <= 1440" x-cloak class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)">
+                        <i class="lucide lucide-clock text-[12px]" style="color:rgba(255,255,255,.55)"></i>
+                        <span class="text-[11.5px] font-mono tabular-nums" style="color:rgba(255,255,255,.85)" x-text="countdownText()"></span>
+                        <span class="text-[10px]" style="color:rgba(255,255,255,.45)" x-text="'· se habilita ' + (minutesToStart <= 15 ? 'ya casi' : 'en ' + (minutesToStart - 15) + ' min')"></span>
                     </div>
 
                     <!-- Embed -->
@@ -122,12 +138,82 @@ textarea.input { padding: 12px 16px; height: auto; }
                     </div>
                 </div>
                 <script>
-                function customerConferencePanel(cfg) {
+                function customerConferencePanel(init) {
                     return {
-                        cfg: cfg, api: null, open: false, ready: false,
+                        cfg: init.cfg,
+                        statusUrl: init.statusUrl,
+                        api: null, open: false, ready: false,
+                        // Estado live · sincronizado con polling cada 30s
+                        state: 'unknown',
+                        label: 'Cargando estado...',
+                        canJoin: false,
+                        minutesToStart: 0,
+                        scheduledAt: null,
+                        pollTimer: null,
+                        countdownTimer: null,
+                        secondsToStart: 0,
+
+                        async init() {
+                            await this.refreshStatus();
+                            this.startPolling();
+                            this.startCountdown();
+                        },
+                        startPolling() {
+                            // Refresca cada 20s para detectar cuando el host inicia (webhook)
+                            this.pollTimer = setInterval(() => this.refreshStatus(), 20000);
+                        },
+                        stopPolling() {
+                            if (this.pollTimer) clearInterval(this.pollTimer);
+                            if (this.countdownTimer) clearInterval(this.countdownTimer);
+                        },
+                        startCountdown() {
+                            // Countdown actualiza cada segundo
+                            this.countdownTimer = setInterval(() => {
+                                if (this.scheduledAt) {
+                                    const diff = Math.floor((new Date(this.scheduledAt) - new Date()) / 1000);
+                                    this.secondsToStart = diff;
+                                    this.minutesToStart = Math.floor(diff / 60);
+                                }
+                            }, 1000);
+                        },
+                        countdownText() {
+                            const s = this.secondsToStart;
+                            if (s < 0) return '00:00:00';
+                            const h = Math.floor(s / 3600);
+                            const m = Math.floor((s % 3600) / 60);
+                            const sec = s % 60;
+                            return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+                        },
+                        async refreshStatus() {
+                            try {
+                                const r = await fetch(this.statusUrl, { cache: 'no-store' });
+                                const j = await r.json();
+                                if (!j.ok) return;
+                                const wasLive = this.state === 'live';
+                                this.state = j.state;
+                                this.label = j.label;
+                                this.canJoin = !!j.can_join;
+                                this.minutesToStart = j.minutes_to_start;
+                                this.scheduledAt = j.scheduled_iso;
+                                // Si pasó a "live" mientras esperábamos, hacer un blink de la página para captar atención
+                                if (!wasLive && this.state === 'live' && document.hidden === false) {
+                                    this.flashTitle();
+                                }
+                            } catch (e) { /* silencioso */ }
+                        },
+                        flashTitle() {
+                            const original = document.title;
+                            let on = false;
+                            const interval = setInterval(() => {
+                                document.title = on ? '🔴 ¡Reunión en curso!' : original;
+                                on = !on;
+                            }, 1000);
+                            setTimeout(() => { clearInterval(interval); document.title = original; }, 8000);
+                        },
                         async join() {
+                            if (!this.canJoin) return;
+                            const cfg = this.cfg;
                             if (cfg.provider !== 'jitsi') { alert(cfg.message || 'Provider no soportado'); return; }
-                            // meet.jit.si gratis: abrir en pestaña nueva (sin límite de 5 min)
                             if (cfg.embedMode === 'new_tab') {
                                 window.open(cfg.joinUrl, '_blank', 'noopener');
                                 return;
@@ -158,6 +244,8 @@ textarea.input { padding: 12px 16px; height: auto; }
                         leave() {
                             if (this.api) { try { this.api.dispose(); } catch (e) {} this.api = null; }
                             this.open = false; this.ready = false;
+                            // Refresh estado al salir
+                            this.refreshStatus();
                         },
                     };
                 }
