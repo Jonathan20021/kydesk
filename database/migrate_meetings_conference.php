@@ -43,11 +43,11 @@ mcfAdd($pdo, 'meeting_settings', 'conference_enabled',  "ALTER TABLE meeting_set
 mcfAdd($pdo, 'meeting_settings', 'conference_provider', "ALTER TABLE meeting_settings ADD COLUMN conference_provider VARCHAR(20) NOT NULL DEFAULT 'jitsi' AFTER conference_enabled");
 mcfAdd($pdo, 'meeting_settings', 'jitsi_domain',        "ALTER TABLE meeting_settings ADD COLUMN jitsi_domain VARCHAR(120) NOT NULL DEFAULT 'meet.jit.si' AFTER conference_provider");
 mcfAdd($pdo, 'meeting_settings', 'jitsi_app_id',        "ALTER TABLE meeting_settings ADD COLUMN jitsi_app_id VARCHAR(120) NULL AFTER jitsi_domain");
-mcfAdd($pdo, 'meeting_settings', 'jitsi_app_secret',    "ALTER TABLE meeting_settings ADD COLUMN jitsi_app_secret VARCHAR(255) NULL AFTER jitsi_app_id");
+mcfAdd($pdo, 'meeting_settings', 'jitsi_app_secret',    "ALTER TABLE meeting_settings ADD COLUMN jitsi_app_secret TEXT NULL AFTER jitsi_app_id");
 mcfAdd($pdo, 'meeting_settings', 'jitsi_audio_only',    "ALTER TABLE meeting_settings ADD COLUMN jitsi_audio_only TINYINT(1) NOT NULL DEFAULT 0 AFTER jitsi_app_secret");
 mcfAdd($pdo, 'meeting_settings', 'livekit_url',         "ALTER TABLE meeting_settings ADD COLUMN livekit_url VARCHAR(255) NULL AFTER jitsi_audio_only");
 mcfAdd($pdo, 'meeting_settings', 'livekit_api_key',     "ALTER TABLE meeting_settings ADD COLUMN livekit_api_key VARCHAR(255) NULL AFTER livekit_url");
-mcfAdd($pdo, 'meeting_settings', 'livekit_api_secret',  "ALTER TABLE meeting_settings ADD COLUMN livekit_api_secret VARCHAR(255) NULL AFTER livekit_api_key");
+mcfAdd($pdo, 'meeting_settings', 'livekit_api_secret',  "ALTER TABLE meeting_settings ADD COLUMN livekit_api_secret TEXT NULL AFTER livekit_api_key");
 
 /* ───── Index ───── */
 try {
