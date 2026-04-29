@@ -59,7 +59,8 @@ class ConferenceFactory
     {
         try {
             $row = Application::get()->db->one(
-                'SELECT conference_enabled, conference_provider, jitsi_domain, jitsi_app_id, jitsi_app_secret, jitsi_audio_only,
+                'SELECT conference_enabled, conference_provider,
+                        jitsi_domain, jitsi_app_id, jitsi_kid, jitsi_app_secret, jitsi_audio_only,
                         livekit_url, livekit_api_key, livekit_api_secret
                  FROM meeting_settings WHERE tenant_id = ?',
                 [$tenant->id]

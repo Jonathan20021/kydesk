@@ -724,14 +724,20 @@ class MeetingController extends Controller
             if (count($parts) !== 3) {
                 $this->json(['ok' => false, 'error' => 'JWT malformado']);
             }
-            $header = json_decode(base64_decode(strtr($parts[0], '-_', '+/')), true);
+            $header  = json_decode(base64_decode(strtr($parts[0], '-_', '+/')), true);
+            $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
             $alg = $header['alg'] ?? '?';
             $this->json([
-                'ok'       => true,
-                'alg'      => $alg,
-                'kid'      => $header['kid'] ?? null,
-                'embed'    => $config['embedMode'] ?? 'iframe',
-                'preview'  => substr($config['jwt'], 0, 80) . '...' . substr($config['jwt'], -10),
+                'ok'        => true,
+                'alg'       => $alg,
+                'kid'       => $header['kid'] ?? null,
+                'embed'     => $config['embedMode'] ?? 'iframe',
+                'roomName'  => $config['roomName'] ?? null,
+                'iss'       => $payload['iss'] ?? null,
+                'sub'       => $payload['sub'] ?? null,
+                'room'      => $payload['room'] ?? null,
+                'expires_in' => isset($payload['exp']) ? max(0, (int)$payload['exp'] - time()) : null,
+                'preview'   => substr($config['jwt'], 0, 80) . '...' . substr($config['jwt'], -10),
             ]);
         } catch (\Throwable $e) {
             $this->json(['ok' => false, 'error' => $e->getMessage()]);

@@ -84,10 +84,17 @@ class JitsiProvider implements Provider
         $isFreeDemoDomain = strpos($this->domain(), 'meet.jit.si') !== false;
         $canEmbed = $this->hasJwt() || !$isFreeDemoDomain;
 
+        // 8x8.vc / JaaS: el roomName del IFrame API debe ser "appId/{roomId}"
+        $embedRoomName = $roomId;
+        if ($this->isJaaS()) {
+            $appId = (string)($this->settings['jitsi_app_id'] ?? '');
+            if ($appId !== '') $embedRoomName = $appId . '/' . $roomId;
+        }
+
         $config = [
             'provider'  => 'jitsi',
             'domain'    => $this->domain(),
-            'roomName'  => $roomId,
+            'roomName'  => $embedRoomName,
             'jwt'       => $this->hasJwt() ? $this->generateJwt($tenant, $meeting, $user, $roomId) : null,
             'embedMode' => $canEmbed ? 'iframe' : 'new_tab',
             'joinUrl'   => $this->joinUrl($tenant, $meeting, $user),
