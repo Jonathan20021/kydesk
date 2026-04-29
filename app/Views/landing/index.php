@@ -396,6 +396,7 @@
                 ['status_page','Status Page','Pública con suscripción email.','activity','#d1fae5','#047857'],
                 ['customer_portal','Portal con login','Histórico autenticado de tickets.','lock-keyhole','#f3e8ff','#7c2d12'],
                 ['reports_builder','Reports Builder','10 widgets · drag & drop.','bar-chart-3','#f3e8ff','#7e22ce'],
+                ['meetings','Agenda + Video','Calendly + Jitsi/LiveKit embebido.','calendar-clock','#f3f0ff','#7c5cff'],
                 ['retainers','Igualas','Contratos recurrentes configurables.','handshake','#ecfdf5','#047857'],
                 ['kanban','Tablero Kanban','Drag & drop. Tu flujo, tu forma.','kanban-square','#dbeafe','#1d4ed8'],
                 ['automations','Automatizaciones','Reglas que ejecutan acciones solas.','workflow','#f3e8ff','#7e22ce'],
@@ -1201,6 +1202,7 @@ function apiDemo() {
             'reports_builder' => 'Reports Builder',
             'itsm' => 'ITSM (ITIL)',
             'ai_assist' => 'Kyros IA Asistente',
+            'meetings' => 'Agenda + Video conferencia',
             'sso' => 'SSO + SAML',
             'custom_branding' => 'Marca personalizada',
         ];

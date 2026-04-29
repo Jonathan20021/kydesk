@@ -583,15 +583,31 @@ class MeetingController extends Controller
         ];
         $jitsiDomain = trim((string)$this->input('jitsi_domain', 'meet.jit.si')) ?: 'meet.jit.si';
         $jitsiAppId  = trim((string)$this->input('jitsi_app_id', '')) ?: null;
+        $jitsiKid    = trim((string)$this->input('jitsi_kid','')) ?: null;
+        $jitsiSecret = trim((string)$this->input('jitsi_app_secret','')) ?: null;
+        // Si el secret viene vacío, mantener el actual de la DB (no pisar)
+        if ($jitsiSecret === null) $jitsiSecret = $current['jitsi_app_secret'] ?? null;
+
         // Auto-corrección: si pegan App ID de JaaS pero el dominio aún apunta a meet.jit.si, lo cambiamos a 8x8.vc
-        if ($jitsiAppId && strpos($jitsiAppId, 'vpaas-magic-cookie-') === 0 && $jitsiDomain === 'meet.jit.si') {
+        $isJaaS = $jitsiAppId && strpos($jitsiAppId, 'vpaas-magic-cookie-') === 0;
+        if ($isJaaS && $jitsiDomain === 'meet.jit.si') {
             $jitsiDomain = '8x8.vc';
+        }
+        // Validación: JaaS exige kid + private key
+        if ($isJaaS) {
+            $errors = [];
+            if (!$jitsiKid) $errors[] = 'API Key ID (kid)';
+            if (!$jitsiSecret || strpos((string)$jitsiSecret, 'BEGIN PRIVATE KEY') === false) $errors[] = 'Private Key (.pk)';
+            if ($errors) {
+                $this->session->flash('error', 'Para JaaS necesitás configurar: ' . implode(' + ', $errors) . '. Lo encontrás en jaas.8x8.vc → API Keys.');
+                $this->redirect('/t/' . $tenant->slug . '/meetings/settings');
+            }
         }
         $data += [
             'jitsi_domain'       => $jitsiDomain,
             'jitsi_app_id'       => $jitsiAppId,
-            'jitsi_kid'          => trim((string)$this->input('jitsi_kid','')) ?: null,
-            'jitsi_app_secret'   => trim((string)$this->input('jitsi_app_secret','')) ?: null,
+            'jitsi_kid'          => $jitsiKid,
+            'jitsi_app_secret'   => $jitsiSecret,
             'jitsi_audio_only'   => (int)$this->input('jitsi_audio_only', 0) ? 1 : 0,
             'livekit_url'        => trim((string)$this->input('livekit_url','')) ?: null,
             'livekit_api_key'    => trim((string)$this->input('livekit_api_key','')) ?: null,
@@ -606,8 +622,49 @@ class MeetingController extends Controller
         }
         \App\Core\Conference\ConferenceFactory::clearCache($tenant->id);
 
+        // Refrescar meeting_url de reuniones futuras si cambió el dominio o el provider
+        $domainChanged   = ($current['jitsi_domain']        ?? null) !== $jitsiDomain;
+        $providerChanged = ($current['conference_provider'] ?? null) !== $data['conference_provider'];
+        if ($domainChanged || $providerChanged) {
+            $refreshed = $this->refreshConferenceUrls($tenant);
+            if ($refreshed > 0) {
+                $this->session->flash('info', "Ajustes guardados · {$refreshed} reuniones futuras refrescadas con la nueva config.");
+                $this->redirect('/t/' . $tenant->slug . '/meetings/settings');
+            }
+        }
+
         $this->session->flash('success', 'Ajustes guardados.');
         $this->redirect('/t/' . $tenant->slug . '/meetings/settings');
+    }
+
+    /**
+     * Recalcula meeting_url para reuniones FUTURAS (o en curso) con conference_room_id,
+     * usando el provider activo. Devuelve el número de filas actualizadas.
+     */
+    protected function refreshConferenceUrls(\App\Core\Tenant $tenant): int
+    {
+        try {
+            $provider = \App\Core\Conference\ConferenceFactory::forTenant($tenant);
+        } catch (\Throwable $e) { return 0; }
+        $rows = $this->db->all(
+            "SELECT id, conference_room_id, public_token, location_type, meeting_url
+             FROM meetings
+             WHERE tenant_id = ? AND conference_room_id IS NOT NULL
+               AND status IN ('scheduled','confirmed') AND scheduled_at >= NOW() - INTERVAL 1 DAY",
+            [$tenant->id]
+        );
+        $count = 0;
+        foreach ($rows as $r) {
+            $room = $provider->createRoom($tenant, $r);
+            if (!empty($room['url']) && $room['url'] !== $r['meeting_url']) {
+                $this->db->update('meetings', [
+                    'conference_provider' => $provider->name(),
+                    'meeting_url'         => $room['url'],
+                ], 'id=? AND tenant_id=?', [(int)$r['id'], $tenant->id]);
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /**

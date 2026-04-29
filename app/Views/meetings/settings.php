@@ -297,13 +297,17 @@ $meetingAiUsage = $app->db->one(
                         <p class="text-[10.5px] mt-1" :style="isJaaS() ? 'color:#047857' : 'color:#8e8e9a'" x-text="isJaaS() ? '✓ JaaS detectado · firmamos JWT con RS256' : 'Si pegás un app_id de JaaS, cambiamos el dominio automáticamente.'"></p>
                     </div>
 
-                    <div x-show="isJaaS()" x-cloak>
-                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block">
-                            API Key ID <span class="text-ink-400 font-normal">(kid)</span>
-                            <span class="badge badge-purple text-[9px]">JaaS</span>
+                    <div x-show="isJaaS()" x-cloak :class="!kid ? 'p-3 -mx-1 rounded-xl' : ''" :style="!kid ? 'background:#fef2f2;border:1px solid #fecaca' : ''">
+                        <label class="text-[12px] font-semibold text-ink-700 mb-1 block flex items-center gap-1.5 flex-wrap">
+                            <span>API Key ID <span class="text-ink-400 font-normal">(kid)</span></span>
+                            <span class="badge badge-purple text-[9px]">JaaS · OBLIGATORIO</span>
+                            <span x-show="!kid" x-cloak class="badge badge-rose text-[9px]"><i class="lucide lucide-alert-triangle text-[9px]"></i> Falta</span>
                         </label>
-                        <input name="jitsi_kid" x-model="kid" class="input font-mono" style="font-size:11.5px" placeholder="abc1234d-5678-90ef-1234-567890abcdef">
-                        <p class="text-[10.5px] text-ink-400 mt-1">UUID que JaaS te da al crear la API Key (al lado del botón "Download Private Key").</p>
+                        <input name="jitsi_kid" x-model="kid" class="input font-mono" style="font-size:11.5px" placeholder="abc1234d-5678-90ef-1234-567890abcdef" :style="!kid ? 'border-color:#ef4444' : ''">
+                        <p class="text-[10.5px] mt-1" :class="!kid ? 'text-rose-700' : 'text-ink-400'">
+                            <span x-show="!kid" x-cloak><strong>Sin esto, 8x8.vc rechaza la conexión con "Authentication failed: Missing Key ID".</strong><br></span>
+                            Andá a <a href="https://jaas.8x8.vc/#/apikeys" target="_blank" rel="noopener" class="underline font-semibold">jaas.8x8.vc → API Keys</a>, copiá el UUID que aparece en la columna "Key ID" (no el App ID).
+                        </p>
                     </div>
 
                     <div>
