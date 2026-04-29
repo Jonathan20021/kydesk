@@ -173,7 +173,14 @@ class ChatController extends Controller
         $this->requireCan('chat.config');
         $this->validateCsrf();
         $id = (int)$params['id'];
-        $this->db->update('chat_widgets', [
+
+        $aiMode = (string)$this->input('ai_fallback_mode', 'off');
+        if (!in_array($aiMode, ['off','no_agent','always'], true)) $aiMode = 'off';
+        $maxTurns = (int)$this->input('ai_max_turns', 6);
+        if ($maxTurns < 1) $maxTurns = 1;
+        if ($maxTurns > 20) $maxTurns = 20;
+
+        $update = [
             'name' => trim((string)$this->input('name','Widget')),
             'primary_color' => preg_match('/^#[0-9a-fA-F]{6}$/', (string)$this->input('primary_color')) ? $this->input('primary_color') : '#7c5cff',
             'welcome_message' => trim((string)$this->input('welcome_message','¡Hola!')),
@@ -181,7 +188,26 @@ class ChatController extends Controller
             'require_email' => (int)($this->input('require_email') ? 1 : 0),
             'is_active' => (int)($this->input('is_active') ? 1 : 0),
             'allowed_origins' => trim((string)$this->input('allowed_origins','')) ?: null,
-        ], 'id=? AND tenant_id=?', [$id, $tenant->id]);
+        ];
+
+        // Campos IA — solo si plan tiene ai_assist (los toleramos si la migración aún no corrió).
+        if (\App\Core\Plan::has($tenant, 'ai_assist')) {
+            $update['ai_fallback_mode'] = $aiMode;
+            $update['ai_max_turns']     = $maxTurns;
+            $update['ai_persona_name']  = mb_substr(trim((string)$this->input('ai_persona_name','Asistente')) ?: 'Asistente', 0, 80);
+            $update['ai_system_prompt'] = trim((string)$this->input('ai_system_prompt','')) ?: null;
+            $update['ai_use_kb']        = (int)($this->input('ai_use_kb') ? 1 : 0);
+        }
+
+        try {
+            $this->db->update('chat_widgets', $update, 'id=? AND tenant_id=?', [$id, $tenant->id]);
+        } catch (\Throwable $e) {
+            // Si las columnas IA no existen todavía (migración pendiente), reintentamos sin ellas.
+            foreach (['ai_fallback_mode','ai_max_turns','ai_persona_name','ai_system_prompt','ai_use_kb'] as $k) unset($update[$k]);
+            $this->db->update('chat_widgets', $update, 'id=? AND tenant_id=?', [$id, $tenant->id]);
+            $this->session->flash('warning','Configuración guardada parcialmente. Falta correr migrate_chat_ai.php para habilitar IA.');
+            $this->redirect('/t/' . $tenant->slug . '/chat/widgets');
+        }
         $this->session->flash('success','Widget actualizado.');
         $this->redirect('/t/' . $tenant->slug . '/chat/widgets');
     }
@@ -205,6 +231,8 @@ class ChatController extends Controller
             'welcome' => $widget['welcome_message'],
             'tenantName' => $widget['tenant_name'],
             'requireEmail' => (int)$widget['require_email'] === 1,
+            'aiEnabled' => in_array((string)($widget['ai_fallback_mode'] ?? 'off'), ['no_agent','always'], true),
+            'aiPersona' => trim((string)($widget['ai_persona_name'] ?? '')) ?: 'Asistente IA',
         ];
         $cfgJson = json_encode($cfg);
         echo $this->buildWidgetJs($cfgJson);
@@ -258,7 +286,43 @@ class ChatController extends Controller
             'body' => $body,
         ]);
         $this->db->update('chat_conversations', ['last_message_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => (int)$convo['id']]);
+
+        // Disparamos respuesta IA (si el widget está en modo no_agent / always y plan Enterprise).
+        $this->maybeTriggerAi($widget, $convo);
+
         $this->json(['ok'=>true]);
+    }
+
+    /**
+     * Si el widget tiene IA habilitada y el plan/cuota lo permite, llama a ChatAi::respond
+     * de forma síncrona. La respuesta IA queda persistida como chat_message y el visitante
+     * la verá en el siguiente /poll (~3s después).
+     *
+     * Nota: el costo de latencia (~2-4s) se absorbe en el POST del visitante. Si en el futuro
+     * hay un worker async se puede mover ahí — por ahora síncrono es suficiente y predecible.
+     */
+    protected function maybeTriggerAi(?array $widget, array $convo): void
+    {
+        if (!$widget) return;
+        $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
+        if ($mode === 'off') return;
+
+        // Releemos la convo (los counters ai_turns / status pueden haber cambiado).
+        $fresh = $this->db->one('SELECT * FROM chat_conversations WHERE id = ?', [(int)$convo['id']]);
+        if (!$fresh) return;
+
+        $decision = \App\Core\ChatAi::shouldRespond($widget, $fresh);
+        if (!$decision['respond']) return;
+
+        $tenant = \App\Core\Tenant::find((int)$fresh['tenant_id']);
+        if (!$tenant) return;
+
+        // No queremos que un fallo IA tumbe el endpoint del visitante.
+        try {
+            \App\Core\ChatAi::respond($tenant, $widget, $fresh);
+        } catch (\Throwable $e) {
+            error_log('ChatAi::respond failed: ' . $e->getMessage());
+        }
     }
 
     public function visitorPoll(array $params): void
@@ -270,12 +334,15 @@ class ChatController extends Controller
         $widget = $this->db->one('SELECT * FROM chat_widgets WHERE id=?', [(int)$convo['widget_id']]);
         $this->checkOrigin($widget);
 
-        $msgs = $this->db->all('SELECT id, sender_type, body, created_at FROM chat_messages WHERE conversation_id = ? AND id > ? ORDER BY created_at ASC LIMIT 50', [(int)$convo['id'], $since]);
+        $msgs = $this->db->all('SELECT id, sender_type, body, is_ai, created_at FROM chat_messages WHERE conversation_id = ? AND id > ? ORDER BY created_at ASC LIMIT 50', [(int)$convo['id'], $since]);
+        $persona = trim((string)($widget['ai_persona_name'] ?? '')) ?: 'Asistente IA';
         // Show only visitor's own + agent/system messages
         $out = array_map(fn($m) => [
             'id' => (int)$m['id'],
             'sender' => $m['sender_type'],
             'body' => $m['body'],
+            'is_ai' => (int)($m['is_ai'] ?? 0),
+            'agent_name' => (int)($m['is_ai'] ?? 0) === 1 ? $persona : null,
             'created_at' => $m['created_at'],
         ], $msgs);
         $this->json(['ok'=>true, 'messages' => $out, 'status' => $convo['status']]);
@@ -289,7 +356,7 @@ class ChatController extends Controller
         $this->requireCan('chat.view');
         $convoId = (int)($_GET['conversation_id'] ?? 0);
         $since = (int)($_GET['since'] ?? 0);
-        $rows = $this->db->all('SELECT m.id, m.sender_type, m.body, m.created_at, u.name AS user_name FROM chat_messages m LEFT JOIN users u ON u.id = m.user_id WHERE m.tenant_id = ? AND m.conversation_id = ? AND m.id > ? ORDER BY m.id ASC LIMIT 100', [$tenant->id, $convoId, $since]);
+        $rows = $this->db->all('SELECT m.id, m.sender_type, m.body, m.is_ai, m.created_at, u.name AS user_name FROM chat_messages m LEFT JOIN users u ON u.id = m.user_id WHERE m.tenant_id = ? AND m.conversation_id = ? AND m.id > ? ORDER BY m.id ASC LIMIT 100', [$tenant->id, $convoId, $since]);
         $this->json(['ok' => true, 'messages' => $rows]);
     }
 
@@ -404,9 +471,15 @@ class ChatController extends Controller
       .kyd-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; background: transparent; border: 0; color: ${p.onPrimary}; opacity: .85; cursor: pointer; font-size: 20px; line-height: 1; padding: 0; border-radius: 6px; }
       .kyd-close:hover { opacity: 1; background: rgba(0,0,0,0.15); }
       .kyd-msgs { flex: 1 1 auto; overflow-y: auto; padding: 14px; background: ${p.listBg}; display: flex; flex-direction: column; gap: 8px; }
-      .kyd-msg { padding: 8px 12px; border-radius: 14px; font-size: 13.5px; max-width: 80%; word-wrap: break-word; line-height: 1.45; }
+      .kyd-msg-wrap { display: flex; flex-direction: column; gap: 2px; max-width: 85%; align-self: flex-start; }
+      .kyd-msg-wrap.visitor { align-self: flex-end; align-items: flex-end; }
+      .kyd-msg-meta { font-size: 10.5px; color: ${p.muted}; padding: 0 4px; display: flex; align-items: center; gap: 4px; }
+      .kyd-msg-meta .kyd-ai-dot { width: 6px; height: 6px; border-radius: 50%; background: ${p.primary}; display: inline-block; }
+      .kyd-msg { padding: 8px 12px; border-radius: 14px; font-size: 13.5px; word-wrap: break-word; line-height: 1.45; white-space: pre-wrap; }
       .kyd-msg.agent, .kyd-msg.system { background: ${p.msgBg}; color: ${p.msgText}; border: 1px solid ${p.msgBorder}; align-self: flex-start; }
       .kyd-msg.visitor { background: ${p.primary}; color: ${p.onPrimary}; align-self: flex-end; }
+      .kyd-msg.system { font-size: 12px; opacity: .85; font-style: italic; }
+      .kyd-msg.ai { background: ${p.msgBg}; border: 1px solid ${p.primary}; }
       .kyd-form { padding: 10px; border-top: 1px solid ${p.divider}; display: flex; gap: 8px; background: ${p.panelBg}; flex: 0 0 auto; }
       .kyd-form textarea { flex: 1; border: 1px solid ${p.inputBorder}; background: ${p.inputBg}; color: ${p.inputText}; border-radius: 10px; padding: 9px 12px; font-size: 13.5px; outline: none; resize: none; font-family: inherit; line-height: 1.4; min-height: 38px; max-height: 120px; }
       .kyd-form textarea:focus { border-color: ${p.primary}; box-shadow: 0 0 0 3px ${p.focusRing}; }
@@ -536,6 +609,45 @@ class ChatController extends Controller
       }, 3000);
     }
 
+    function renderMessage(m, msgsBox) {
+      var isVisitor = m.sender === 'visitor';
+      var isAi = m.is_ai === 1 || m.is_ai === '1' || m.is_ai === true;
+
+      // Mensajes system: una sola línea centrada (sin wrapper).
+      if (m.sender === 'system') {
+        var sys = document.createElement('div');
+        sys.className = 'kyd-msg system';
+        sys.textContent = m.body;
+        msgsBox.appendChild(sys);
+        return;
+      }
+
+      var wrap = document.createElement('div');
+      wrap.className = 'kyd-msg-wrap' + (isVisitor ? ' visitor' : '');
+
+      // Etiqueta de remitente para mensajes del agente/IA.
+      if (!isVisitor) {
+        var meta = document.createElement('div');
+        meta.className = 'kyd-msg-meta';
+        if (isAi) {
+          var dot = document.createElement('span'); dot.className = 'kyd-ai-dot';
+          var lbl = document.createElement('span'); lbl.textContent = (m.agent_name || cfg.aiPersona || 'Asistente IA') + ' · IA';
+          meta.appendChild(dot); meta.appendChild(lbl);
+        } else if (m.agent_name) {
+          meta.textContent = m.agent_name;
+        } else {
+          meta.textContent = 'Agente';
+        }
+        wrap.appendChild(meta);
+      }
+
+      var el = document.createElement('div');
+      el.className = 'kyd-msg ' + m.sender + (isAi ? ' ai' : '');
+      el.textContent = m.body;
+      wrap.appendChild(el);
+      msgsBox.appendChild(wrap);
+    }
+
     function poll(msgsBox) {
       var token = getToken(); if (!token) return;
       fetch(apiBase + '/poll?token=' + encodeURIComponent(token) + '&since=' + lastId).then(function(r){ return r.json(); }).then(function(r){
@@ -544,9 +656,7 @@ class ChatController extends Controller
         r.messages.forEach(function(m) {
           if (m.id <= lastId) return;
           lastId = m.id;
-          var el = document.createElement('div'); el.className = 'kyd-msg ' + m.sender;
-          el.textContent = m.body;
-          msgsBox.appendChild(el);
+          renderMessage(m, msgsBox);
         });
         msgsBox.scrollTop = msgsBox.scrollHeight;
       }).catch(function(){});

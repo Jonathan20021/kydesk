@@ -33,12 +33,17 @@
         </div>
 
         <div id="msg-box" class="flex-1 overflow-y-auto p-4 space-y-2.5" style="background:#fafafb">
-            <?php foreach ($messages as $m): ?>
+            <?php foreach ($messages as $m):
+                $isAi = (int)($m['is_ai'] ?? 0) === 1;
+            ?>
                 <div class="flex <?= $m['sender_type'] === 'visitor' ? 'justify-start' : ($m['sender_type'] === 'system' ? 'justify-center' : 'justify-end') ?>">
                     <?php if ($m['sender_type'] === 'system'): ?>
                         <div class="text-[11px] text-ink-400 italic"><?= $e($m['body']) ?></div>
                     <?php else: ?>
-                        <div class="max-w-[70%] rounded-2xl px-3.5 py-2.5 <?= $m['sender_type'] === 'visitor' ? 'bg-white border border-[#ececef]' : 'bg-brand-500 text-white' ?>">
+                        <div class="max-w-[70%] rounded-2xl px-3.5 py-2.5 <?= $m['sender_type'] === 'visitor' ? 'bg-white border border-[#ececef]' : ($isAi ? 'text-white' : 'bg-brand-500 text-white') ?>" <?= $isAi ? 'style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"' : '' ?>>
+                            <?php if ($isAi): ?>
+                                <div class="flex items-center gap-1 text-[10px] mb-0.5 text-white/85"><i class="lucide lucide-sparkles text-[10px]"></i> Respuesta IA</div>
+                            <?php endif; ?>
                             <div class="text-[13.5px] whitespace-pre-wrap"><?= $e($m['body']) ?></div>
                             <div class="text-[10px] mt-1 <?= $m['sender_type'] === 'visitor' ? 'text-ink-400' : 'text-white/70' ?>"><?= $e($m['created_at']) ?><?= $m['user_name'] ? ' · ' . $e($m['user_name']) : '' ?></div>
                         </div>
@@ -93,14 +98,18 @@ function chatShow(convoId, lastId) {
                     const box = document.getElementById('msg-box');
                     r.messages.forEach(m => {
                         this.lastId = Math.max(this.lastId, m.id);
+                        const isAi = m.is_ai == 1;
                         const div = document.createElement('div');
                         div.className = 'flex ' + (m.sender_type === 'visitor' ? 'justify-start' : (m.sender_type === 'system' ? 'justify-center' : 'justify-end'));
                         if (m.sender_type === 'system') {
                             div.innerHTML = '<div class="text-[11px] text-ink-400 italic">' + escapeHtml(m.body) + '</div>';
                         } else {
-                            const cls = m.sender_type === 'visitor' ? 'bg-white border border-[#ececef]' : 'bg-brand-500 text-white';
-                            const tcls = m.sender_type === 'visitor' ? 'text-ink-400' : 'text-white/70';
-                            div.innerHTML = '<div class="max-w-[70%] rounded-2xl px-3.5 py-2.5 ' + cls + '"><div class="text-[13.5px] whitespace-pre-wrap">' + escapeHtml(m.body) + '</div><div class="text-[10px] mt-1 ' + tcls + '">' + escapeHtml(m.created_at) + (m.user_name ? ' · ' + escapeHtml(m.user_name) : '') + '</div></div>';
+                            const isVisitor = m.sender_type === 'visitor';
+                            const bubbleStyle = isAi ? 'style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"' : '';
+                            const cls = isVisitor ? 'bg-white border border-[#ececef]' : (isAi ? 'text-white' : 'bg-brand-500 text-white');
+                            const tcls = isVisitor ? 'text-ink-400' : 'text-white/70';
+                            const aiBadge = isAi ? '<div class="flex items-center gap-1 text-[10px] mb-0.5 text-white/85"><i class="lucide lucide-sparkles text-[10px]"></i> Respuesta IA</div>' : '';
+                            div.innerHTML = '<div class="max-w-[70%] rounded-2xl px-3.5 py-2.5 ' + cls + '" ' + bubbleStyle + '>' + aiBadge + '<div class="text-[13.5px] whitespace-pre-wrap">' + escapeHtml(m.body) + '</div><div class="text-[10px] mt-1 ' + tcls + '">' + escapeHtml(m.created_at) + (m.user_name ? ' · ' + escapeHtml(m.user_name) : '') + '</div></div>';
                         }
                         box.appendChild(div);
                     });
