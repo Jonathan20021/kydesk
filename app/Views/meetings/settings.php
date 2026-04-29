@@ -171,14 +171,18 @@ $meetingAiUsage = $app->db->one(
             </div>
 
             <!-- Jitsi config -->
-            <div x-show="provider === 'jitsi'" x-cloak class="space-y-3 pt-2"
-                 x-data="{
-                    domain: <?= json_encode($settings['jitsi_domain'] ?? 'meet.jit.si') ?>,
-                    appId: <?= json_encode($settings['jitsi_app_id'] ?? '') ?>,
-                    kid: <?= json_encode($settings['jitsi_kid'] ?? '') ?>,
-                    appSecret: <?= json_encode($settings['jitsi_app_secret'] ?? '') ?>,
-                    advanced: <?= !empty($settings['jitsi_app_id']) ? 'true' : 'false' ?>,
-                    testing: false, testResult: null,
+            <script>
+            window.__kydeskJitsiConfig = window.__kydeskJitsiConfig || function (init) {
+                return {
+                    domain: init.domain || 'meet.jit.si',
+                    appId: init.appId || '',
+                    kid: init.kid || '',
+                    appSecret: init.appSecret || '',
+                    advanced: !!init.appId,
+                    testUrl: init.testUrl,
+                    csrf: init.csrf,
+                    testing: false,
+                    testResult: null,
                     onAppIdInput(v) {
                         this.appId = v;
                         if (v.startsWith('vpaas-magic-cookie-') && this.domain === 'meet.jit.si') {
@@ -187,22 +191,35 @@ $meetingAiUsage = $app->db->one(
                     },
                     isJaaS() { return this.appId.startsWith('vpaas-magic-cookie-') || this.domain.includes('8x8.vc'); },
                     isProduction() { return this.domain !== 'meet.jit.si' || !!this.appId; },
-                    isPemKey() { return this.appSecret && (this.appSecret.includes('BEGIN PRIVATE KEY') || this.appSecret.includes('BEGIN RSA PRIVATE KEY')); },
+                    isPemKey() {
+                        return this.appSecret && (this.appSecret.includes('BEGIN PRIVATE KEY') || this.appSecret.includes('BEGIN RSA PRIVATE KEY'));
+                    },
                     async testConfig() {
                         this.testing = true; this.testResult = null;
                         try {
                             const fd = new FormData();
-                            fd.append('_csrf', <?= json_encode($csrf) ?>);
+                            fd.append('_csrf', this.csrf);
                             fd.append('domain', this.domain);
                             fd.append('app_id', this.appId);
                             fd.append('kid', this.kid);
                             fd.append('app_secret', this.appSecret);
-                            const r = await fetch(<?= json_encode($url('/t/' . $slug . '/meetings/conference/test')) ?>, { method: 'POST', body: fd });
+                            const r = await fetch(this.testUrl, { method: 'POST', body: fd });
                             this.testResult = await r.json();
                         } catch (e) { this.testResult = { ok: false, error: 'Error de red' }; }
                         this.testing = false;
                     },
-                 }"
+                };
+            };
+            </script>
+            <div x-show="provider === 'jitsi'" x-cloak class="space-y-3 pt-2"
+                 x-data='__kydeskJitsiConfig(<?= htmlspecialchars(json_encode([
+                     'domain'    => $settings['jitsi_domain'] ?? 'meet.jit.si',
+                     'appId'     => $settings['jitsi_app_id'] ?? '',
+                     'kid'       => $settings['jitsi_kid'] ?? '',
+                     'appSecret' => $settings['jitsi_app_secret'] ?? '',
+                     'testUrl'   => $url('/t/' . $slug . '/meetings/conference/test'),
+                     'csrf'      => $csrf,
+                 ]), ENT_QUOTES, 'UTF-8') ?>)'
                  style="border-top:1px solid var(--border)">
 
                 <!-- Status banner -->

@@ -580,8 +580,16 @@ class MeetingController extends Controller
             'ai_briefing_enabled'=> (int)$this->input('ai_briefing_enabled', 0) ? 1 : 0,
             'conference_enabled' => (int)$this->input('conference_enabled', 0) ? 1 : 0,
             'conference_provider'=> in_array($this->input('conference_provider'), ['jitsi','livekit'], true) ? (string)$this->input('conference_provider') : 'jitsi',
-            'jitsi_domain'       => trim((string)$this->input('jitsi_domain', 'meet.jit.si')) ?: 'meet.jit.si',
-            'jitsi_app_id'       => trim((string)$this->input('jitsi_app_id','')) ?: null,
+        ];
+        $jitsiDomain = trim((string)$this->input('jitsi_domain', 'meet.jit.si')) ?: 'meet.jit.si';
+        $jitsiAppId  = trim((string)$this->input('jitsi_app_id', '')) ?: null;
+        // Auto-corrección: si pegan App ID de JaaS pero el dominio aún apunta a meet.jit.si, lo cambiamos a 8x8.vc
+        if ($jitsiAppId && strpos($jitsiAppId, 'vpaas-magic-cookie-') === 0 && $jitsiDomain === 'meet.jit.si') {
+            $jitsiDomain = '8x8.vc';
+        }
+        $data += [
+            'jitsi_domain'       => $jitsiDomain,
+            'jitsi_app_id'       => $jitsiAppId,
             'jitsi_kid'          => trim((string)$this->input('jitsi_kid','')) ?: null,
             'jitsi_app_secret'   => trim((string)$this->input('jitsi_app_secret','')) ?: null,
             'jitsi_audio_only'   => (int)$this->input('jitsi_audio_only', 0) ? 1 : 0,
