@@ -308,6 +308,10 @@ class Application
         $r->get('/t/{slug}/meetings/settings',                 ['App\Controllers\MeetingController', 'settings']);
         $r->post('/t/{slug}/meetings/settings',                ['App\Controllers\MeetingController', 'settingsUpdate']);
         $r->post('/t/{slug}/meetings/conference/test',         ['App\Controllers\MeetingController', 'conferenceTest']);
+        $r->post('/t/{slug}/meetings/conference/webhook-rotate', ['App\Controllers\MeetingController', 'rotateWebhookSecret']);
+
+        // JaaS webhook receiver (público, validado por HMAC opcional)
+        $r->post('/api/jaas/webhook/{slug}',                   ['App\Controllers\JaasWebhookController', 'receive']);
         $r->get('/t/{slug}/meetings/manual',                   ['App\Controllers\MeetingController', 'manualCreate']);
         $r->post('/t/{slug}/meetings/manual',                  ['App\Controllers\MeetingController', 'manualStore']);
         $r->get('/t/{slug}/meetings/{id}',                     ['App\Controllers\MeetingController', 'show']);

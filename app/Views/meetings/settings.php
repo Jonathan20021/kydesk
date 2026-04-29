@@ -338,16 +338,131 @@ $meetingAiUsage = $app->db->one(
                             <span x-text="testing ? 'Probando...' : 'Probar configuración'"></span>
                         </button>
                         <span x-show="testResult && testResult.ok" x-cloak class="text-[12px] font-semibold inline-flex items-center gap-1" style="color:#047857">
-                            <i class="lucide lucide-check-circle-2 text-[13px]"></i> JWT firmado correctamente
+                            <i class="lucide lucide-check-circle-2 text-[13px]"></i> JWT firmado correctamente · alg=<span x-text="testResult.alg"></span>
                         </span>
                         <span x-show="testResult && !testResult.ok" x-cloak class="text-[12px] font-semibold inline-flex items-center gap-1" style="color:#b91c1c" x-text="'⚠ ' + (testResult ? testResult.error : '')"></span>
                     </div>
-                    <div x-show="testResult && testResult.ok && testResult.preview" x-cloak class="rounded-lg p-3 text-[10.5px] font-mono" style="background:#0f0d18;color:#a7f3d0;word-break:break-all">
-                        <div class="text-[10px] uppercase tracking-[0.14em] mb-1" style="color:#86efac">JWT preview · valid for 2h</div>
-                        <span x-text="testResult.preview"></span>
+                    <div x-show="testResult && testResult.ok" x-cloak class="rounded-lg p-3 text-[10.5px] font-mono space-y-1" style="background:#0f0d18;color:#a7f3d0;word-break:break-all">
+                        <div class="text-[10px] uppercase tracking-[0.14em] mb-1" style="color:#86efac">JWT decodificado · valid for 2h</div>
+                        <div><span style="color:#fde68a">alg:</span> <span x-text="testResult.alg"></span></div>
+                        <div><span style="color:#fde68a">kid:</span> <span x-text="testResult.kid || '(none)'"></span></div>
+                        <div><span style="color:#fde68a">iss:</span> <span x-text="testResult.iss"></span></div>
+                        <div><span style="color:#fde68a">sub:</span> <span x-text="testResult.sub"></span></div>
+                        <div><span style="color:#fde68a">room:</span> <span x-text="testResult.room"></span></div>
+                        <div><span style="color:#fde68a">roomName:</span> <span x-text="testResult.roomName"></span></div>
+                        <div><span style="color:#fde68a">embed:</span> <span x-text="testResult.embed"></span></div>
+                        <div class="pt-1" style="border-top:1px solid #334155"><span style="color:#fde68a">token:</span> <span x-text="testResult.preview"></span></div>
                     </div>
                 </div>
             </div>
+
+            <!-- ─── Features avanzadas (JaaS pro) ─── -->
+            <div x-show="provider === 'jitsi'" x-cloak class="space-y-3 pt-2" style="border-top:1px solid var(--border)">
+                <div class="text-[12px] font-bold uppercase tracking-[0.14em] text-ink-500 flex items-center gap-1.5">
+                    <i class="lucide lucide-sparkles text-[12px]"></i> Features JaaS · pro
+                </div>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Pre-join screen</div>
+                        <div class="text-[11px] text-ink-400">Muestra cámara/micro test antes de entrar · ayuda a evitar problemas</div>
+                    </div>
+                    <input type="checkbox" name="prejoin_enabled" value="1" <?= (int)($settings['prejoin_enabled'] ?? 1) ? 'checked' : '' ?>>
+                </label>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Lobby (sala de espera)</div>
+                        <div class="text-[11px] text-ink-400">El host debe admitir al cliente antes de unirse · ideal para reuniones B2B</div>
+                    </div>
+                    <input type="checkbox" name="lobby_enabled" value="1" <?= !empty($settings['lobby_enabled']) ? 'checked' : '' ?>>
+                </label>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Cloud recording</div>
+                        <div class="text-[11px] text-ink-400">Habilita grabación durante la reunión · requiere JaaS o Jitsi self-hosted con jibri</div>
+                    </div>
+                    <input type="checkbox" name="recording_enabled" value="1" <?= !empty($settings['recording_enabled']) ? 'checked' : '' ?>>
+                </label>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Auto-grabar al iniciar</div>
+                        <div class="text-[11px] text-ink-400">Empieza a grabar automáticamente cuando el host entra · cliente verá un aviso</div>
+                    </div>
+                    <input type="checkbox" name="recording_auto_start" value="1" <?= !empty($settings['recording_auto_start']) ? 'checked' : '' ?>>
+                </label>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Transcripción / closed captions</div>
+                        <div class="text-[11px] text-ink-400">JaaS transcribe la reunión · Kyros IA genera resumen + action items automáticamente</div>
+                    </div>
+                    <input type="checkbox" name="transcription_enabled" value="1" <?= !empty($settings['transcription_enabled']) ? 'checked' : '' ?>>
+                </label>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]" :style="!<?= !empty($settings['transcription_enabled']) ? 'true' : 'false' ?> ? 'opacity:.6' : ''">
+                    <div>
+                        <div>Procesar transcripción con Kyros IA <?php if (!$aiAvailable): ?><span class="badge badge-amber text-[9px]">requiere Enterprise</span><?php endif; ?></div>
+                        <div class="text-[11px] text-ink-400">Resumen ejecutivo + action items extraídos del transcript</div>
+                    </div>
+                    <input type="checkbox" name="transcript_ai_summary" value="1" <?= (int)($settings['transcript_ai_summary'] ?? 1) ? 'checked' : '' ?> <?= !$aiAvailable ? 'disabled' : '' ?>>
+                </label>
+
+                <label class="flex items-center justify-between gap-2 text-[13px]">
+                    <div>
+                        <div>Live streaming</div>
+                        <div class="text-[11px] text-ink-400">Permite hacer streaming a YouTube/RTMP desde la reunión</div>
+                    </div>
+                    <input type="checkbox" name="livestream_enabled" value="1" <?= !empty($settings['livestream_enabled']) ? 'checked' : '' ?>>
+                </label>
+            </div>
+
+            <!-- ─── Webhook URL ─── -->
+            <?php if (!empty($settings['jaas_webhook_secret'])):
+                $webhookUrl = rtrim($app->config['app']['url'], '/') . '/api/jaas/webhook/' . rawurlencode($publicSlug);
+            ?>
+                <div x-show="provider === 'jitsi'" x-cloak class="space-y-2 pt-3" style="border-top:1px solid var(--border)"
+                     x-data="{ secretShown: false, copied: '' }">
+                    <div class="text-[12px] font-bold uppercase tracking-[0.14em] text-ink-500 flex items-center gap-1.5">
+                        <i class="lucide lucide-webhook text-[12px]"></i> Webhooks · participantes en tiempo real + recordings auto
+                    </div>
+                    <p class="text-[11.5px] text-ink-500">Configurá esta URL en JaaS → Webhooks para recibir eventos de la reunión (participantes, grabaciones, transcripciones). Sin esto, no podemos mostrar quién entró ni los recordings cloud.</p>
+
+                    <div>
+                        <label class="text-[11px] font-semibold text-ink-700 mb-1 block">URL del webhook</label>
+                        <div class="flex gap-1">
+                            <input type="text" readonly value="<?= $e($webhookUrl) ?>" class="input font-mono" style="font-size:11px;background:#fafafb">
+                            <button type="button" onclick="navigator.clipboard.writeText('<?= $e($webhookUrl) ?>'); this.querySelector('span').textContent='✓'; setTimeout(()=>this.querySelector('span').textContent='Copiar',1500)" class="btn btn-soft btn-sm flex-shrink-0"><i class="lucide lucide-copy text-[12px]"></i><span>Copiar</span></button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-semibold text-ink-700 mb-1 block">Webhook secret (para verificación HMAC opcional)</label>
+                        <div class="flex gap-1">
+                            <input :type="secretShown ? 'text' : 'password'" readonly value="<?= $e($settings['jaas_webhook_secret']) ?>" class="input font-mono" style="font-size:11px;background:#fafafb">
+                            <button type="button" @click="secretShown = !secretShown" class="btn btn-soft btn-sm flex-shrink-0"><i class="lucide lucide-eye text-[12px]"></i></button>
+                            <button type="button" onclick="navigator.clipboard.writeText('<?= $e($settings['jaas_webhook_secret']) ?>'); copied='ok'; setTimeout(()=>copied='', 1500)" class="btn btn-soft btn-sm flex-shrink-0"><i class="lucide lucide-copy text-[12px]"></i></button>
+                            <form method="POST" action="<?= $url('/t/' . $slug . '/meetings/conference/webhook-rotate') ?>" onsubmit="return confirm('¿Rotar el secret? Vas a tener que actualizarlo en JaaS.')">
+                                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                                <button class="btn btn-outline btn-sm" data-tooltip="Rotar secret"><i class="lucide lucide-refresh-cw text-[12px]"></i></button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <details class="text-[11.5px] text-ink-500">
+                        <summary class="cursor-pointer text-brand-700 font-semibold">Cómo configurarlo en JaaS →</summary>
+                        <ol class="mt-2 space-y-1 pl-4 list-decimal">
+                            <li>Andá a <a href="https://jaas.8x8.vc/#/webhooks" target="_blank" rel="noopener" class="underline">jaas.8x8.vc → Webhooks</a></li>
+                            <li>Click "Add webhook"</li>
+                            <li>Pegá la URL de arriba</li>
+                            <li>Suscribite a estos eventos: <code class="font-mono text-[10px]">CONFERENCE_CREATED, CONFERENCE_ENDED, PARTICIPANT_JOINED, PARTICIPANT_LEFT, RECORDING_UPLOADED, TRANSCRIPTION_UPLOADED</code></li>
+                            <li>Save</li>
+                        </ol>
+                    </details>
+                </div>
+            <?php endif; ?>
 
             <!-- LiveKit config (placeholder · stub) -->
             <div x-show="provider === 'livekit'" x-cloak class="space-y-2 pt-2" style="border-top:1px solid var(--border)">

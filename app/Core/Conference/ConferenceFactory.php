@@ -61,7 +61,11 @@ class ConferenceFactory
             $row = Application::get()->db->one(
                 'SELECT conference_enabled, conference_provider,
                         jitsi_domain, jitsi_app_id, jitsi_kid, jitsi_app_secret, jitsi_audio_only,
-                        livekit_url, livekit_api_key, livekit_api_secret
+                        livekit_url, livekit_api_key, livekit_api_secret,
+                        primary_color, logo_url, business_name,
+                        recording_enabled, recording_auto_start,
+                        transcription_enabled, lobby_enabled, prejoin_enabled, livestream_enabled,
+                        transcript_ai_summary, jaas_webhook_secret
                  FROM meeting_settings WHERE tenant_id = ?',
                 [$tenant->id]
             );

@@ -612,6 +612,14 @@ class MeetingController extends Controller
             'livekit_url'        => trim((string)$this->input('livekit_url','')) ?: null,
             'livekit_api_key'    => trim((string)$this->input('livekit_api_key','')) ?: null,
             'livekit_api_secret' => trim((string)$this->input('livekit_api_secret','')) ?: null,
+            // JaaS pro features
+            'recording_enabled'     => (int)$this->input('recording_enabled', 0) ? 1 : 0,
+            'recording_auto_start'  => (int)$this->input('recording_auto_start', 0) ? 1 : 0,
+            'transcription_enabled' => (int)$this->input('transcription_enabled', 0) ? 1 : 0,
+            'lobby_enabled'         => (int)$this->input('lobby_enabled', 0) ? 1 : 0,
+            'prejoin_enabled'       => (int)$this->input('prejoin_enabled', 0) ? 1 : 0,
+            'livestream_enabled'    => (int)$this->input('livestream_enabled', 0) ? 1 : 0,
+            'transcript_ai_summary' => (int)$this->input('transcript_ai_summary', 0) ? 1 : 0,
         ];
 
         if ($this->db->val('SELECT tenant_id FROM meeting_settings WHERE tenant_id=?', [$tenant->id])) {
@@ -665,6 +673,22 @@ class MeetingController extends Controller
             }
         }
         return $count;
+    }
+
+    /**
+     * Rota el secret del webhook de JaaS.
+     */
+    public function rotateWebhookSecret(array $params): void
+    {
+        $tenant = $this->requireTenant($params['slug']);
+        $this->requireFeature('meetings');
+        $this->requireCan('meetings.config');
+        $this->validateCsrf();
+
+        $newSecret = bin2hex(random_bytes(24));
+        $this->db->update('meeting_settings', ['jaas_webhook_secret' => $newSecret], 'tenant_id=?', [$tenant->id]);
+        $this->session->flash('success', 'Webhook secret rotado · debés actualizarlo en JaaS.');
+        $this->redirect('/t/' . $tenant->slug . '/meetings/settings');
     }
 
     /**
@@ -774,6 +798,12 @@ class MeetingController extends Controller
         $aiAvailable = \App\Core\MeetingAi::guard($tenant)['ok'];
         $aiTopics = !empty($meeting['ai_topics']) ? (json_decode($meeting['ai_topics'], true) ?: []) : [];
 
+        // Cargar override del recording_mode/transcription_mode del tipo
+        if (!empty($meeting['meeting_type_id'])) {
+            $typeFlags = $this->db->one('SELECT recording_mode, transcription_mode FROM meeting_types WHERE id=?', [(int)$meeting['meeting_type_id']]);
+            if ($typeFlags) $meeting = array_merge($meeting, $typeFlags);
+        }
+
         // Conferencia (embed config)
         $conferenceConfig = null;
         if (!empty($meeting['conference_room_id']) && \App\Core\Conference\ConferenceFactory::isEnabled($tenant)) {
@@ -786,14 +816,34 @@ class MeetingController extends Controller
             ]);
         }
 
+        // Participantes (si hay webhooks llegando)
+        $participants = $this->db->all(
+            "SELECT name, email, joined_at, left_at, duration_seconds, is_moderator
+             FROM meeting_participants WHERE tenant_id=? AND meeting_id=? ORDER BY joined_at ASC",
+            [$tenant->id, $meeting['id']]
+        );
+
+        // Grabaciones / transcripciones (subidas por webhook)
+        $recordings = $this->db->all(
+            "SELECT id, kind, file_url, duration_seconds, file_size_bytes, mime_type, ai_summary, ai_action_items, received_at
+             FROM meeting_recordings WHERE tenant_id=? AND meeting_id=? ORDER BY received_at DESC",
+            [$tenant->id, $meeting['id']]
+        );
+
+        // Action items del transcript (parseados)
+        $transcriptActionItems = !empty($meeting['transcript_action_items']) ? (json_decode($meeting['transcript_action_items'], true) ?: []) : [];
+
         $this->render('meetings/show', [
-            'title'            => 'Reunión ' . $meeting['code'],
-            'meeting'          => $meeting,
-            'hosts'            => $hosts,
-            'companies'        => $companies,
-            'aiAvailable'      => $aiAvailable,
-            'aiTopics'         => $aiTopics,
-            'conferenceConfig' => $conferenceConfig,
+            'title'                 => 'Reunión ' . $meeting['code'],
+            'meeting'               => $meeting,
+            'hosts'                 => $hosts,
+            'companies'             => $companies,
+            'aiAvailable'           => $aiAvailable,
+            'aiTopics'              => $aiTopics,
+            'conferenceConfig'      => $conferenceConfig,
+            'participants'          => $participants,
+            'recordings'            => $recordings,
+            'transcriptActionItems' => $transcriptActionItems,
         ]);
     }
 

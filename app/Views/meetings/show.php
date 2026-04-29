@@ -196,6 +196,114 @@ function conferencePanel(cfg) {
             </div>
         </div>
 
+        <?php if (!empty($participants) || !empty($recordings) || !empty($m['transcript_summary'])): ?>
+        <!-- Live · participantes · grabaciones · transcript -->
+        <div class="card overflow-hidden">
+            <div class="px-5 py-3.5 flex items-center justify-between" style="border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fafafb,white)">
+                <div class="flex items-center gap-2">
+                    <i class="lucide lucide-radio text-ink-400"></i>
+                    <h3 class="font-display font-bold text-[15px]">Datos de la conferencia</h3>
+                    <?php if (!empty($m['conference_started_at']) && empty($m['conference_ended_at'])): ?>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.14em]" style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0">
+                            <span class="relative inline-flex w-1.5 h-1.5"><span class="absolute inset-0 rounded-full bg-emerald-500" style="animation:pulse-ring 2s ease-out infinite"></span><span class="relative w-1.5 h-1.5 rounded-full bg-emerald-500"></span></span>
+                            En curso
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <?php if (!empty($m['conference_started_at']) && !empty($m['conference_ended_at'])):
+                    $durSec = strtotime($m['conference_ended_at']) - strtotime($m['conference_started_at']);
+                    $durMin = max(0, (int)round($durSec / 60));
+                ?>
+                    <span class="text-[11.5px] text-ink-500"><i class="lucide lucide-clock text-[11px]"></i> <?= $durMin ?> min reales</span>
+                <?php endif; ?>
+            </div>
+
+            <!-- Participantes -->
+            <?php if (!empty($participants)): ?>
+                <div class="px-5 py-4">
+                    <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 mb-2">Participantes (<?= count($participants) ?>)</div>
+                    <div class="space-y-1.5">
+                        <?php foreach ($participants as $p):
+                            $name = $p['name'] ?: ($p['email'] ?: 'Invitado');
+                            $isHere = empty($p['left_at']);
+                            $dur = $p['duration_seconds'] ? (int)round($p['duration_seconds'] / 60) . ' min' : '—';
+                        ?>
+                            <div class="flex items-center gap-2 text-[12.5px]">
+                                <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:<?= $isHere ? '#10b981' : '#9ca3af' ?>"></span>
+                                <span class="font-semibold text-ink-900 truncate"><?= $e($name) ?></span>
+                                <?php if ((int)$p['is_moderator']): ?><span class="badge badge-purple text-[9px]">HOST</span><?php endif; ?>
+                                <span class="text-ink-400 ml-auto text-[11px]">
+                                    <?php if ($isHere): ?>
+                                        Activo desde <?= date('H:i', strtotime($p['joined_at'])) ?>
+                                    <?php else: ?>
+                                        <?= date('H:i', strtotime($p['joined_at'])) ?> – <?= date('H:i', strtotime($p['left_at'])) ?> · <?= $dur ?>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Grabaciones -->
+            <?php $videoRecs = array_filter($recordings, fn($r) => in_array($r['kind'], ['recording','sip-jibri-recording'], true)); ?>
+            <?php if (!empty($videoRecs)): ?>
+                <div class="px-5 py-4" style="border-top:1px solid var(--border)">
+                    <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 mb-2">Grabaciones</div>
+                    <?php foreach ($videoRecs as $r):
+                        $sizeMb = $r['file_size_bytes'] ? round($r['file_size_bytes'] / 1024 / 1024, 1) . ' MB' : null;
+                        $durLbl = $r['duration_seconds'] ? floor($r['duration_seconds'] / 60) . ' min' : null;
+                    ?>
+                        <div class="flex items-center gap-3 p-3 rounded-xl mb-1.5" style="background:#fafafb;border:1px solid var(--border)">
+                            <div class="w-10 h-10 rounded-lg grid place-items-center flex-shrink-0" style="background:#f3e8ff;color:#7e22ce"><i class="lucide lucide-play-circle text-[18px]"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-[13px]">Grabación de la reunión</div>
+                                <div class="text-[11px] text-ink-400">
+                                    <?= date('d M H:i', strtotime($r['received_at'])) ?>
+                                    <?php if ($durLbl): ?> · <?= $durLbl ?><?php endif; ?>
+                                    <?php if ($sizeMb): ?> · <?= $sizeMb ?><?php endif; ?>
+                                </div>
+                            </div>
+                            <?php if (!empty($r['file_url'])): ?>
+                                <a href="<?= $e($r['file_url']) ?>" target="_blank" class="btn btn-soft btn-sm"><i class="lucide lucide-external-link"></i> Abrir</a>
+                                <a href="<?= $e($r['file_url']) ?>" download class="admin-btn admin-btn-soft" style="height:32px;width:32px;padding:0" data-tooltip="Descargar"><i class="lucide lucide-download text-[13px]"></i></a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Transcript + AI summary -->
+            <?php if (!empty($m['transcript_summary']) || !empty($m['transcript_text'])): ?>
+                <div class="px-5 py-4" style="border-top:1px solid var(--border)">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">Transcripción</div>
+                        <?php if (!empty($m['transcript_summary'])): ?>
+                            <span class="badge badge-purple text-[10px]"><i class="lucide lucide-sparkles text-[10px]"></i> Procesada por Kyros IA</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (!empty($m['transcript_summary'])): ?>
+                        <div class="rounded-xl p-3 mb-2 text-[13px] leading-relaxed" style="background:#f3f0ff;border:1px solid #cdbfff;color:#2a2a33"><?= nl2br($e($m['transcript_summary'])) ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($transcriptActionItems)): ?>
+                        <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 mb-1.5">Action items</div>
+                        <ul class="space-y-1 text-[13px]">
+                            <?php foreach ($transcriptActionItems as $item): ?>
+                                <li class="flex items-start gap-2"><i class="lucide lucide-check-square text-[13px] text-emerald-600 mt-0.5"></i><span class="text-ink-700"><?= $e($item) ?></span></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                    <?php if (!empty($m['transcript_text'])): ?>
+                        <details class="mt-2">
+                            <summary class="cursor-pointer text-[12px] text-ink-500 hover:text-ink-700">Ver transcripción completa</summary>
+                            <div class="mt-2 rounded-xl p-3 text-[12px] text-ink-700 max-h-80 overflow-y-auto" style="background:#fafafb;border:1px solid var(--border);white-space:pre-wrap"><?= $e(mb_substr($m['transcript_text'], 0, 30000)) ?></div>
+                        </details>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Cliente -->
         <div class="card card-pad space-y-3">
             <h3 class="font-display font-bold text-[15px]">Cliente</h3>
