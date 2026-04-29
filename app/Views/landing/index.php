@@ -402,6 +402,7 @@
                 ['reports_builder',__('module.reports_builder.name'),__('module.reports_builder.desc'),'bar-chart-3','#f3e8ff','#7e22ce'],
                 ['meetings',       __('module.meetings.name'),       __('module.meetings.desc'),       'calendar-clock','#f3f0ff','#7c5cff'],
                 ['retainers',      __('module.retainers.name'),      __('module.retainers.desc'),      'handshake','#ecfdf5','#047857'],
+                ['crm',            __('module.crm.name'),            __('module.crm.desc'),            'contact-round','#f3f0ff','#5a3aff'],
                 ['kanban',         __('module.kanban.name'),         __('module.kanban.desc'),         'kanban-square','#dbeafe','#1d4ed8'],
                 ['automations',    __('module.automations.name'),    __('module.automations.desc'),    'workflow','#f3e8ff','#7e22ce'],
             ];
@@ -416,6 +417,153 @@
                     <span class="inline-flex items-center gap-1 mt-4 text-[12.5px] font-semibold transition" style="color:<?= $col ?>"><?= __e('wn.know_more') ?> <i class="lucide lucide-arrow-right text-[12px] group-hover:translate-x-1 transition"></i></span>
                 </a>
             <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- ========== CRM SHOWCASE (Business / Enterprise) ========== -->
+<section id="crm" class="py-28 relative overflow-hidden" style="background:linear-gradient(180deg,#fafafb 0%,#f3f0ff 100%)">
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="aurora-blob" style="width:560px;height:560px;background:radial-gradient(circle,rgba(124,92,255,.35),transparent 70%);top:-180px;right:-120px;mix-blend-mode:multiply;opacity:.5;animation:aurora-1 24s ease-in-out infinite"></div>
+        <div class="aurora-blob" style="width:480px;height:480px;background:radial-gradient(circle,rgba(167,139,250,.3),transparent 70%);bottom:-160px;left:-100px;mix-blend-mode:multiply;opacity:.5;animation:aurora-2 26s ease-in-out infinite"></div>
+    </div>
+
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+        <div class="grid grid-cols-12 gap-8 items-center">
+            <!-- LEFT — copy -->
+            <div class="col-span-12 lg:col-span-5 reveal" data-reveal>
+                <div class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full mb-4" style="background:#f3f0ff;color:#5a3aff;border:1px solid #cdbfff">
+                    <i class="lucide lucide-crown text-[11px]"></i> Business · Enterprise
+                </div>
+                <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3.4rem);text-wrap:balance">
+                    Tu <span class="gradient-shift">CRM comercial</span><br>integrado al helpdesk.
+                </h2>
+                <p class="mt-5 text-[16px] text-ink-500 leading-relaxed max-w-md">
+                    Captá leads, movélos por tu pipeline con drag & drop, registrá llamadas y reuniones, convertilos en clientes — y en el mismo lugar gestioná sus tickets, contratos y reuniones de soporte.
+                </p>
+
+                <ul class="mt-7 space-y-3">
+                    <?php foreach ([
+                        ['kanban-square', 'Pipeline kanban con drag & drop', 'Múltiples pipelines (Ventas, Onboarding, Renovaciones) con etapas configurables y probabilidades calibradas.'],
+                        ['flame-kindling', 'Lead scoring y rating', 'Score 0-100 + Frío/Tibio/Caliente · ordenamiento automático de hot leads en el dashboard.'],
+                        ['phone-call',  'Actividades programadas', 'Llamadas, emails, reuniones, tareas, WhatsApp · alertas de follow-ups vencidos.'],
+                        ['user-check',  'Conversión a cliente en un click', 'Crea automáticamente la empresa y el usuario del Portal Cliente · vincula tickets existentes.'],
+                        ['radar',       '10 orígenes pre-configurados',  'Web, Referido, Ads, LinkedIn, Cold call, Cold email, Evento, Partner, Form web, WhatsApp.'],
+                        ['layers-2',    'Permisos granulares y multi-tenant', 'crm.view / create / edit / delete / config / assign / convert · gateado por plan.'],
+                    ] as [$ic, $title, $desc]): ?>
+                        <li class="flex gap-3">
+                            <div class="w-9 h-9 rounded-xl grid place-items-center flex-shrink-0" style="background:white;color:#5a3aff;box-shadow:0 4px 12px -4px rgba(124,92,255,.3)">
+                                <i class="lucide lucide-<?= $ic ?> text-[15px]"></i>
+                            </div>
+                            <div>
+                                <div class="font-display font-bold text-[14px] tracking-[-0.01em]"><?= $e($title) ?></div>
+                                <div class="text-[12.5px] text-ink-500 mt-0.5 leading-relaxed"><?= $e($desc) ?></div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                    <a href="<?= $url('/demo') ?>" class="btn glow-purple" style="background:linear-gradient(135deg,#7c5cff,#a78bfa);color:white"><i class="lucide lucide-play"></i> Probar demo Business</a>
+                    <a href="<?= $url('/pricing') ?>" class="btn btn-outline">Ver planes <i class="lucide lucide-arrow-right text-[12px]"></i></a>
+                </div>
+            </div>
+
+            <!-- RIGHT — kanban mock -->
+            <div class="col-span-12 lg:col-span-7 reveal" data-reveal>
+                <div class="rounded-3xl p-2 relative" style="background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(167,139,250,.08));box-shadow:0 32px 80px -24px rgba(124,92,255,.35)">
+                    <div class="rounded-[20px] bg-white border border-[#ececef] overflow-hidden">
+                        <!-- Mock chrome -->
+                        <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-[#ececef]">
+                            <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
+                            <div class="flex-1 text-center text-[11px] font-mono text-ink-400 flex items-center justify-center gap-1.5"><i class="lucide lucide-lock text-[10px]"></i> kydesk / acme / crm / pipeline</div>
+                        </div>
+
+                        <div class="p-4 bg-[#fafafb]">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <div class="font-display font-extrabold text-[16px] tracking-[-0.025em]">Pipeline de Ventas</div>
+                                    <div class="text-[10.5px] text-ink-400">12 oportunidades · $48,300 en pipeline</div>
+                                </div>
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold" style="background:#f3f0ff;color:#5a3aff;border:1px solid #cdbfff">
+                                    <i class="lucide lucide-target text-[10px]"></i> SALES
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2">
+                                <?php
+                                $mockStages = [
+                                    ['Calificado',  '#0ea5e9', '35%', [
+                                        ['Acme · Plan Pro',         '$4,500', 'JM', '#7c5cff', false],
+                                        ['Initech · Onboarding',    '$2,800', 'CL', '#0ea5e9', false],
+                                    ]],
+                                    ['Propuesta',   '#a78bfa', '55%', [
+                                        ['Globex · CRM Setup',      '$9,200', 'AS', '#f59e0b', true],
+                                        ['Hooli · Migración',       '$6,400', 'MR', '#16a34a', false],
+                                        ['Stark Ind · Soporte',     '$3,100', 'TS', '#ec4899', false],
+                                    ]],
+                                    ['Negociación', '#f59e0b', '75%', [
+                                        ['Wayne Ent · Anual',       '$18,600','BW', '#dc2626', true],
+                                        ['Pied Piper · Pro',        '$3,700', 'RH', '#0ea5e9', false],
+                                    ]],
+                                ];
+                                foreach ($mockStages as [$stName, $stColor, $stProb, $deals]): ?>
+                                    <div class="bg-white rounded-2xl border border-[#ececef] overflow-hidden" style="border-top:3px solid <?= $stColor ?>">
+                                        <div class="px-2.5 py-2 flex items-center justify-between" style="background:<?= $stColor ?>0d">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="w-1.5 h-1.5 rounded-full" style="background:<?= $stColor ?>"></span>
+                                                <span class="font-display font-bold text-[11px]"><?= $e($stName) ?></span>
+                                            </div>
+                                            <span class="text-[9.5px] font-bold text-ink-500"><?= $stProb ?></span>
+                                        </div>
+                                        <div class="p-1.5 space-y-1.5 min-h-[160px]">
+                                            <?php foreach ($deals as [$title, $amt, $init, $col, $hot]): ?>
+                                                <div class="bg-white border border-[#ececef] rounded-lg p-2 hover:border-brand-200 transition cursor-pointer">
+                                                    <div class="font-display font-bold text-[10.5px] line-clamp-2 leading-tight"><?= $e($title) ?></div>
+                                                    <div class="flex items-center justify-between mt-1.5">
+                                                        <div class="w-4 h-4 rounded-full grid place-items-center text-white text-[7.5px] font-bold" style="background:<?= $col ?>"><?= $e($init) ?></div>
+                                                        <span class="font-mono font-extrabold text-[10.5px]"><?= $e($amt) ?></span>
+                                                    </div>
+                                                    <?php if ($hot): ?>
+                                                        <span class="inline-flex items-center gap-0.5 text-[8.5px] font-bold mt-1 px-1 py-0.5 rounded-full" style="background:#fee2e2;color:#dc2626"><i class="lucide lucide-flame-kindling text-[8px]"></i> Hot</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-3 gap-2">
+                                <?php foreach ([
+                                    ['Hot leads',     '4',  'flame-kindling', '#ef4444', '#fee2e2'],
+                                    ['Cierre 30d',    '$24K', 'trending-up',  '#16a34a', '#ecfdf5'],
+                                    ['Tasa conv.',    '38%','target',        '#7c5cff', '#f3f0ff'],
+                                ] as [$lbl, $val, $ic, $col, $bg]): ?>
+                                    <div class="bg-white border border-[#ececef] rounded-xl p-2 flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg grid place-items-center" style="background:<?= $bg ?>;color:<?= $col ?>"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i></div>
+                                        <div>
+                                            <div class="text-[9px] text-ink-400 font-bold uppercase tracking-[0.1em]"><?= $e($lbl) ?></div>
+                                            <div class="font-display font-extrabold text-[12.5px]"><?= $e($val) ?></div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating "convert to customer" chip -->
+                    <div class="absolute -bottom-4 -right-4 hidden md:flex items-center gap-2.5 bg-white rounded-2xl pl-3 pr-4 py-2.5 border border-emerald-200" style="box-shadow:0 12px 30px -10px rgba(16,163,74,.3)">
+                        <div class="w-8 h-8 rounded-xl grid place-items-center" style="background:linear-gradient(135deg,#16a34a,#10b981);color:white"><i class="lucide lucide-user-check text-[14px]"></i></div>
+                        <div>
+                            <div class="text-[9.5px] font-bold uppercase tracking-[0.12em] text-emerald-700">Lead → Cliente</div>
+                            <div class="font-display font-bold text-[12px]">Empresa + Portal en 1 click</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>

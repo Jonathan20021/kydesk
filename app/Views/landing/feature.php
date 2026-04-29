@@ -715,6 +715,67 @@ include APP_PATH . '/Views/partials/landing_nav.php';
                         </div>
                     </div>
 
+                <?php elseif ($mockType === 'crm'): ?>
+                    <div class="grid grid-cols-3 gap-3 mb-3">
+                        <?php
+                        $crmStages = [
+                            ['Calificado', '#0ea5e9', '35%', [
+                                ['Acme · Plan Pro', '$4,500', 'JM', '#7c5cff', false],
+                                ['Initech · Onboarding', '$2,800', 'CL', '#0ea5e9', false],
+                            ]],
+                            ['Propuesta', $accent, '55%', [
+                                ['Globex · CRM Setup', '$9,200', 'AS', '#f59e0b', true],
+                                ['Hooli · Migración', '$6,400', 'MR', '#16a34a', false],
+                                ['Stark Ind · Soporte', '$3,100', 'TS', '#ec4899', false],
+                            ]],
+                            ['Negociación', '#f59e0b', '75%', [
+                                ['Wayne Ent · Anual', '$18,600', 'BW', '#dc2626', true],
+                                ['Pied Piper · Pro', '$3,700', 'RH', '#0ea5e9', false],
+                            ]],
+                        ];
+                        foreach ($crmStages as [$stName, $stColor, $stProb, $deals]): ?>
+                            <div class="bg-white rounded-2xl border border-[#ececef] overflow-hidden" style="border-top:3px solid <?= $stColor ?>">
+                                <div class="px-3 py-2 flex items-center justify-between" style="background:<?= $stColor ?>0d">
+                                    <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:<?= $stColor ?>"></span><span class="font-display font-bold text-[12px]"><?= $stName ?></span></div>
+                                    <span class="text-[10px] font-bold text-ink-500"><?= $stProb ?></span>
+                                </div>
+                                <div class="p-2 space-y-2">
+                                    <?php foreach ($deals as [$title, $amt, $init, $col, $hot]): ?>
+                                        <div class="bg-white border border-[#ececef] rounded-lg p-2.5">
+                                            <div class="font-display font-bold text-[11.5px] line-clamp-2"><?= $title ?></div>
+                                            <div class="flex items-center justify-between mt-2">
+                                                <div class="w-5 h-5 rounded-full grid place-items-center text-white text-[8.5px] font-bold" style="background:<?= $col ?>"><?= $init ?></div>
+                                                <span class="font-mono font-extrabold text-[11.5px]"><?= $amt ?></span>
+                                            </div>
+                                            <?php if ($hot): ?>
+                                                <span class="inline-flex items-center gap-1 text-[9px] font-bold mt-1.5 px-1.5 py-0.5 rounded-full" style="background:#fee2e2;color:#dc2626"><i class="lucide lucide-flame-kindling text-[9px]"></i> Hot</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="rounded-2xl p-4 bg-white border border-[#ececef]">
+                        <div class="font-display font-bold text-[12.5px] mb-2 flex items-center justify-between">
+                            <span>Próximas actividades · Wayne Ent · Anual</span>
+                            <span class="text-[11px] text-ink-400">3 pendientes</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <?php foreach ([
+                                ['Llamada de cierre', 'phone', '#7c5cff', 'Hoy 16:30'],
+                                ['Reunión técnica con CTO', 'calendar', '#0ea5e9', 'Mañana 11:00'],
+                                ['Email de propuesta v3', 'mail', '#f59e0b', 'Vie 09:00'],
+                            ] as [$nm, $ic, $c, $w]): ?>
+                                <div class="flex items-center gap-3 px-3 py-2 rounded-lg" style="background:#fafafb">
+                                    <div class="w-7 h-7 rounded-lg grid place-items-center" style="background:<?= $c ?>1a;color:<?= $c ?>"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i></div>
+                                    <div class="flex-1 text-[11.5px] font-semibold truncate"><?= $nm ?></div>
+                                    <span class="text-[10.5px] font-mono text-ink-500"><?= $w ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
                 <?php else: /* inbox default */ ?>
                     <div class="space-y-2 max-w-3xl mx-auto">
                         <?php foreach ([

@@ -283,6 +283,39 @@ class Application
         $r->post('/t/{slug}/reports-builder/{id}', ['App\Controllers\ReportBuilderController', 'update']);
         $r->post('/t/{slug}/reports-builder/{id}/delete', ['App\Controllers\ReportBuilderController', 'delete']);
 
+        // ─────────── CRM (Leads / Clientes · Business / Enterprise) ───────────
+        $r->get('/t/{slug}/crm',                                   ['App\Controllers\CrmController', 'dashboard']);
+        $r->get('/t/{slug}/crm/leads',                             ['App\Controllers\CrmController', 'leadsIndex']);
+        $r->get('/t/{slug}/crm/leads/create',                      ['App\Controllers\CrmController', 'leadCreate']);
+        $r->post('/t/{slug}/crm/leads',                            ['App\Controllers\CrmController', 'leadStore']);
+        $r->get('/t/{slug}/crm/leads/{id}',                        ['App\Controllers\CrmController', 'leadShow']);
+        $r->post('/t/{slug}/crm/leads/{id}',                       ['App\Controllers\CrmController', 'leadUpdate']);
+        $r->post('/t/{slug}/crm/leads/{id}/delete',                ['App\Controllers\CrmController', 'leadDelete']);
+        $r->post('/t/{slug}/crm/leads/{id}/assign',                ['App\Controllers\CrmController', 'leadAssign']);
+        $r->post('/t/{slug}/crm/leads/{id}/convert',               ['App\Controllers\CrmController', 'leadConvert']);
+        $r->get('/t/{slug}/crm/pipeline',                          ['App\Controllers\CrmController', 'pipeline']);
+        $r->post('/t/{slug}/crm/deals',                            ['App\Controllers\CrmController', 'dealStore']);
+        $r->post('/t/{slug}/crm/deals/{id}',                       ['App\Controllers\CrmController', 'dealUpdate']);
+        $r->post('/t/{slug}/crm/deals/{id}/move',                  ['App\Controllers\CrmController', 'dealMove']);
+        $r->post('/t/{slug}/crm/deals/{id}/delete',                ['App\Controllers\CrmController', 'dealDelete']);
+        $r->post('/t/{slug}/crm/activities',                       ['App\Controllers\CrmController', 'activityStore']);
+        $r->post('/t/{slug}/crm/activities/{id}/complete',         ['App\Controllers\CrmController', 'activityComplete']);
+        $r->post('/t/{slug}/crm/activities/{id}/delete',           ['App\Controllers\CrmController', 'activityDelete']);
+        $r->post('/t/{slug}/crm/notes',                            ['App\Controllers\CrmController', 'noteStore']);
+        $r->post('/t/{slug}/crm/notes/{id}/delete',                ['App\Controllers\CrmController', 'noteDelete']);
+        $r->get('/t/{slug}/crm/settings',                          ['App\Controllers\CrmController', 'settings']);
+        $r->post('/t/{slug}/crm/settings/pipelines',               ['App\Controllers\CrmController', 'pipelineStore']);
+        $r->post('/t/{slug}/crm/settings/pipelines/{id}',          ['App\Controllers\CrmController', 'pipelineUpdate']);
+        $r->post('/t/{slug}/crm/settings/pipelines/{id}/delete',   ['App\Controllers\CrmController', 'pipelineDelete']);
+        $r->post('/t/{slug}/crm/settings/stages',                  ['App\Controllers\CrmController', 'stageStore']);
+        $r->post('/t/{slug}/crm/settings/stages/{id}',             ['App\Controllers\CrmController', 'stageUpdate']);
+        $r->post('/t/{slug}/crm/settings/stages/{id}/delete',      ['App\Controllers\CrmController', 'stageDelete']);
+        $r->post('/t/{slug}/crm/settings/sources',                 ['App\Controllers\CrmController', 'sourceStore']);
+        $r->post('/t/{slug}/crm/settings/sources/{id}',            ['App\Controllers\CrmController', 'sourceUpdate']);
+        $r->post('/t/{slug}/crm/settings/sources/{id}/delete',     ['App\Controllers\CrmController', 'sourceDelete']);
+        $r->post('/t/{slug}/crm/settings/tags',                    ['App\Controllers\CrmController', 'tagStore']);
+        $r->post('/t/{slug}/crm/settings/tags/{id}/delete',        ['App\Controllers\CrmController', 'tagDelete']);
+
         // Igualas (Retainers) — Business / Enterprise
         $r->get('/t/{slug}/retainers', ['App\Controllers\RetainerController', 'index']);
         $r->get('/t/{slug}/retainers/settings', ['App\Controllers\RetainerController', 'settings']);
