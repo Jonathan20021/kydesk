@@ -184,8 +184,11 @@ class JitsiProvider implements Provider
         if (Jwt::looksLikePem($secret)) {
             $extraHeader = [];
             // JaaS requiere kid = "appId/apiKeyId"
+            // Aceptamos cualquiera de estos formatos del usuario:
+            //   - "48e94b" (solo la parte de la API Key)
+            //   - "vpaas-magic-cookie-.../48e94b" (ID completo, como aparece en el dashboard)
             if ($isJaaS && $kid !== '') {
-                $extraHeader['kid'] = $appId . '/' . $kid;
+                $extraHeader['kid'] = (strpos($kid, '/') !== false) ? $kid : $appId . '/' . $kid;
             } elseif ($kid !== '') {
                 $extraHeader['kid'] = $kid;
             }

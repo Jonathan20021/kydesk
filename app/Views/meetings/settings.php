@@ -303,11 +303,13 @@ $meetingAiUsage = $app->db->one(
                             <span class="badge badge-purple text-[9px]">JaaS · OBLIGATORIO</span>
                             <span x-show="!kid" x-cloak class="badge badge-rose text-[9px]"><i class="lucide lucide-alert-triangle text-[9px]"></i> Falta</span>
                         </label>
-                        <input name="jitsi_kid" x-model="kid" class="input font-mono" style="font-size:11.5px" placeholder="abc1234d-5678-90ef-1234-567890abcdef" :style="!kid ? 'border-color:#ef4444' : ''">
-                        <p class="text-[10.5px] mt-1" :class="!kid ? 'text-rose-700' : 'text-ink-400'">
-                            <span x-show="!kid" x-cloak><strong>Sin esto, 8x8.vc rechaza la conexión con "Authentication failed: Missing Key ID".</strong><br></span>
-                            Andá a <a href="https://jaas.8x8.vc/#/apikeys" target="_blank" rel="noopener" class="underline font-semibold">jaas.8x8.vc → API Keys</a>, copiá el UUID que aparece en la columna "Key ID" (no el App ID).
-                        </p>
+                        <input name="jitsi_kid" x-model="kid" class="input font-mono" style="font-size:11.5px" placeholder="48e94b · o el ID completo vpaas-magic-cookie-.../48e94b" :style="!kid ? 'border-color:#ef4444' : ''">
+                        <div class="text-[10.5px] mt-1.5 space-y-1.5" :class="!kid ? 'text-rose-700' : 'text-ink-500'">
+                            <p x-show="!kid" x-cloak><strong>Sin esto, 8x8.vc rechaza la conexión con "Authentication failed: Missing Key ID".</strong></p>
+                            <p>📍 <strong>Dónde encontrarlo:</strong> en <a href="https://jaas.8x8.vc/#/apikeys" target="_blank" rel="noopener" class="underline font-semibold">jaas.8x8.vc → API keys</a>, mirá la columna <strong>ID</strong> de la tabla "Your API keys". Vas a ver algo como:</p>
+                            <p class="font-mono text-[10px] px-2 py-1.5 rounded" style="background:#f3f4f6;color:#16151b;word-break:break-all">vpaas-magic-cookie-918a346e<wbr>4a8b4fb5a4561b9ed29db62d<span style="background:#fef08a;padding:1px 2px">/48e94b</span></p>
+                            <p>Pegá <strong>el ID completo</strong> (línea entera) o <strong>solo la parte después del <code class="font-mono">/</code></strong> — los dos formatos funcionan.</p>
+                        </div>
                     </div>
 
                     <div>
