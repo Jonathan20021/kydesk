@@ -66,7 +66,7 @@ class ChatController extends Controller
             'messages' => $messages,
             'users' => $users,
             'widget' => $widget,
-            'aiAvailable' => \App\Core\Plan::has($tenant, 'ai_assist') && in_array((string)($widget['ai_fallback_mode'] ?? 'off'), ['no_agent','always'], true),
+            'aiAvailable' => \App\Core\Plan::has($tenant, 'ai_assist'),
         ]);
     }
 
@@ -127,13 +127,9 @@ class ChatController extends Controller
         $enable = (int)($this->input('enable', 0)) === 1;
 
         if ($enable) {
-            // El widget tiene que tener la IA mínimamente disponible.
-            $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
-            if ($mode === 'off') {
-                $this->session->flash('error', 'La IA está apagada en la configuración del widget. Activala primero en Configurar widget.');
-                $this->redirect('/t/' . $tenant->slug . '/chat/' . $id);
-            }
-            // Verificación de cuota antes de prometer al agente que la IA va a responder.
+            // Verificación de cuota / asignación antes de prometer al agente que la IA va a responder.
+            // No miramos widget.ai_fallback_mode acá porque el takeover es una acción explícita —
+            // sobrescribe el modo automático del widget.
             $guard = \App\Core\ChatAi::guard(\App\Core\Tenant::find($tenant->id));
             if (!$guard['ok']) {
                 $this->session->flash('error', 'IA no disponible: ' . $guard['error']);

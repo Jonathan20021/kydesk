@@ -41,13 +41,15 @@ class ChatAi
     public static function shouldRespond(array $widget, array $convo): array
     {
         $mode = (string)($widget['ai_fallback_mode'] ?? 'off');
-        if ($mode === 'off') return ['respond' => false, 'reason' => 'mode_off'];
         if (($convo['status'] ?? 'open') === 'closed') return ['respond' => false, 'reason' => 'closed'];
 
         $takeover = (int)($convo['ai_takeover'] ?? 0) === 1;
 
+        // mode=off bloquea solo el comportamiento automático.
+        // El takeover explícito por un agente sigue funcionando.
+        if ($mode === 'off' && !$takeover) return ['respond' => false, 'reason' => 'mode_off'];
+
         // Sin takeover explícito, una escalación previa bloquea respuestas IA.
-        // Con takeover, el agente está re-activando la IA a sabiendas.
         if (!$takeover && !empty($convo['ai_escalated_at'])) {
             return ['respond' => false, 'reason' => 'escalated'];
         }
@@ -57,11 +59,11 @@ class ChatAi
             return ['respond' => false, 'reason' => 'max_turns'];
         }
 
-        // Takeover explícito por un agente: la IA responde aunque la convo esté asignada.
+        // Takeover explícito por un agente: la IA responde aunque la convo esté asignada
+        // y aunque el widget esté en mode=off.
         if ($takeover) return ['respond' => true, 'reason' => 'takeover'];
 
         if ($mode === 'no_agent') {
-            // Solo responde si nadie humano tomó la conversación.
             if (!empty($convo['assigned_to'])) return ['respond' => false, 'reason' => 'assigned_to_human'];
         }
 
