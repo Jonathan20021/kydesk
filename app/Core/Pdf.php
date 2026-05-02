@@ -79,9 +79,10 @@ class Pdf
         @set_time_limit(60);
 
         $options = new Options();
-        $options->set('isRemoteEnabled', true);     // permite cargar el logo del tenant (URL absoluta o relativa)
+        $options->set('isRemoteEnabled', true);     // permite cargar el logo del tenant
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isFontSubsettingEnabled', true);
+        $options->set('isPhpEnabled', true);        // necesario para footer dinámico con paginación
         $options->set('defaultFont', 'DejaVu Sans');
         $options->set('chroot', BASE_PATH);
 

@@ -1,13 +1,7 @@
 <?php
 /**
- * Plantilla PDF profesional de cotización (dompdf 3.x).
- *
- * Reglas que respetamos para que dompdf renderice limpio:
- *   · Layouts basados en <table> (no flex/grid). Anchos en %.
- *   · Backgrounds en tablas/td se respetan; en divs sueltos a veces no.
- *   · No usar inline-block; usar table-cell.
- *   · No usar @page header/footer (eso es mPDF). Para footer fijo usamos position:fixed.
- *   · Logos: preferir ruta absoluta del filesystem cuando es upload local.
+ * Plantilla PDF profesional de cotización (dompdf 3.x)
+ * Diseño premium estilo factura corporativa moderna.
  *
  * Variables: $quote, $items, $settings, $tenant
  */
@@ -24,7 +18,6 @@ $bizEmail   = $settings['business_email'] ?? '';
 $bizWeb     = $settings['business_website'] ?? '';
 $logo       = $settings['logo_url'] ?? '';
 
-// Logo: convertir ruta relativa pública a absoluta del filesystem para dompdf
 if ($logo && strpos($logo, 'http') !== 0 && strpos($logo, '/') === 0) {
     $logoFs = BASE_PATH . $logo;
     if (is_file($logoFs)) $logo = $logoFs;
@@ -36,366 +29,389 @@ $statusLabels = [
     'revised' => 'REVISADA', 'converted' => 'CONVERTIDA',
 ];
 $statusColors = [
-    'draft' => '#94a3b8', 'sent' => '#3b82f6', 'viewed' => '#0ea5e9',
-    'accepted' => '#16a34a', 'rejected' => '#dc2626', 'expired' => '#f59e0b',
-    'revised' => '#7c5cff', 'converted' => '#16a34a',
+    'draft' => '#64748b', 'sent' => '#2563eb', 'viewed' => '#0891b2',
+    'accepted' => '#16a34a', 'rejected' => '#dc2626', 'expired' => '#d97706',
+    'revised' => '#7c3aed', 'converted' => '#16a34a',
 ];
-$stColor = $statusColors[$quote['status']] ?? '#94a3b8';
+$stColor = $statusColors[$quote['status']] ?? '#64748b';
 $stLabel = $statusLabels[$quote['status']] ?? strtoupper($quote['status']);
 
 function fmt($v, $d = 2) { return number_format((float)$v, $d, '.', ','); }
 function nlbr($t) { return nl2br(htmlspecialchars((string)$t, ENT_QUOTES, 'UTF-8')); }
 function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+$codeJson = json_encode((string)$quote['code']);
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Cotización <?= ee($quote['code']) ?></title>
 <style>
-    @page { margin: 14mm 12mm 18mm 12mm; }
+    /* Margenes de página: dompdf respeta perfectamente y evita overflow */
+    @page { margin: 14mm 14mm 22mm 14mm; }
 
-    * { box-sizing: border-box; }
-    html, body {
-        margin: 0; padding: 0;
+    * { margin: 0; padding: 0; }
+
+    body {
         font-family: 'DejaVu Sans', sans-serif;
-        color: #1a1a25;
-        font-size: 10pt;
-        line-height: 1.45;
-    }
-
-    /* HEADER en flujo (no fixed) — dompdf renderiza tablas perfectamente */
-    table { border-collapse: collapse; }
-    .header-table { width: 100%; }
-    .header-table td { vertical-align: top; padding: 0; }
-
-    .logo-cell { width: 60%; }
-    .logo-cell img { max-height: 50px; max-width: 180px; }
-    .logo-fallback {
-        width: 50px; height: 50px;
-        background: <?= $primary ?>; color: #fff;
-        font-size: 22pt; font-weight: bold;
-        text-align: center; line-height: 50px;
-        border-radius: 6px;
-    }
-    .biz-name {
-        font-size: 14pt; font-weight: bold;
-        color: #1a1a25; line-height: 1.2;
-        margin-top: 6px;
-    }
-    .biz-meta {
-        font-size: 8pt; color: #6b6b78;
+        color: #0f172a;
+        font-size: 9.5pt;
         line-height: 1.5;
     }
 
-    .stamp-cell { width: 40%; text-align: right; }
-    .stamp-eyebrow {
-        font-size: 8pt; letter-spacing: 2pt;
-        text-transform: uppercase;
-        color: <?= $primary ?>; font-weight: bold;
+    /* ─── HERO HEADER ────────────────────────────────────── */
+    .hero {
+        width: 100%;
+        background: <?= $primary ?>;
+        border-radius: 8px;
     }
-    .stamp-title {
-        font-size: 22pt; font-weight: bold;
-        letter-spacing: -0.5pt;
-        color: #1a1a25; line-height: 1; margin-top: 2px;
+    .hero td { padding: 16px 22px; vertical-align: middle; color: #ffffff; }
+    .hero .logo-cell {
+        background: #ffffff;
+        border-radius: 8px 0 0 8px;
+        text-align: center;
+        width: 32%;
     }
-    .stamp-code {
+    .hero .logo-cell img { max-height: 50px; max-width: 130px; }
+    .hero .logo-cell .ini {
+        font-size: 28pt; font-weight: bold; color: <?= $primary ?>;
+        line-height: 1;
+    }
+    .hero .stamp-cell {
+        text-align: right;
+        padding: 14px 22px;
+    }
+    .hero .eyebrow {
+        font-size: 7.5pt; letter-spacing: 2pt;
+        text-transform: uppercase; opacity: 0.85;
+        font-weight: bold;
+    }
+    .hero .title {
+        font-size: 18pt; font-weight: bold;
+        letter-spacing: -0.4pt; line-height: 1.05;
+        margin-top: 1px;
+    }
+    .hero .code {
         font-family: 'DejaVu Sans Mono', monospace;
-        font-size: 10pt; color: #475569; margin-top: 4px;
+        font-size: 9pt; opacity: 0.92;
+        margin-top: 4px;
     }
-    .stamp-status {
+    .hero .stamp-cell .status {
         display: inline-block;
-        margin-top: 6px;
-        padding: 3px 10px;
-        background: <?= $stColor ?>;
-        color: #fff; font-size: 8pt;
-        font-weight: bold; letter-spacing: 1pt;
+        background: rgba(0,0,0,0.22);
+        padding: 3px 9px;
         border-radius: 9pt;
+        font-size: 7.5pt;
+        letter-spacing: 1.2pt;
+        font-weight: bold;
+        margin-top: 6px;
     }
 
-    .divider {
-        height: 3px; background: <?= $primary ?>;
-        margin: 14px 0 16px 0;
+    /* ─── BIZ INFO + META ─────────────────────────────────── */
+    .biz-row { width: 100%; margin-top: 8mm; }
+    .biz-row td { vertical-align: top; padding: 0; }
+
+    .biz-block .name {
+        font-size: 12.5pt; font-weight: bold;
+        color: #0f172a; margin-bottom: 3px;
+    }
+    .biz-block .meta {
+        font-size: 8.5pt; color: #64748b; line-height: 1.65;
     }
 
-    /* CLIENT + META */
-    .meta-table { width: 100%; }
-    .meta-table > tbody > tr > td { vertical-align: top; padding: 0; }
-
-    .client-card {
-        background: #fafafb;
-        border-left: 4px solid <?= $primary ?>;
-        padding: 12px 14px;
-        border-radius: 4px;
+    .meta-grid {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
     }
+    .meta-grid table { width: 100%; }
+    .meta-grid td {
+        padding: 9px 12px;
+        vertical-align: top;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .meta-grid tr:last-child td { border-bottom: 0; }
+    .meta-grid td.split { border-right: 1px solid #e2e8f0; }
+    .meta-grid .lbl {
+        font-size: 7pt; letter-spacing: 1.4pt;
+        text-transform: uppercase;
+        color: #94a3b8; font-weight: bold;
+    }
+    .meta-grid .val {
+        font-size: 9.5pt; color: #0f172a;
+        font-weight: bold; margin-top: 2px;
+    }
+    .meta-grid .val.green { color: <?= $accent ?>; }
+    .meta-grid .sub {
+        font-size: 8pt; color: #475569; margin-top: 1px;
+    }
+
+    /* ─── CLIENTE ─────────────────────────────────────────── */
+    .client-section { margin-top: 8mm; }
     .client-h {
-        font-size: 7.5pt; letter-spacing: 1.4pt;
+        font-size: 7.5pt; letter-spacing: 1.6pt;
         text-transform: uppercase;
         color: <?= $primary ?>; font-weight: bold;
         margin-bottom: 5px;
     }
-    .client-name {
-        font-size: 12pt; font-weight: bold;
-        color: #1a1a25; line-height: 1.2;
+    .client-card {
+        background: #faf5ff;
+        border: 1px solid #e9d5ff;
+        border-left: 4px solid <?= $primary ?>;
+        padding: 14px 18px;
+        border-radius: 6px;
     }
-    .client-meta {
-        font-size: 8.5pt; color: #475569;
-        margin-top: 4px; line-height: 1.55;
+    .client-card .name {
+        font-size: 13pt; font-weight: bold;
+        color: #0f172a; line-height: 1.2;
     }
+    .client-card .meta {
+        font-size: 9pt; color: #475569;
+        margin-top: 6px; line-height: 1.65;
+    }
+    .client-card .meta strong { color: #1e293b; }
 
-    .meta-card {
-        background: #fff;
-        border: 1px solid #ececef;
-        border-radius: 4px;
-        padding: 12px 14px;
-    }
-    .meta-card .lbl {
-        font-size: 7pt; letter-spacing: 1.2pt;
-        text-transform: uppercase;
-        color: #94a3b8; font-weight: bold;
-    }
-    .meta-card .val {
-        font-size: 10pt; color: #1a1a25;
-        font-weight: bold; margin-top: 1px;
-    }
-    .meta-card .val.green { color: <?= $accent ?>; }
-
-    /* INTRO */
     .intro {
-        margin-top: 16px;
-        font-size: 9.5pt; color: #475569;
-        line-height: 1.6;
+        margin-top: 7mm;
+        font-size: 9.5pt; color: #475569; line-height: 1.65;
     }
 
-    /* ITEMS */
+    /* ─── ITEMS TABLE ──────────────────────────────────── */
     .items {
-        width: 100%; margin-top: 14px;
+        width: 100%; margin-top: 6mm;
         border-collapse: collapse;
     }
-    .items th {
-        background: #1a1a25;
-        color: #fff;
-        text-align: left;
-        font-size: 8pt;
-        text-transform: uppercase;
-        letter-spacing: 0.6pt;
-        font-weight: bold;
-        padding: 9px 8px;
+    .items thead th {
+        background: #0f172a; color: #ffffff;
+        font-size: 7.5pt; text-transform: uppercase;
+        letter-spacing: 0.8pt; font-weight: bold;
+        text-align: left; padding: 10px 10px;
     }
-    .items th.r { text-align: right; }
-    .items th.c { text-align: center; }
-    .items td {
-        padding: 10px 8px;
-        border-bottom: 1px solid #ececef;
-        font-size: 9pt;
-        vertical-align: top;
+    .items thead th.r { text-align: right; }
+    .items thead th.c { text-align: center; }
+    .items tbody td {
+        padding: 11px 10px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 9pt; vertical-align: top;
+        color: #1e293b;
     }
-    .items td.r { text-align: right; font-family: 'DejaVu Sans Mono', monospace; }
-    .items td.c { text-align: center; }
-    .items tr.zebra td { background: #fafafb; }
-    .it-title { font-weight: bold; color: #1a1a25; }
-    .it-desc { color: #6b6b78; font-size: 8pt; margin-top: 2px; line-height: 1.45; }
-    .it-exempt {
-        color: #0ea5e9; font-size: 7.5pt; margin-top: 2px;
-        font-weight: bold;
-    }
-
-    /* TOTALES — dompdf-friendly: tabla con dos columnas */
-    .totals-wrap {
-        width: 100%; margin-top: 16px;
-    }
-    .totals-wrap > tbody > tr > td { vertical-align: top; padding: 0; }
-
-    .totals-side {
-        width: 100%;
-        border: 1px solid #ececef;
-        border-radius: 4px;
-    }
-    .totals-side td {
-        padding: 7px 12px;
-        font-size: 9.5pt;
-    }
-    .totals-side td.l { color: #475569; }
-    .totals-side td.v {
+    .items tbody td.r {
         text-align: right;
         font-family: 'DejaVu Sans Mono', monospace;
-        font-weight: bold; color: #1a1a25;
+        white-space: nowrap;
     }
-    .totals-side tr { border-bottom: 1px solid #f3f4f6; }
-    .totals-side .disc { color: #dc2626; }
+    .items tbody td.c { text-align: center; }
+    .items tbody tr.zebra td { background: #f8fafc; }
+    .items tbody tr:last-child td { border-bottom: 2px solid #0f172a; }
 
-    .grand-total-table {
-        width: 100%;
-        margin-top: 8px;
-        background: <?= $primary ?>;
-        border-radius: 4px;
+    .it-num { color: #94a3b8; font-weight: bold; font-size: 9pt; }
+    .it-title { font-weight: bold; color: #0f172a; font-size: 9.5pt; }
+    .it-desc { color: #64748b; font-size: 8.5pt; margin-top: 3px; line-height: 1.5; }
+    .it-exempt {
+        color: #0891b2; font-size: 7.5pt; margin-top: 4px;
+        font-weight: bold; text-transform: uppercase;
+        letter-spacing: 0.6pt;
     }
-    .grand-total-table td { padding: 14px 16px; color: #fff; }
-    .grand-total-lbl {
-        font-size: 8pt; letter-spacing: 1.6pt;
-        text-transform: uppercase;
-        font-weight: bold; opacity: 0.9;
-    }
-    .grand-total-val {
-        font-size: 22pt; font-weight: bold;
-        font-family: 'DejaVu Sans Mono', monospace;
-        line-height: 1.1; margin-top: 2px;
-    }
+    .it-unit { color: #94a3b8; font-size: 8pt; }
+
+    /* ─── BOTTOM (notas + totales) ────────────────────── */
+    .bottom { width: 100%; margin-top: 6mm; }
+    .bottom > tbody > tr > td { vertical-align: top; padding: 0; }
 
     .bank-card {
-        background: #fafafb;
-        border-left: 3px solid <?= $accent ?>;
-        padding: 11px 13px;
-        border-radius: 3px;
-        font-size: 8.5pt;
-        color: #475569;
-        line-height: 1.55;
+        background: #f0fdf4;
+        border-left: 4px solid <?= $accent ?>;
+        padding: 12px 14px;
+        border-radius: 4px;
+        font-size: 8.5pt; color: #1f2937;
+        line-height: 1.6;
     }
-    .bank-card.notes { border-left-color: #94a3b8; }
+    .bank-card.notes { background: #fefce8; border-left-color: #eab308; }
     .bank-card .h {
         font-size: 7pt; letter-spacing: 1.4pt;
         text-transform: uppercase;
         color: <?= $accent ?>; font-weight: bold;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
     }
-    .bank-card.notes .h { color: #475569; }
+    .bank-card.notes .h { color: #a16207; }
 
-    /* TERMS */
+    .totals-box {
+        width: 100%; border-collapse: collapse;
+    }
+    .totals-box td {
+        padding: 8px 14px; font-size: 9.5pt;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .totals-box tr:last-child td { border-bottom: 0; }
+    .totals-box td.l { color: #475569; }
+    .totals-box td.v {
+        text-align: right;
+        font-family: 'DejaVu Sans Mono', monospace;
+        font-weight: bold; color: #0f172a;
+        white-space: nowrap;
+    }
+    .totals-box .disc { color: #dc2626; }
+
+    .grand {
+        width: 100%; margin-top: 8px;
+        background: <?= $primary ?>;
+        border-radius: 6px;
+    }
+    .grand td { padding: 14px 18px; color: #ffffff; }
+    .grand .lbl {
+        font-size: 7.5pt; letter-spacing: 2pt;
+        text-transform: uppercase; font-weight: bold;
+        opacity: 0.92;
+    }
+    .grand .val {
+        font-size: 18pt; font-weight: bold;
+        font-family: 'DejaVu Sans Mono', monospace;
+        line-height: 1.15; margin-top: 3px;
+        white-space: nowrap;
+    }
+
+    /* ─── TÉRMINOS ───────────────────────────────────── */
     .terms {
-        margin-top: 22px;
-        padding-top: 12px;
-        border-top: 1px solid #ececef;
+        margin-top: 9mm;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 14px 18px;
     }
     .terms-h {
-        font-size: 8pt; letter-spacing: 1.6pt;
+        font-size: 7.5pt; letter-spacing: 1.6pt;
         text-transform: uppercase;
         color: <?= $primary ?>; font-weight: bold;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
     .terms-body {
         font-size: 8.5pt; color: #475569;
-        line-height: 1.6;
+        line-height: 1.7;
     }
 
-    /* SIGNATURE */
-    .signature-table { width: 100%; margin-top: 28px; }
-    .signature-table td { vertical-align: top; padding: 0; }
-    .sig-box { width: 50%; }
-    .sig-line {
-        border-top: 1px solid #1a1a25;
-        padding-top: 4px;
-    }
-    .sig-name { font-size: 9pt; font-weight: bold; color: #1a1a25; }
-    .sig-role { font-size: 8pt; color: #6b6b78; }
-
+    /* ─── FIRMA / ACEPTADA ───────────────────────────── */
     .accepted-banner {
-        margin-top: 24px;
-        padding: 12px 14px;
+        margin-top: 9mm;
         background: #ecfdf5;
-        border: 1px solid <?= $accent ?>;
-        border-radius: 4px;
-        font-size: 9pt;
-        color: #15803d;
+        border: 2px solid <?= $accent ?>;
+        border-radius: 6px;
+        padding: 14px 18px;
     }
-    .accepted-banner strong { color: #14532d; }
+    .accepted-banner .h {
+        font-size: 11pt; font-weight: bold; color: #14532d;
+    }
+    .accepted-banner .sub {
+        font-size: 8.5pt; color: #166534; margin-top: 3px;
+    }
 
-    /* FOOTER (último elemento; dompdf permite position:fixed pero es frágil) */
-    .footer {
-        margin-top: 30px;
-        padding-top: 8px;
-        border-top: 1px solid #ececef;
-        font-size: 7.5pt;
-        color: #94a3b8;
-        text-align: center;
-    }
+    .signature-table { width: 100%; margin-top: 14mm; }
+    .signature-table td { vertical-align: bottom; padding: 0; }
+    .sig-box { padding-right: 20px; }
+    .sig-line { border-top: 1px solid #0f172a; padding-top: 6px; }
+    .sig-name { font-size: 9.5pt; font-weight: bold; color: #0f172a; }
+    .sig-role { font-size: 8pt; color: #64748b; margin-top: 1px; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<table class="header-table">
+<!-- HERO -->
+<table class="hero">
     <tr>
         <td class="logo-cell">
             <?php if ($logo): ?>
                 <img src="<?= ee($logo) ?>" alt="logo">
             <?php else: ?>
-                <div class="logo-fallback"><?= ee(strtoupper(substr($bizName, 0, 1))) ?></div>
+                <div class="ini"><?= ee(strtoupper(substr($bizName, 0, 1))) ?></div>
             <?php endif; ?>
-            <div class="biz-name"><?= ee($bizName) ?></div>
-            <div class="biz-meta">
-                <?php if ($bizDoc): ?>RNC/ID: <?= ee($bizDoc) ?><br><?php endif; ?>
-                <?php if ($bizAddress): ?><?= ee($bizAddress) ?><br><?php endif; ?>
-                <?php
-                    $contactBits = [];
-                    if ($bizPhone) $contactBits[] = 'Tel: ' . $bizPhone;
-                    if ($bizEmail) $contactBits[] = $bizEmail;
-                    if ($contactBits) echo ee(implode(' · ', $contactBits)) . '<br>';
-                ?>
-                <?php if ($bizWeb): ?><?= ee($bizWeb) ?><?php endif; ?>
-            </div>
         </td>
         <td class="stamp-cell">
-            <div class="stamp-eyebrow">COTIZACIÓN</div>
-            <div class="stamp-title">Quotation</div>
-            <div class="stamp-code"><?= ee($quote['code']) ?></div>
-            <div class="stamp-status"><?= ee($stLabel) ?></div>
+            <div class="eyebrow">COTIZACIÓN</div>
+            <div class="title">Quotation</div>
+            <div class="code"><?= ee($quote['code']) ?></div>
+            <span class="status"><?= ee($stLabel) ?></span>
         </td>
     </tr>
 </table>
 
-<div class="divider"></div>
-
-<!-- CLIENT + META -->
-<table class="meta-table">
+<!-- BIZ INFO + META -->
+<table class="biz-row">
     <tr>
-        <td style="width:60%; padding-right:8px">
-            <div class="client-card">
-                <div class="client-h">CLIENTE</div>
-                <div class="client-name"><?= ee($quote['client_name']) ?></div>
-                <div class="client-meta">
-                    <?php if (!empty($quote['client_doc'])): ?>RNC/ID: <?= ee($quote['client_doc']) ?><br><?php endif; ?>
-                    <?php if (!empty($quote['client_contact'])): ?>Atn: <?= ee($quote['client_contact']) ?><br><?php endif; ?>
+        <td style="width:55%; padding-right:14px">
+            <div class="biz-block">
+                <div class="name"><?= ee($bizName) ?></div>
+                <div class="meta">
+                    <?php if ($bizDoc): ?>RNC/ID: <?= ee($bizDoc) ?><br><?php endif; ?>
+                    <?php if ($bizAddress): ?><?= ee($bizAddress) ?><br><?php endif; ?>
                     <?php
-                        $cm = [];
-                        if (!empty($quote['client_email'])) $cm[] = $quote['client_email'];
-                        if (!empty($quote['client_phone'])) $cm[] = $quote['client_phone'];
-                        if ($cm) echo ee(implode(' · ', $cm)) . '<br>';
+                        $cb = [];
+                        if ($bizPhone) $cb[] = $bizPhone;
+                        if ($bizEmail) $cb[] = $bizEmail;
+                        if ($cb) echo ee(implode(' · ', $cb)) . '<br>';
                     ?>
-                    <?php if (!empty($quote['client_address'])): ?><?= ee($quote['client_address']) ?><?php endif; ?>
+                    <?php if ($bizWeb): ?><?= ee($bizWeb) ?><?php endif; ?>
                 </div>
             </div>
         </td>
-        <td style="width:40%">
-            <div class="meta-card">
-                <table style="width:100%">
+        <td style="width:45%">
+            <div class="meta-grid">
+                <table>
                     <tr>
-                        <td style="padding:0 0 6px 0">
+                        <td class="split" style="width:50%">
                             <div class="lbl">Emitida</div>
-                            <div class="val"><?= ee((string)($quote['issued_at'] ?: date('Y-m-d'))) ?></div>
+                            <div class="val"><?= ee(date('d/m/Y', strtotime((string)($quote['issued_at'] ?: 'now')))) ?></div>
                         </td>
-                        <td style="padding:0 0 6px 0; text-align:right">
+                        <td style="width:50%">
                             <div class="lbl">Válida hasta</div>
-                            <div class="val green"><?= ee((string)$quote['valid_until']) ?></div>
+                            <div class="val green"><?= ee(date('d/m/Y', strtotime((string)$quote['valid_until']))) ?></div>
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding:6px 0 0 0; border-top:1px solid #ececef">
+                        <td class="split">
                             <div class="lbl">Moneda</div>
-                            <div class="val" style="font-size:9pt"><?= ee($quote['currency']) ?> (<?= ee($sym) ?>)</div>
+                            <div class="val"><?= ee($quote['currency']) ?> <span style="color:#94a3b8;font-weight:normal">(<?= ee($sym) ?>)</span></div>
                         </td>
-                        <?php if (!empty($quote['title'])): ?>
-                        <td style="padding:6px 0 0 0; border-top:1px solid #ececef; text-align:right">
-                            <div class="lbl">Asunto</div>
-                            <div class="val" style="font-size:8.5pt"><?= ee($quote['title']) ?></div>
+                        <td>
+                            <div class="lbl">Total</div>
+                            <div class="val green"><?= ee($sym) ?> <?= fmt($quote['total'], $decimals) ?></div>
                         </td>
-                        <?php else: ?>
-                        <td></td>
-                        <?php endif; ?>
                     </tr>
                 </table>
             </div>
         </td>
     </tr>
 </table>
+
+<!-- CLIENTE -->
+<div class="client-section">
+    <table style="width:100%">
+        <tr>
+            <td>
+                <div class="client-h">FACTURAR A · CLIENTE</div>
+                <div class="client-card">
+                    <div class="name"><?= ee($quote['client_name']) ?></div>
+                    <div class="meta">
+                        <?php
+                            $line1 = [];
+                            if (!empty($quote['client_doc'])) $line1[] = 'RNC/ID: <strong>' . ee($quote['client_doc']) . '</strong>';
+                            if (!empty($quote['client_contact'])) $line1[] = 'Atn: <strong>' . ee($quote['client_contact']) . '</strong>';
+                            if ($line1) echo implode(' &nbsp;·&nbsp; ', $line1) . '<br>';
+
+                            $line2 = [];
+                            if (!empty($quote['client_email'])) $line2[] = ee($quote['client_email']);
+                            if (!empty($quote['client_phone'])) $line2[] = ee($quote['client_phone']);
+                            if ($line2) echo implode(' &nbsp;·&nbsp; ', $line2) . '<br>';
+                        ?>
+                        <?php if (!empty($quote['client_address'])): ?><?= ee($quote['client_address']) ?><?php endif; ?>
+                        <?php if (!empty($quote['title'])): ?>
+                            <br><span style="color:#94a3b8;font-size:7pt;letter-spacing:1.4pt;text-transform:uppercase;font-weight:bold">ASUNTO</span>
+                            &nbsp; <strong style="font-size:9.5pt;color:#0f172a"><?= ee($quote['title']) ?></strong>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
 
 <?php if (!empty($quote['intro'])): ?>
     <div class="intro"><?= nlbr($quote['intro']) ?></div>
@@ -406,11 +422,11 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     <thead>
         <tr>
             <th class="c" style="width:5%">#</th>
-            <th style="width:48%">Descripción</th>
-            <th class="c" style="width:11%">Cant.</th>
-            <th class="r" style="width:13%">Precio</th>
+            <th style="width:46%">Descripción</th>
+            <th class="c" style="width:11%">Cantidad</th>
+            <th class="r" style="width:14%">Precio Unit.</th>
             <th class="c" style="width:8%">Desc.</th>
-            <th class="r" style="width:15%">Subtotal</th>
+            <th class="r" style="width:16%">Subtotal</th>
         </tr>
     </thead>
     <tbody>
@@ -419,7 +435,7 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
             $isInt = (float)$it['quantity'] == (int)$it['quantity'];
         ?>
             <tr <?= $i % 2 === 1 ? 'class="zebra"' : '' ?>>
-                <td class="c" style="color:#94a3b8;font-weight:bold"><?= $i + 1 ?></td>
+                <td class="c it-num"><?= str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) ?></td>
                 <td>
                     <div class="it-title"><?= ee($it['title']) ?></div>
                     <?php if (!empty($it['description'])): ?>
@@ -429,19 +445,26 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                         <div class="it-exempt">Exento de impuestos</div>
                     <?php endif; ?>
                 </td>
-                <td class="c"><?= fmt($it['quantity'], $isInt ? 0 : 2) ?> <?= ee($unitLabel) ?></td>
+                <td class="c">
+                    <?= fmt($it['quantity'], $isInt ? 0 : 2) ?>
+                    <span class="it-unit"><?= ee($unitLabel) ?></span>
+                </td>
                 <td class="r"><?= ee($sym) ?> <?= fmt($it['unit_price'], $decimals) ?></td>
-                <td class="c"><?= (float)$it['discount_pct'] > 0 ? fmt($it['discount_pct'], 1) . '%' : '—' ?></td>
-                <td class="r" style="font-weight:bold"><?= ee($sym) ?> <?= fmt($it['line_subtotal'], $decimals) ?></td>
+                <td class="c">
+                    <?= (float)$it['discount_pct'] > 0
+                        ? '<span style="color:#dc2626;font-weight:bold">' . fmt($it['discount_pct'], 1) . '%</span>'
+                        : '<span style="color:#cbd5e1">—</span>' ?>
+                </td>
+                <td class="r" style="font-weight:bold; font-size:9.5pt"><?= ee($sym) ?> <?= fmt($it['line_subtotal'], $decimals) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
 
-<!-- TOTALS -->
-<table class="totals-wrap">
+<!-- BOTTOM: notas + totales -->
+<table class="bottom">
     <tr>
-        <td style="width:55%; padding-right:8px">
+        <td style="width:50%; padding-right:14px">
             <?php if (!empty($settings['bank_info'])): ?>
                 <div class="bank-card">
                     <div class="h">DATOS DE PAGO</div>
@@ -455,21 +478,21 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 </div>
             <?php endif; ?>
         </td>
-        <td style="width:45%">
-            <table class="totals-side">
+        <td style="width:50%">
+            <table class="totals-box">
                 <tr>
                     <td class="l">Subtotal</td>
                     <td class="v"><?= ee($sym) ?> <?= fmt($quote['subtotal'], $decimals) ?></td>
                 </tr>
                 <?php if ((float)$quote['discount_amount'] > 0): ?>
                 <tr>
-                    <td class="l">Descuento (<?= fmt($quote['discount_pct'], 1) ?>%)</td>
+                    <td class="l">Descuento <span style="color:#94a3b8">(<?= fmt($quote['discount_pct'], 1) ?>%)</span></td>
                     <td class="v disc">− <?= ee($sym) ?> <?= fmt($quote['discount_amount'], $decimals) ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php if ((float)$quote['tax_rate'] > 0): ?>
                 <tr>
-                    <td class="l"><?= ee($quote['tax_label']) ?> (<?= fmt($quote['tax_rate'], 1) ?>%)</td>
+                    <td class="l"><?= ee($quote['tax_label']) ?> <span style="color:#94a3b8">(<?= fmt($quote['tax_rate'], 1) ?>%)</span></td>
                     <td class="v"><?= ee($sym) ?> <?= fmt($quote['tax_amount'], $decimals) ?></td>
                 </tr>
                 <?php endif; ?>
@@ -481,17 +504,17 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 <?php endif; ?>
                 <?php if ((float)$quote['other_charges_amount'] > 0): ?>
                 <tr>
-                    <td class="l"><?= ee($quote['other_charges_label'] ?: 'Otros') ?></td>
+                    <td class="l"><?= ee($quote['other_charges_label'] ?: 'Otros cargos') ?></td>
                     <td class="v"><?= ee($sym) ?> <?= fmt($quote['other_charges_amount'], $decimals) ?></td>
                 </tr>
                 <?php endif; ?>
             </table>
 
-            <table class="grand-total-table">
+            <table class="grand">
                 <tr>
                     <td>
-                        <div class="grand-total-lbl">TOTAL A PAGAR</div>
-                        <div class="grand-total-val"><?= ee($sym) ?> <?= fmt($quote['total'], $decimals) ?></div>
+                        <div class="lbl">TOTAL A PAGAR</div>
+                        <div class="val"><?= ee($sym) ?> <?= fmt($quote['total'], $decimals) ?></div>
                     </td>
                 </tr>
             </table>
@@ -508,15 +531,18 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
 <?php if ($quote['status'] === 'accepted' && !empty($quote['accepted_at'])): ?>
     <div class="accepted-banner">
-        ✓ <strong>Cotización aceptada</strong>
-        <?php if (!empty($quote['accepted_by_name'])): ?> por <strong><?= ee($quote['accepted_by_name']) ?></strong><?php endif; ?>
-        el <strong><?= ee(date('d/m/Y H:i', strtotime($quote['accepted_at']))) ?></strong>.
+        <div class="h">✓ Cotización aceptada</div>
+        <div class="sub">
+            <?php if (!empty($quote['accepted_by_name'])): ?>Aceptada por <strong><?= ee($quote['accepted_by_name']) ?></strong><?php endif; ?>
+            <?php if (!empty($quote['accepted_by_email'])): ?> &lt;<?= ee($quote['accepted_by_email']) ?>&gt;<?php endif; ?>
+            el <strong><?= ee(date('d/m/Y H:i', strtotime($quote['accepted_at']))) ?></strong>.
+        </div>
     </div>
 <?php elseif ((int)($settings['show_signature'] ?? 1) === 1): ?>
     <table class="signature-table">
         <tr>
-            <td class="sig-box">
-                <div style="height:36px"></div>
+            <td style="width:50%" class="sig-box">
+                <div style="height:40px"></div>
                 <div class="sig-line">
                     <div class="sig-name"><?= ee($settings['signature_name'] ?: $bizName) ?></div>
                     <?php if (!empty($settings['signature_role'])): ?>
@@ -524,14 +550,30 @@ function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                     <?php endif; ?>
                 </div>
             </td>
-            <td></td>
+            <td style="width:50%"></td>
         </tr>
     </table>
 <?php endif; ?>
 
-<div class="footer">
-    <?= ee($settings['footer_text'] ?: ($bizName . ' · Cotización ' . $quote['code'])) ?>
-</div>
+<script type="text/php">
+if (isset($pdf)) {
+    $font = $fontMetrics->getFont('DejaVu Sans', 'normal');
+    $size = 7.5;
+    $w = $pdf->get_width();
+    $h = $pdf->get_height();
+    $code = json_decode('<?= $codeJson ?>');
+    $rightTpl = $code . "  ·  Página {PAGE_NUM} de {PAGE_COUNT}";
+    $rightSample = $code . "  ·  Página 99 de 99";
+    $rightW = $fontMetrics->getTextWidth($rightSample, $font, $size);
+    $marginRight = 14 * 2.834;
+    $x = $w - $marginRight - $rightW;
+    $y = $h - 28;
+    $pdf->page_text($x, $y, $rightTpl, $font, $size, [0.58, 0.64, 0.72]);
+    $footerLeft = "<?= addslashes((string)($settings['footer_text'] ?: $bizName)) ?>";
+    $pdf->page_text($marginRight, $y, $footerLeft, $font, $size, [0.58, 0.64, 0.72]);
+    $pdf->line($marginRight, $y - 6, $w - $marginRight, $y - 6, [0.89, 0.91, 0.94], 0.5);
+}
+</script>
 
 </body>
 </html>
