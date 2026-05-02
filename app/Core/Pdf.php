@@ -3,13 +3,13 @@ namespace App\Core;
 
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 /**
- * Wrapper centralizado sobre mPDF.
- * Renderiza HTML y dispara la descarga (o stream inline) del PDF.
- *
- * mPDF tiene mejor soporte CSS que dompdf (gradients, mejor flex, mejor tipografía,
- * headers/footers nativos vía @page).
+ * Wrapper centralizado de generación de PDF.
+ *  · ::stream()    → mPDF (mejor para reportes con headers/footers complejos)
+ *  · ::streamDom() → dompdf (más fiel a CSS estándar para layouts simples y limpios)
  */
 class Pdf
 {
@@ -65,6 +65,38 @@ class Pdf
         } catch (\Throwable $e) {
             // Volver a buffer para que index.php pueda mostrar la pagina de error con detalle si debug=on
             throw new \RuntimeException('Error generando PDF: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Genera un PDF usando dompdf y lo envía al browser.
+     * Mejor para layouts limpios estilo factura/cotización donde CSS estándar
+     * basta y querés un render más fiel al HTML.
+     */
+    public static function streamDom(string $html, string $filename, string $orientation = 'portrait', string $paper = 'A4', bool $attachment = true): void
+    {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(60);
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);     // permite cargar el logo del tenant (URL absoluta o relativa)
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isFontSubsettingEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('chroot', BASE_PATH);
+
+        try {
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html, 'UTF-8');
+            $dompdf->setPaper($paper, strtolower($orientation));
+            $dompdf->render();
+
+            while (ob_get_level() > 0) ob_end_clean();
+
+            $dompdf->stream($filename, ['Attachment' => $attachment]);
+            exit;
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Error generando PDF (dompdf): ' . $e->getMessage(), 0, $e);
         }
     }
 }
