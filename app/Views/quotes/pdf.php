@@ -1,460 +1,636 @@
 <?php
 /**
- * Plantilla PDF corporativa de cotización (dompdf 3.x)
- * Diseño minimalista profesional inspirado en SAP / Zoho / FreshBooks.
+ * Corporate quote PDF template for dompdf.
  *
  * Variables: $quote, $items, $settings, $tenant
  */
-$primary = $settings['primary_color'] ?: '#1e3a8a';
-$accent  = $settings['accent_color'] ?: '#0f172a';
+if (!function_exists('quotePdfColor')) {
+    function quotePdfColor($value, string $fallback): string
+    {
+        $value = trim((string)$value);
+        return preg_match('/^#[0-9A-Fa-f]{6}$/', $value) ? $value : $fallback;
+    }
+}
+
+if (!function_exists('quotePdfFmt')) {
+    function quotePdfFmt($value, int $decimals = 2): string
+    {
+        return number_format((float)$value, $decimals, '.', ',');
+    }
+}
+
+if (!function_exists('quotePdfDate')) {
+    function quotePdfDate($value, bool $long = false): string
+    {
+        if (!$value) return '-';
+        $ts = strtotime((string)$value);
+        if (!$ts) return '-';
+
+        if (!$long) return date('d/m/Y', $ts);
+
+        $months = [
+            1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
+            5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
+            9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre',
+        ];
+
+        return date('d', $ts) . ' de ' . $months[(int)date('n', $ts)] . ' de ' . date('Y', $ts);
+    }
+}
+
+if (!function_exists('quotePdfEe')) {
+    function quotePdfEe($value): string
+    {
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('quotePdfNlbr')) {
+    function quotePdfNlbr($value): string
+    {
+        return nl2br(quotePdfEe($value));
+    }
+}
+
+$primary = quotePdfColor($settings['primary_color'] ?? '', '#3147ff');
+$accent = quotePdfColor($settings['accent_color'] ?? '', '#16a34a');
+$ink = '#111827';
+$muted = '#64748b';
+$soft = '#f8fafc';
+$line = '#dbe3ee';
+$navy = '#0f172a';
+
 $decimals = (int)($settings['decimals'] ?? 2);
 $sym = $settings['currency_symbol'] ?: ($quote['currency_symbol'] ?: 'RD$');
 
-$bizName    = $settings['business_name'] ?: $tenant->name;
-$bizDoc     = $settings['business_doc'] ?? '';
+$bizName = $settings['business_name'] ?: $tenant->name;
+$bizDoc = $settings['business_doc'] ?? '';
 $bizAddress = $settings['business_address'] ?? '';
-$bizPhone   = $settings['business_phone'] ?? '';
-$bizEmail   = $settings['business_email'] ?? '';
-$bizWeb     = $settings['business_website'] ?? '';
-$logo       = $settings['logo_url'] ?? '';
+$bizPhone = $settings['business_phone'] ?? '';
+$bizEmail = $settings['business_email'] ?? '';
+$bizWeb = $settings['business_website'] ?? '';
+$logo = $settings['logo_url'] ?? '';
+$brandWords = preg_split('/\s+/', trim((string)$bizName));
+$firstInitial = substr(preg_replace('/[^A-Za-z0-9]/', '', $brandWords[0] ?? ''), 0, 1);
+$secondInitial = substr(preg_replace('/[^A-Za-z0-9]/', '', $brandWords[1] ?? ($brandWords[0] ?? '')), 0, 1);
+$brandInitials = strtoupper(($firstInitial ?: 'K') . ($secondInitial ?: 'Y'));
 
 if ($logo && strpos($logo, 'http') !== 0 && strpos($logo, '/') === 0) {
     $logoFs = BASE_PATH . $logo;
-    if (is_file($logoFs)) $logo = $logoFs;
+    if (is_file($logoFs)) $logo = realpath($logoFs) ?: $logoFs;
 }
 
 $statusLabels = [
-    'draft' => 'Borrador', 'sent' => 'Enviada', 'viewed' => 'Vista',
-    'accepted' => 'Aceptada', 'rejected' => 'Rechazada', 'expired' => 'Expirada',
-    'revised' => 'Revisada', 'converted' => 'Convertida',
+    'draft' => 'Borrador',
+    'sent' => 'Enviada',
+    'viewed' => 'Vista',
+    'accepted' => 'Aceptada',
+    'rejected' => 'Rechazada',
+    'expired' => 'Expirada',
+    'revised' => 'Revisada',
+    'converted' => 'Convertida',
 ];
-$statusColors = [
-    'draft' => '#64748b', 'sent' => '#1d4ed8', 'viewed' => '#0891b2',
-    'accepted' => '#15803d', 'rejected' => '#b91c1c', 'expired' => '#b45309',
-    'revised' => '#6d28d9', 'converted' => '#15803d',
-];
-$stColor = $statusColors[$quote['status']] ?? '#64748b';
-$stLabel = $statusLabels[$quote['status']] ?? ucfirst($quote['status']);
 
-function fmt($v, $d = 2) { return number_format((float)$v, $d, '.', ','); }
-function nlbr($t) { return nl2br(htmlspecialchars((string)$t, ENT_QUOTES, 'UTF-8')); }
-function ee($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+$statusColors = [
+    'draft' => '#64748b',
+    'sent' => '#2563eb',
+    'viewed' => '#0891b2',
+    'accepted' => '#15803d',
+    'rejected' => '#b91c1c',
+    'expired' => '#b45309',
+    'revised' => '#7c3aed',
+    'converted' => '#15803d',
+];
+
+$stLabel = $statusLabels[$quote['status']] ?? ucfirst((string)$quote['status']);
+$stColor = $statusColors[$quote['status']] ?? '#64748b';
+
+$hasDiscounts = (float)($quote['discount_amount'] ?? 0) > 0;
+foreach ($items as $item) {
+    if ((float)($item['discount_pct'] ?? 0) > 0) {
+        $hasDiscounts = true;
+        break;
+    }
+}
+
+$issuedDate = quotePdfDate($quote['issued_at'] ?: date('Y-m-d'));
+$issuedDateLong = quotePdfDate($quote['issued_at'] ?: date('Y-m-d'), true);
+$validDate = quotePdfDate($quote['valid_until'] ?? null);
+$validDateLong = quotePdfDate($quote['valid_until'] ?? null, true);
+$termsInSummary = empty($settings['bank_info']) && !empty($quote['terms']);
 
 $codeJson = json_encode((string)$quote['code']);
 $footerLeftJson = json_encode((string)($settings['footer_text'] ?: $bizName));
-
-$issuedDate = $quote['issued_at'] ? date('d \d\e F \d\e Y', strtotime((string)$quote['issued_at'])) : '';
-$validDate = $quote['valid_until'] ? date('d \d\e F \d\e Y', strtotime((string)$quote['valid_until'])) : '';
-// Convert month names to spanish (PHP locale-independent)
-$months = ['January'=>'enero','February'=>'febrero','March'=>'marzo','April'=>'abril','May'=>'mayo','June'=>'junio','July'=>'julio','August'=>'agosto','September'=>'septiembre','October'=>'octubre','November'=>'noviembre','December'=>'diciembre'];
-$issuedDate = strtr($issuedDate, $months);
-$validDate = strtr($validDate, $months);
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Cotización <?= ee($quote['code']) ?></title>
+<title>Cotizacion <?= quotePdfEe($quote['code']) ?></title>
 <style>
-    @page { margin: 18mm 16mm 26mm 16mm; }
+    @page { margin: 7mm 7mm 16mm 7mm; }
 
-    * { margin: 0; padding: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-        font-family: 'DejaVu Sans', sans-serif;
-        color: #0f172a;
-        font-size: 9.5pt;
-        line-height: 1.55;
+        font-family: DejaVu Sans, sans-serif;
+        color: <?= $ink ?>;
+        font-size: 7.9pt;
+        line-height: 1.42;
+        background: #ffffff;
     }
 
-    /* ─── HEADER (logo + título) ───────────────────────────── */
-    .header { width: 100%; margin-bottom: 6mm; }
-    .header td { vertical-align: top; padding: 0; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { vertical-align: top; }
 
-    .logo-cell { width: 50%; }
-    .logo-cell img { max-height: 55px; max-width: 200px; }
-    .logo-cell .ini {
-        display: inline-block;
-        width: 52px; height: 52px;
-        background: <?= $primary ?>;
-        color: #ffffff;
-        font-size: 24pt;
-        font-weight: bold;
+    .document {
+        padding: 7mm 12mm 7mm 12mm;
+    }
+
+    .letterhead {
+        border-bottom: 1px solid <?= $line ?>;
+        margin-bottom: 4.5mm;
+    }
+    .letterhead td { padding-bottom: 4.5mm; }
+    .brand-cell { width: 58%; }
+    .quote-cell { width: 42%; text-align: right; }
+
+    .brand-table td { padding: 0; vertical-align: middle; }
+    .logo-box {
+        width: 58px;
+        height: 42px;
+        border: 1px solid <?= $line ?>;
+        background: <?= $soft ?>;
         text-align: center;
-        line-height: 52px;
+        vertical-align: middle;
+        padding: 5px;
     }
-
-    .title-cell { width: 50%; text-align: right; }
-    .doc-title {
-        font-size: 28pt;
-        font-weight: bold;
-        color: #0f172a;
-        letter-spacing: -0.8pt;
-        line-height: 1;
-        text-transform: uppercase;
-    }
-    .doc-num {
-        font-family: 'DejaVu Sans Mono', monospace;
-        font-size: 11pt;
-        color: #64748b;
-        margin-top: 6px;
-        letter-spacing: 0.4pt;
-    }
-
-    /* ─── DIVISOR PRINCIPAL ─────────────────────────────── */
-    .divider-main {
-        width: 100%;
-        height: 3px;
-        background: <?= $primary ?>;
-        margin-bottom: 8mm;
-    }
-
-    /* ─── BLOQUE DE INFO (de / para / quote info) ────── */
-    .info-block { width: 100%; margin-bottom: 8mm; }
-    .info-block > tbody > tr > td {
-        vertical-align: top;
-        padding: 0 14px 0 0;
-    }
-    .info-block > tbody > tr > td:last-child { padding-right: 0; }
-
-    .info-h {
-        font-size: 7.5pt;
-        letter-spacing: 1.8pt;
-        text-transform: uppercase;
+    .logo-box img { max-width: 48px; max-height: 32px; }
+    .logo-initial {
+        display: inline-block;
+        width: 46px;
+        height: 30px;
+        line-height: 30px;
         color: <?= $primary ?>;
-        font-weight: bold;
-        margin-bottom: 6px;
-        border-bottom: 1px solid #e2e8f0;
-        padding-bottom: 3px;
+        font-size: 15pt;
+        font-weight: 900;
+        letter-spacing: .7pt;
+        text-align: center;
     }
-    .info-name {
-        font-size: 11pt;
-        font-weight: bold;
-        color: #0f172a;
-        line-height: 1.3;
-        margin-bottom: 4px;
+    .brand-copy { padding-left: 11px !important; }
+    .brand-name {
+        font-size: 13pt;
+        font-weight: 800;
+        color: <?= $ink ?>;
+        line-height: 1.18;
+        margin-bottom: 2px;
     }
-    .info-body {
-        font-size: 9pt;
+    .brand-meta {
         color: #475569;
-        line-height: 1.65;
+        font-size: 6.9pt;
+        line-height: 1.35;
     }
-    .info-body strong { color: #0f172a; font-weight: bold; }
 
-    /* ─── TABLA DE DETALLES (quote#/date/etc) ──────── */
-    .quote-details {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .quote-details td {
-        padding: 7px 12px;
-        border-bottom: 1px solid #e2e8f0;
-        font-size: 9pt;
-    }
-    .quote-details tr:last-child td { border-bottom: 0; }
-    .quote-details td.lbl {
-        color: #64748b;
+    .doc-title {
+        color: <?= $navy ?>;
+        font-size: 19pt;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: .2pt;
         text-transform: uppercase;
-        letter-spacing: 1pt;
-        font-size: 7.5pt;
-        font-weight: bold;
-        width: 50%;
     }
-    .quote-details td.val {
-        text-align: right;
-        font-weight: bold;
-        color: #0f172a;
+    .doc-code {
+        font-family: DejaVu Sans Mono, monospace;
+        color: <?= $muted ?>;
+        font-size: 7.1pt;
+        margin-top: 3px;
     }
-    .quote-details td.val.accent { color: <?= $primary ?>; }
     .status-badge {
         display: inline-block;
-        padding: 2px 9px;
-        border-radius: 9pt;
-        font-size: 7.5pt;
-        font-weight: bold;
-        letter-spacing: 0.6pt;
-        text-transform: uppercase;
+        margin-top: 5px;
+        padding: 2px 8px;
         background: <?= $stColor ?>;
         color: #ffffff;
-    }
-
-    /* ─── ASUNTO (si existe) ──────────────────────────── */
-    .subject-row {
-        background: #f8fafc;
-        border-left: 3px solid <?= $primary ?>;
-        padding: 10px 14px;
-        margin-bottom: 7mm;
-    }
-    .subject-row .lbl {
-        font-size: 7pt;
-        letter-spacing: 1.6pt;
+        font-size: 6.3pt;
+        font-weight: 800;
+        letter-spacing: .6pt;
         text-transform: uppercase;
-        color: #64748b;
-        font-weight: bold;
-    }
-    .subject-row .val {
-        font-size: 11pt;
-        font-weight: bold;
-        color: #0f172a;
-        margin-top: 1px;
     }
 
-    /* ─── INTRO ───────────────────────────────────────── */
-    .intro {
-        font-size: 9.5pt;
-        color: #475569;
-        line-height: 1.7;
-        margin-bottom: 7mm;
-    }
-
-    /* ─── ITEMS TABLE ────────────────────────────────── */
-    .items {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 5mm;
-    }
-    .items thead th {
-        background: #0f172a;
-        color: #ffffff;
-        font-size: 7.5pt;
-        text-transform: uppercase;
-        letter-spacing: 0.9pt;
-        font-weight: bold;
-        text-align: left;
-        padding: 11px 10px;
-    }
-    .items thead th.r { text-align: right; }
-    .items thead th.c { text-align: center; }
-
-    .items tbody td {
-        padding: 13px 10px;
-        border-bottom: 1px solid #e2e8f0;
-        font-size: 9.5pt;
-        vertical-align: top;
-        color: #0f172a;
-    }
-    .items tbody td.r {
-        text-align: right;
-        font-family: 'DejaVu Sans Mono', monospace;
-        white-space: nowrap;
-    }
-    .items tbody td.c { text-align: center; }
-    .items tbody tr:last-child td { border-bottom: 2px solid #0f172a; }
-
-    .it-num { color: #94a3b8; font-weight: bold; font-size: 9pt; }
-    .it-title { font-weight: bold; color: #0f172a; font-size: 10pt; }
-    .it-desc { color: #64748b; font-size: 8.5pt; margin-top: 3px; line-height: 1.55; }
-    .it-exempt {
-        color: #0891b2; font-size: 7.5pt; margin-top: 4px;
-        font-weight: bold; text-transform: uppercase; letter-spacing: 0.8pt;
-    }
-    .it-unit { color: #94a3b8; font-size: 8pt; }
-
-    /* ─── TOTALES ───────────────────────────────────── */
-    .totals-row { width: 100%; }
-    .totals-row > tbody > tr > td { vertical-align: top; padding: 0; }
-
-    .totals-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .totals-table td {
-        padding: 8px 14px;
-        font-size: 9.5pt;
-    }
-    .totals-table td.l { color: #475569; }
-    .totals-table td.v {
-        text-align: right;
-        font-family: 'DejaVu Sans Mono', monospace;
-        font-weight: bold;
-        color: #0f172a;
-        white-space: nowrap;
-    }
-    .totals-table tr.line td { border-bottom: 1px solid #e2e8f0; }
-    .totals-table .disc { color: #b91c1c; }
-
-    .grand-total {
-        width: 100%;
-        background: #0f172a;
-        margin-top: 4px;
-    }
-    .grand-total td {
-        padding: 14px 14px;
-        color: #ffffff;
-    }
-    .grand-total .l {
-        font-size: 9.5pt;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1.4pt;
-    }
-    .grand-total .v {
-        text-align: right;
-        font-family: 'DejaVu Sans Mono', monospace;
-        font-size: 16pt;
-        font-weight: bold;
-        white-space: nowrap;
-    }
-
-    /* ─── TÉRMINOS / NOTAS / BANCO ─────────────────── */
-    .section {
-        margin-top: 9mm;
+    .hero {
+        border: 1px solid <?= $line ?>;
+        margin-bottom: 4.5mm;
         page-break-inside: avoid;
     }
-    .section-h {
-        font-size: 8pt;
-        letter-spacing: 1.8pt;
-        text-transform: uppercase;
+    .hero-left {
+        width: 63%;
+        padding: 9px 12px;
+        border-left: 5px solid <?= $primary ?>;
+    }
+    .hero-right {
+        width: 37%;
+        background: <?= $navy ?>;
+        color: #ffffff;
+        padding: 10px 12px;
+        text-align: right;
+    }
+    .label {
         color: <?= $primary ?>;
-        font-weight: bold;
-        border-bottom: 1px solid #e2e8f0;
-        padding-bottom: 4px;
-        margin-bottom: 8px;
+        font-size: 6.3pt;
+        font-weight: 900;
+        letter-spacing: 1.35pt;
+        text-transform: uppercase;
+        margin-bottom: 3px;
     }
-    .section-body {
-        font-size: 9pt;
+    .hero-title {
+        color: <?= $ink ?>;
+        font-size: 12.5pt;
+        line-height: 1.22;
+        font-weight: 900;
+    }
+    .hero-sub {
+        color: <?= $muted ?>;
+        font-size: 7.1pt;
+        margin-top: 3px;
+    }
+    .total-label {
+        color: #cbd5e1;
+        font-size: 6.2pt;
+        font-weight: 800;
+        letter-spacing: 1.1pt;
+        text-transform: uppercase;
+    }
+    .total-amount {
+        color: <?= $accent ?>;
+        font-family: DejaVu Sans Mono, monospace;
+        font-size: 14.5pt;
+        line-height: 1.15;
+        font-weight: 900;
+        margin-top: 3px;
+        white-space: nowrap;
+    }
+    .total-note {
+        color: #cbd5e1;
+        font-size: 6.8pt;
+        margin-top: 6px;
+    }
+
+    .intro {
+        color: #334155;
+        font-size: 7.8pt;
+        line-height: 1.45;
+        margin: 0 0 4.5mm 0;
+    }
+
+    .info-grid { margin-bottom: 4.5mm; page-break-inside: avoid; }
+    .info-grid td { padding: 0; }
+    .gap { width: 10px; }
+    .card {
+        border: 1px solid <?= $line ?>;
+        background: #ffffff;
+    }
+    .card-inner { padding: 8px 10px; }
+    .card-name {
+        color: <?= $ink ?>;
+        font-size: 8.8pt;
+        line-height: 1.25;
+        font-weight: 900;
+        margin-bottom: 3px;
+    }
+    .card-body {
         color: #475569;
-        line-height: 1.7;
+        font-size: 7.2pt;
+        line-height: 1.38;
     }
-    .section-body strong { color: #0f172a; }
+    .card-body strong { color: <?= $ink ?>; }
 
-    /* ─── ACEPTADA ───────────────────────────────────── */
-    .accepted-banner {
-        margin-top: 10mm;
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-        padding: 14px 18px;
+    .detail-row { border-bottom: 1px solid <?= $line ?>; }
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-row td {
+        padding: 3px 0;
+        font-size: 7.1pt;
     }
-    .accepted-banner .h {
-        font-size: 11pt; font-weight: bold; color: #14532d;
+    .detail-row .k {
+        color: <?= $muted ?>;
+        font-size: 6.2pt;
+        font-weight: 900;
+        letter-spacing: .65pt;
+        text-transform: uppercase;
+        width: 44%;
     }
-    .accepted-banner .sub {
-        font-size: 9pt; color: #166534; margin-top: 4px;
+    .detail-row .v {
+        color: <?= $ink ?>;
+        font-weight: 800;
+        text-align: right;
     }
 
-    /* ─── FIRMAS ────────────────────────────────────── */
-    .signatures { width: 100%; margin-top: 16mm; }
-    .signatures td { vertical-align: bottom; padding: 0 12px 0 0; }
-    .signatures td:last-child { padding-right: 0; padding-left: 12px; }
+    .section-title {
+        color: <?= $primary ?>;
+        font-size: 6.4pt;
+        font-weight: 900;
+        letter-spacing: 1.3pt;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
 
-    .sig-block .line {
-        border-top: 1px solid #0f172a;
-        padding-top: 6px;
-        margin-top: 28px;
+    .items {
+        margin-bottom: 4.5mm;
+        page-break-inside: auto;
     }
-    .sig-block .name {
-        font-size: 9.5pt;
-        font-weight: bold;
-        color: #0f172a;
+    .items thead th {
+        background: <?= $navy ?>;
+        color: #ffffff;
+        padding: 6px 8px;
+        font-size: 6.3pt;
+        font-weight: 900;
+        letter-spacing: .7pt;
+        text-align: left;
+        text-transform: uppercase;
     }
-    .sig-block .role {
-        font-size: 8pt;
-        color: #64748b;
+    .items thead th.c { text-align: center; }
+    .items thead th.r { text-align: right; }
+    .items tbody td {
+        padding: 7px 8px;
+        border-bottom: 1px solid <?= $line ?>;
+        color: <?= $ink ?>;
+        font-size: 7.4pt;
+    }
+    .items tbody tr:nth-child(even) td { background: #fbfdff; }
+    .items .c { text-align: center; }
+    .items .r {
+        text-align: right;
+        font-family: DejaVu Sans Mono, monospace;
+        white-space: nowrap;
+    }
+    .item-num {
+        color: <?= $muted ?>;
+        font-family: DejaVu Sans Mono, monospace;
+        font-weight: 800;
+    }
+    .item-title {
+        color: <?= $ink ?>;
+        font-size: 7.8pt;
+        font-weight: 900;
+        line-height: 1.35;
+    }
+    .item-desc {
+        color: <?= $muted ?>;
+        font-size: 7pt;
+        line-height: 1.38;
+        margin-top: 2px;
+    }
+    .item-unit {
+        display: block;
+        color: #94a3b8;
+        font-size: 6.3pt;
         margin-top: 1px;
     }
-    .sig-block .lbl {
-        font-size: 7pt;
-        letter-spacing: 1.6pt;
+    .item-exempt {
+        color: #0e7490;
+        font-size: 6.8pt;
+        font-weight: 900;
+        letter-spacing: .55pt;
+        margin-top: 4px;
         text-transform: uppercase;
+    }
+    .discount { color: #b91c1c; font-weight: 900; }
+    .empty-dash { color: #cbd5e1; }
+
+    .summary {
+        margin-bottom: 4.5mm;
+        page-break-inside: avoid;
+    }
+    .summary-left { width: 53%; padding-right: 10px !important; }
+    .summary-right { width: 47%; }
+    .note-box {
+        border: 1px solid <?= $line ?>;
+        background: <?= $soft ?>;
+        padding: 8px 10px;
+        min-height: 54px;
+    }
+    .note-body {
+        color: #475569;
+        font-size: 7.1pt;
+        line-height: 1.38;
+    }
+    .note-body.mono {
+        font-family: DejaVu Sans Mono, monospace;
+        font-size: 6.9pt;
+    }
+
+    .totals {
+        border: 1px solid <?= $line ?>;
+        background: #ffffff;
+    }
+    .totals td {
+        padding: 5px 10px;
+        border-bottom: 1px solid <?= $line ?>;
+        font-size: 7.4pt;
+    }
+    .totals .k { color: #475569; }
+    .totals .v {
+        color: <?= $ink ?>;
+        font-family: DejaVu Sans Mono, monospace;
+        font-weight: 900;
+        text-align: right;
+        white-space: nowrap;
+    }
+    .totals .disc { color: #b91c1c; }
+    .total-row td {
+        background: <?= $navy ?>;
+        border-bottom: 0;
+        color: #ffffff;
+        padding: 8px 10px;
+    }
+    .total-row .k {
+        color: #ffffff;
+        font-size: 7.2pt;
+        font-weight: 900;
+        letter-spacing: 1pt;
+        text-transform: uppercase;
+    }
+    .total-row .v {
+        color: #ffffff;
+        font-size: 11.5pt;
+    }
+
+    .text-block {
+        margin-top: 3mm;
+        page-break-inside: avoid;
+    }
+    .text-body {
+        border-top: 1px solid <?= $line ?>;
+        color: #475569;
+        font-size: 6.9pt;
+        line-height: 1.35;
+        padding-top: 4px;
+    }
+
+    .accepted-banner {
+        margin-top: 9mm;
+        border: 1px solid #86efac;
+        background: #f0fdf4;
+        padding: 12px 14px;
+        page-break-inside: avoid;
+    }
+    .accepted-banner .h {
+        color: #14532d;
+        font-size: 10pt;
+        font-weight: 900;
+    }
+    .accepted-banner .sub {
+        color: #166534;
+        font-size: 8pt;
+        margin-top: 3px;
+    }
+
+    .signatures {
+        margin-top: 5mm;
+        margin-bottom: 3mm;
+        page-break-inside: avoid;
+    }
+    .signatures td { width: 50%; padding: 0 12px 0 0; }
+    .signatures td:last-child { padding-right: 0; padding-left: 12px; }
+    .sig-line {
+        border-top: 1px solid <?= $ink ?>;
+        padding-top: 5px;
+    }
+    .sig-name {
+        color: <?= $ink ?>;
+        font-size: 7.6pt;
+        font-weight: 900;
+        line-height: 1.25;
+        min-height: 10px;
+    }
+    .sig-role {
+        color: <?= $muted ?>;
+        font-size: 6.8pt;
+        min-height: 9px;
+    }
+    .sig-label {
         color: #94a3b8;
-        font-weight: bold;
-        margin-top: 6px;
+        font-size: 5.9pt;
+        font-weight: 900;
+        letter-spacing: 1.05pt;
+        margin-top: 3px;
+        text-transform: uppercase;
     }
 </style>
 </head>
 <body>
+<div class="document">
 
-<!-- ═══════════════ HEADER ═══════════════ -->
-<table class="header">
+<table class="letterhead">
     <tr>
-        <td class="logo-cell">
-            <?php if ($logo): ?>
-                <img src="<?= ee($logo) ?>" alt="logo">
-            <?php else: ?>
-                <span class="ini"><?= ee(strtoupper(substr($bizName, 0, 1))) ?></span>
-            <?php endif; ?>
-        </td>
-        <td class="title-cell">
-            <div class="doc-title">Cotización</div>
-            <div class="doc-num">N° <?= ee($quote['code']) ?></div>
-        </td>
-    </tr>
-</table>
-
-<div class="divider-main"></div>
-
-<!-- ═══════════════ DE / PARA / DETALLES ═══════════════ -->
-<table class="info-block">
-    <tr>
-        <!-- DE -->
-        <td style="width:33%">
-            <div class="info-h">DE</div>
-            <div class="info-name"><?= ee($bizName) ?></div>
-            <div class="info-body">
-                <?php if ($bizDoc): ?>RNC: <?= ee($bizDoc) ?><br><?php endif; ?>
-                <?php if ($bizAddress): ?><?= nlbr($bizAddress) ?><br><?php endif; ?>
-                <?php if ($bizPhone): ?>Tel: <?= ee($bizPhone) ?><br><?php endif; ?>
-                <?php if ($bizEmail): ?><?= ee($bizEmail) ?><br><?php endif; ?>
-                <?php if ($bizWeb): ?><?= ee($bizWeb) ?><?php endif; ?>
-            </div>
-        </td>
-        <!-- PARA -->
-        <td style="width:34%">
-            <div class="info-h">COTIZADO PARA</div>
-            <div class="info-name"><?= ee($quote['client_name']) ?></div>
-            <div class="info-body">
-                <?php if (!empty($quote['client_doc'])): ?>RNC: <?= ee($quote['client_doc']) ?><br><?php endif; ?>
-                <?php if (!empty($quote['client_contact'])): ?>Atn: <strong><?= ee($quote['client_contact']) ?></strong><br><?php endif; ?>
-                <?php if (!empty($quote['client_address'])): ?><?= ee($quote['client_address']) ?><br><?php endif; ?>
-                <?php if (!empty($quote['client_phone'])): ?>Tel: <?= ee($quote['client_phone']) ?><br><?php endif; ?>
-                <?php if (!empty($quote['client_email'])): ?><?= ee($quote['client_email']) ?><?php endif; ?>
-            </div>
-        </td>
-        <!-- DETALLES DE LA COTIZACIÓN -->
-        <td style="width:33%">
-            <div class="info-h">DETALLES</div>
-            <table class="quote-details">
+        <td class="brand-cell">
+            <table class="brand-table">
                 <tr>
-                    <td class="lbl">Emitida</td>
-                    <td class="val"><?= ee(date('d/m/Y', strtotime((string)($quote['issued_at'] ?: 'now')))) ?></td>
-                </tr>
-                <tr>
-                    <td class="lbl">Válida hasta</td>
-                    <td class="val accent"><?= ee(date('d/m/Y', strtotime((string)$quote['valid_until']))) ?></td>
-                </tr>
-                <tr>
-                    <td class="lbl">Moneda</td>
-                    <td class="val"><?= ee($quote['currency']) ?></td>
-                </tr>
-                <tr>
-                    <td class="lbl">Estado</td>
-                    <td class="val"><span class="status-badge"><?= ee($stLabel) ?></span></td>
+                    <td class="logo-box">
+                        <?php if ($logo): ?>
+                            <img src="<?= quotePdfEe($logo) ?>" alt="Logo">
+                        <?php else: ?>
+                            <span class="logo-initial"><?= quotePdfEe($brandInitials) ?></span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="brand-copy">
+                        <div class="brand-name"><?= quotePdfEe($bizName) ?></div>
+                        <div class="brand-meta">
+                            <?php if ($bizDoc): ?>RNC / ID: <?= quotePdfEe($bizDoc) ?><br><?php endif; ?>
+                            <?php if ($bizAddress): ?><?= quotePdfEe($bizAddress) ?><br><?php endif; ?>
+                            <?php if ($bizPhone): ?>Tel: <?= quotePdfEe($bizPhone) ?><?php endif; ?>
+                            <?php if ($bizPhone && ($bizEmail || $bizWeb)): ?> &middot; <?php endif; ?>
+                            <?php if ($bizEmail): ?><?= quotePdfEe($bizEmail) ?><?php endif; ?>
+                            <?php if ($bizEmail && $bizWeb): ?> &middot; <?php endif; ?>
+                            <?php if ($bizWeb): ?><?= quotePdfEe($bizWeb) ?><?php endif; ?>
+                        </div>
+                    </td>
                 </tr>
             </table>
         </td>
+        <td class="quote-cell">
+            <div class="doc-title">Cotizaci&oacute;n</div>
+            <div class="doc-code">N&deg; <?= quotePdfEe($quote['code']) ?></div>
+            <span class="status-badge"><?= quotePdfEe($stLabel) ?></span>
+        </td>
     </tr>
 </table>
 
-<?php if (!empty($quote['title'])): ?>
-<div class="subject-row">
-    <div class="lbl">ASUNTO</div>
-    <div class="val"><?= ee($quote['title']) ?></div>
-</div>
-<?php endif; ?>
+<table class="hero">
+    <tr>
+        <td class="hero-left">
+            <div class="label">Propuesta comercial</div>
+            <div class="hero-title"><?= quotePdfEe($quote['title'] ?: ('Cotizacion ' . $quote['code'])) ?></div>
+            <div class="hero-sub">Emitida el <?= quotePdfEe($issuedDateLong) ?> &middot; Vigente hasta el <?= quotePdfEe($validDateLong) ?></div>
+        </td>
+        <td class="hero-right">
+            <div class="total-label">Total estimado</div>
+            <div class="total-amount"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['total'], $decimals) ?></div>
+            <div class="total-note">Moneda: <?= quotePdfEe($quote['currency']) ?></div>
+        </td>
+    </tr>
+</table>
+
+<table class="info-grid">
+    <tr>
+        <td style="width:61%">
+            <div class="card">
+                <div class="card-inner">
+                    <div class="label">Cliente</div>
+                    <div class="card-name"><?= quotePdfEe($quote['client_name']) ?></div>
+                    <div class="card-body">
+                        <?php if (!empty($quote['client_doc'])): ?>RNC / ID: <?= quotePdfEe($quote['client_doc']) ?><br><?php endif; ?>
+                        <?php if (!empty($quote['client_contact'])): ?>Atn: <strong><?= quotePdfEe($quote['client_contact']) ?></strong><br><?php endif; ?>
+                        <?php if (!empty($quote['client_phone'])): ?>Tel: <?= quotePdfEe($quote['client_phone']) ?><br><?php endif; ?>
+                        <?php if (!empty($quote['client_email'])): ?><?= quotePdfEe($quote['client_email']) ?><br><?php endif; ?>
+                        <?php if (!empty($quote['client_address'])): ?><?= quotePdfNlbr($quote['client_address']) ?><?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td class="gap"></td>
+        <td style="width:39%">
+            <div class="card">
+                <div class="card-inner">
+                    <div class="label">Datos de la cotizaci&oacute;n</div>
+                    <table>
+                        <tr class="detail-row">
+                            <td class="k">Emisi&oacute;n</td>
+                            <td class="v"><?= quotePdfEe($issuedDate) ?></td>
+                        </tr>
+                        <tr class="detail-row">
+                            <td class="k">Validez</td>
+                            <td class="v"><?= quotePdfEe($validDate) ?></td>
+                        </tr>
+                        <tr class="detail-row">
+                            <td class="k">Moneda</td>
+                            <td class="v"><?= quotePdfEe($quote['currency']) ?></td>
+                        </tr>
+                        <tr class="detail-row">
+                            <td class="k">Estado</td>
+                            <td class="v"><?= quotePdfEe($stLabel) ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
 
 <?php if (!empty($quote['intro'])): ?>
-    <div class="intro"><?= nlbr($quote['intro']) ?></div>
+    <div class="intro"><?= quotePdfNlbr($quote['intro']) ?></div>
 <?php endif; ?>
 
-<!-- ═══════════════ ITEMS ═══════════════ -->
+<div class="section-title">Detalle de servicios / productos</div>
 <table class="items">
     <thead>
         <tr>
-            <th class="c" style="width:5%">#</th>
-            <th style="width:47%">Descripción</th>
-            <th class="c" style="width:11%">Cantidad</th>
-            <th class="r" style="width:14%">Precio Unit.</th>
-            <th class="c" style="width:8%">Desc.</th>
-            <th class="r" style="width:15%">Total</th>
+            <th class="c" style="width:6%">#</th>
+            <th style="width:<?= $hasDiscounts ? '45' : '51' ?>%">Descripci&oacute;n</th>
+            <th class="c" style="width:11%">Cant.</th>
+            <th class="r" style="width:15%">Precio unit.</th>
+            <?php if ($hasDiscounts): ?>
+                <th class="c" style="width:8%">Desc.</th>
+            <?php endif; ?>
+            <th class="r" style="width:15%">Importe</th>
         </tr>
     </thead>
     <tbody>
@@ -463,169 +639,165 @@ $validDate = strtr($validDate, $months);
             $isInt = (float)$it['quantity'] == (int)$it['quantity'];
         ?>
             <tr>
-                <td class="c it-num"><?= str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) ?></td>
+                <td class="c item-num"><?= str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) ?></td>
                 <td>
-                    <div class="it-title"><?= ee($it['title']) ?></div>
+                    <div class="item-title"><?= quotePdfEe($it['title']) ?></div>
                     <?php if (!empty($it['description'])): ?>
-                        <div class="it-desc"><?= nlbr($it['description']) ?></div>
+                        <div class="item-desc"><?= quotePdfNlbr($it['description']) ?></div>
                     <?php endif; ?>
                     <?php if ((int)$it['is_taxable'] === 0): ?>
-                        <div class="it-exempt">Exento de impuestos</div>
+                        <div class="item-exempt">Exento de impuestos</div>
                     <?php endif; ?>
                 </td>
                 <td class="c">
-                    <?= fmt($it['quantity'], $isInt ? 0 : 2) ?>
-                    <span class="it-unit"><?= ee($unitLabel) ?></span>
+                    <?= quotePdfFmt($it['quantity'], $isInt ? 0 : 2) ?>
+                    <span class="item-unit"><?= quotePdfEe($unitLabel) ?></span>
                 </td>
-                <td class="r"><?= ee($sym) ?> <?= fmt($it['unit_price'], $decimals) ?></td>
-                <td class="c">
-                    <?= (float)$it['discount_pct'] > 0
-                        ? '<span style="color:#b91c1c;font-weight:bold">' . fmt($it['discount_pct'], 1) . '%</span>'
-                        : '<span style="color:#cbd5e1">—</span>' ?>
-                </td>
-                <td class="r" style="font-weight:bold"><?= ee($sym) ?> <?= fmt($it['line_subtotal'], $decimals) ?></td>
+                <td class="r"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($it['unit_price'], $decimals) ?></td>
+                <?php if ($hasDiscounts): ?>
+                    <td class="c">
+                        <?= (float)$it['discount_pct'] > 0
+                            ? '<span class="discount">' . quotePdfFmt($it['discount_pct'], 1) . '%</span>'
+                            : '<span class="empty-dash">&mdash;</span>' ?>
+                    </td>
+                <?php endif; ?>
+                <td class="r" style="font-weight:900"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($it['line_subtotal'], $decimals) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
 
-<!-- ═══════════════ TOTALES ═══════════════ -->
-<table class="totals-row">
+<table class="summary">
     <tr>
-        <td style="width:50%; padding-right:14px">
-            <!-- columna izquierda libre, se rellena con datos de pago si hay -->
+        <td class="summary-left">
+            <div class="note-box">
+                <?php if (!empty($settings['bank_info'])): ?>
+                    <div class="section-title">Datos de pago</div>
+                    <div class="note-body mono"><?= quotePdfNlbr($settings['bank_info']) ?></div>
+                <?php elseif ($termsInSummary): ?>
+                    <div class="section-title">T&eacute;rminos y condiciones</div>
+                    <div class="note-body"><?= quotePdfNlbr($quote['terms']) ?></div>
+                <?php else: ?>
+                    <div class="section-title">Condiciones comerciales</div>
+                    <div class="note-body">
+                        Esta propuesta est&aacute; expresada en <strong><?= quotePdfEe($quote['currency']) ?></strong> y mantiene validez hasta el <strong><?= quotePdfEe($validDateLong) ?></strong>.
+                        Los tiempos de entrega se confirman al aprobar la cotizaci&oacute;n.
+                    </div>
+                <?php endif; ?>
+            </div>
         </td>
-        <td style="width:50%">
-            <table class="totals-table">
-                <tr class="line">
-                    <td class="l">Subtotal</td>
-                    <td class="v"><?= ee($sym) ?> <?= fmt($quote['subtotal'], $decimals) ?></td>
+        <td class="summary-right">
+            <table class="totals">
+                <tr>
+                    <td class="k">Subtotal</td>
+                    <td class="v"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['subtotal'], $decimals) ?></td>
                 </tr>
                 <?php if ((float)$quote['discount_amount'] > 0): ?>
-                <tr class="line">
-                    <td class="l">Descuento (<?= fmt($quote['discount_pct'], 1) ?>%)</td>
-                    <td class="v disc">− <?= ee($sym) ?> <?= fmt($quote['discount_amount'], $decimals) ?></td>
-                </tr>
+                    <tr>
+                        <td class="k">Descuento (<?= quotePdfFmt($quote['discount_pct'], 1) ?>%)</td>
+                        <td class="v disc">- <?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['discount_amount'], $decimals) ?></td>
+                    </tr>
                 <?php endif; ?>
                 <?php if ((float)$quote['tax_rate'] > 0): ?>
-                <tr class="line">
-                    <td class="l"><?= ee($quote['tax_label']) ?> (<?= fmt($quote['tax_rate'], 1) ?>%)</td>
-                    <td class="v"><?= ee($sym) ?> <?= fmt($quote['tax_amount'], $decimals) ?></td>
-                </tr>
+                    <tr>
+                        <td class="k"><?= quotePdfEe($quote['tax_label']) ?> (<?= quotePdfFmt($quote['tax_rate'], 1) ?>%)</td>
+                        <td class="v"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['tax_amount'], $decimals) ?></td>
+                    </tr>
                 <?php endif; ?>
                 <?php if ((float)$quote['shipping_amount'] > 0): ?>
-                <tr class="line">
-                    <td class="l">Envío</td>
-                    <td class="v"><?= ee($sym) ?> <?= fmt($quote['shipping_amount'], $decimals) ?></td>
-                </tr>
+                    <tr>
+                        <td class="k">Env&iacute;o</td>
+                        <td class="v"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['shipping_amount'], $decimals) ?></td>
+                    </tr>
                 <?php endif; ?>
                 <?php if ((float)$quote['other_charges_amount'] > 0): ?>
-                <tr class="line">
-                    <td class="l"><?= ee($quote['other_charges_label'] ?: 'Otros') ?></td>
-                    <td class="v"><?= ee($sym) ?> <?= fmt($quote['other_charges_amount'], $decimals) ?></td>
-                </tr>
+                    <tr>
+                        <td class="k"><?= quotePdfEe($quote['other_charges_label'] ?: 'Otros') ?></td>
+                        <td class="v"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['other_charges_amount'], $decimals) ?></td>
+                    </tr>
                 <?php endif; ?>
-            </table>
-
-            <table class="grand-total">
-                <tr>
-                    <td class="l">Total a pagar</td>
-                    <td class="v"><?= ee($sym) ?> <?= fmt($quote['total'], $decimals) ?></td>
+                <tr class="total-row">
+                    <td class="k">Total a pagar</td>
+                    <td class="v"><?= quotePdfEe($sym) ?> <?= quotePdfFmt($quote['total'], $decimals) ?></td>
                 </tr>
             </table>
         </td>
     </tr>
 </table>
 
-<?php if (!empty($settings['bank_info'])): ?>
-<div class="section">
-    <div class="section-h">Datos de pago</div>
-    <div class="section-body"><?= nlbr($settings['bank_info']) ?></div>
-</div>
-<?php endif; ?>
-
 <?php if (!empty($quote['notes'])): ?>
-<div class="section">
-    <div class="section-h">Notas adicionales</div>
-    <div class="section-body"><?= nlbr($quote['notes']) ?></div>
-</div>
+    <div class="text-block">
+        <div class="section-title">Notas adicionales</div>
+        <div class="text-body"><?= quotePdfNlbr($quote['notes']) ?></div>
+    </div>
 <?php endif; ?>
 
-<?php if (!empty($quote['terms'])): ?>
-<div class="section">
-    <div class="section-h">Términos y condiciones</div>
-    <div class="section-body"><?= nlbr($quote['terms']) ?></div>
-</div>
+<?php if (!empty($quote['terms']) && !$termsInSummary): ?>
+    <div class="text-block">
+        <div class="section-title">T&eacute;rminos y condiciones</div>
+        <div class="text-body"><?= quotePdfNlbr($quote['terms']) ?></div>
+    </div>
 <?php endif; ?>
 
 <?php if ($quote['status'] === 'accepted' && !empty($quote['accepted_at'])): ?>
     <div class="accepted-banner">
-        <div class="h">✓ Cotización aceptada</div>
+        <div class="h">Cotizaci&oacute;n aceptada</div>
         <div class="sub">
-            <?php if (!empty($quote['accepted_by_name'])): ?>Aceptada por <strong><?= ee($quote['accepted_by_name']) ?></strong><?php endif; ?>
-            <?php if (!empty($quote['accepted_by_email'])): ?> &lt;<?= ee($quote['accepted_by_email']) ?>&gt;<?php endif; ?>
-            el <strong><?= ee(date('d/m/Y H:i', strtotime($quote['accepted_at']))) ?></strong>.
+            <?php if (!empty($quote['accepted_by_name'])): ?>Aceptada por <strong><?= quotePdfEe($quote['accepted_by_name']) ?></strong><?php endif; ?>
+            <?php if (!empty($quote['accepted_by_email'])): ?> &lt;<?= quotePdfEe($quote['accepted_by_email']) ?>&gt;<?php endif; ?>
+            el <strong><?= quotePdfEe(date('d/m/Y H:i', strtotime($quote['accepted_at']))) ?></strong>.
         </div>
     </div>
 <?php elseif ((int)($settings['show_signature'] ?? 1) === 1): ?>
     <table class="signatures">
         <tr>
-            <td style="width:50%">
-                <div class="sig-block">
-                    <div class="line">
-                        <div class="name"><?= ee($settings['signature_name'] ?: $bizName) ?></div>
-                        <?php if (!empty($settings['signature_role'])): ?>
-                            <div class="role"><?= ee($settings['signature_role']) ?></div>
-                        <?php endif; ?>
-                        <div class="lbl">Por <?= ee($bizName) ?></div>
-                    </div>
+            <td>
+                <div class="sig-line">
+                    <div class="sig-name"><?= quotePdfEe($settings['signature_name'] ?: $bizName) ?></div>
+                    <div class="sig-role"><?= quotePdfEe($settings['signature_role'] ?: 'Representante autorizado') ?></div>
+                    <div class="sig-label">Por <?= quotePdfEe($bizName) ?></div>
                 </div>
             </td>
-            <td style="width:50%">
-                <div class="sig-block">
-                    <div class="line">
-                        <div class="name">&nbsp;</div>
-                        <div class="role">&nbsp;</div>
-                        <div class="lbl">Aceptado por el cliente · Firma y fecha</div>
-                    </div>
+            <td>
+                <div class="sig-line">
+                    <div class="sig-name">&nbsp;</div>
+                    <div class="sig-role">&nbsp;</div>
+                    <div class="sig-label">Aceptado por el cliente / firma y fecha</div>
                 </div>
             </td>
         </tr>
     </table>
 <?php endif; ?>
 
+</div>
+
 <script type="text/php">
 if (isset($pdf)) {
     $w = $pdf->get_width();
     $h = $pdf->get_height();
-    $marginX = 16 * 2.834; // 16mm en pt
-    $y = $h - 36;
+    $marginX = 22 * 2.834;
+    $y = $h - 42;
 
     $fontReg = $fontMetrics->getFont('DejaVu Sans', 'normal');
     $fontBold = $fontMetrics->getFont('DejaVu Sans', 'bold');
 
-    // Línea separadora
-    $pdf->line($marginX, $y - 2, $w - $marginX, $y - 2, [0.85, 0.88, 0.93], 0.5);
+    $pdf->line($marginX, $y - 2, $w - $marginX, $y - 2, [0.86, 0.89, 0.93], 0.45);
 
-    // Footer izq: nombre comercial / mensaje
     $left = json_decode('<?= $footerLeftJson ?>');
-    $pdf->page_text($marginX, $y + 6, $left, $fontReg, 7.5, [0.40, 0.45, 0.55]);
+    $pdf->page_text($marginX, $y + 7, $left, $fontReg, 7, [0.40, 0.45, 0.55]);
 
-    // Centro: código de cotización
     $code = json_decode('<?= $codeJson ?>');
-    $codeW = $fontMetrics->getTextWidth($code, $fontBold, 7.5);
-    $pdf->page_text(($w - $codeW) / 2, $y + 6, $code, $fontBold, 7.5, [0.20, 0.25, 0.35]);
+    $codeW = $fontMetrics->getTextWidth($code, $fontBold, 7);
+    $pdf->page_text(($w - $codeW) / 2, $y + 7, $code, $fontBold, 7, [0.17, 0.22, 0.31]);
 
-    // Derecha: paginación
-    $right = "Página {PAGE_NUM} de {PAGE_COUNT}";
-    $rightSample = "Página 99 de 99";
-    $rightW = $fontMetrics->getTextWidth($rightSample, $fontReg, 7.5);
-    $pdf->page_text($w - $marginX - $rightW, $y + 6, $right, $fontReg, 7.5, [0.40, 0.45, 0.55]);
+    $right = "Pagina {PAGE_NUM} de {PAGE_COUNT}";
+    $rightSample = "Pagina 99 de 99";
+    $rightW = $fontMetrics->getTextWidth($rightSample, $fontReg, 7);
+    $pdf->page_text($w - $marginX - $rightW, $y + 7, $right, $fontReg, 7, [0.40, 0.45, 0.55]);
 
-    // Subnota
-    $sub = "Documento generado electrónicamente";
-    $subW = $fontMetrics->getTextWidth($sub, $fontReg, 6.5);
-    $pdf->page_text(($w - $subW) / 2, $y + 18, $sub, $fontReg, 6.5, [0.60, 0.65, 0.72]);
+    $sub = "Documento generado electronicamente";
+    $subW = $fontMetrics->getTextWidth($sub, $fontReg, 6.1);
+    $pdf->page_text(($w - $subW) / 2, $y + 18, $sub, $fontReg, 6.1, [0.58, 0.63, 0.70]);
 }
 </script>
 

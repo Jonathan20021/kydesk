@@ -476,7 +476,7 @@ class QuoteController extends Controller
         $this->logEvent($tenant->id, $id, 'pdf_downloaded', 'agent', $user['name'] ?? null, $user['email'] ?? null);
 
         $filename = 'Cotizacion-' . preg_replace('/[^A-Za-z0-9_\-]/', '', $quote['code']) . '.pdf';
-        Pdf::streamDom($html, $filename, 'portrait', 'A4', false);
+        Pdf::streamDom($html, $filename, 'landscape', 'A4', false);
     }
 
     /* ════════════════════════════════════════════════════════════════════
@@ -533,7 +533,7 @@ class QuoteController extends Controller
         $this->logEvent($tenant->id, (int)$quote['id'], 'pdf_downloaded', 'client');
 
         $filename = 'Cotizacion-' . preg_replace('/[^A-Za-z0-9_\-]/', '', $quote['code']) . '.pdf';
-        Pdf::streamDom($html, $filename, 'portrait', 'A4', true);
+        Pdf::streamDom($html, $filename, 'landscape', 'A4', true);
     }
 
     public function publicAccept(array $params): void
