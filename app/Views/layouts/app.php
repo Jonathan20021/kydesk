@@ -32,6 +32,7 @@ $navManagement = [
     [__('nav.departments'), 'layers',         '/departments','departments.view','departments'],
     [__('nav.crm'),         'contact-round',  '/crm','crm.view','crm'],
     [__('nav.companies'),   'building-2',     '/companies','companies.view','companies'],
+    [__('nav.quotes'),      'file-text',      '/quotes','quotes.view','quotes'],
     [__('nav.retainers'),   'handshake',      '/retainers','retainers.view','retainers'],
     [__('nav.meetings'),    'calendar-clock', '/meetings','meetings.view','meetings'],
     [__('nav.time'),        'timer',          '/time','time.view','time_tracking'],

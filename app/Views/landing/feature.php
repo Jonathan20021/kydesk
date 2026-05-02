@@ -715,6 +715,87 @@ include APP_PATH . '/Views/partials/landing_nav.php';
                         </div>
                     </div>
 
+                <?php elseif ($mockType === 'quotes'): ?>
+                    <div class="bg-white rounded-2xl border border-[#ececef] p-6 max-w-3xl mx-auto" style="box-shadow:0 16px 40px -16px rgba(124,92,255,.25)">
+                        <!-- header -->
+                        <div class="flex items-start justify-between pb-4 border-b-2" style="border-color:<?= $accent ?>">
+                            <div class="flex items-center gap-3">
+                                <div class="w-14 h-14 rounded-xl grid place-items-center text-white font-display font-extrabold text-[22px]" style="background:linear-gradient(135deg,<?= $accent ?>,#a78bfa)">A</div>
+                                <div>
+                                    <div class="font-display font-extrabold text-[16px]">Acme Soluciones SRL</div>
+                                    <div class="text-[10.5px] text-ink-400">RNC: 1-30-12345-6 · Av. 27 de Febrero 100</div>
+                                    <div class="text-[10.5px] text-ink-400">+1 809 555 0100 · ventas@acme.do</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[9px] font-bold uppercase tracking-[0.18em]" style="color:<?= $accent ?>">COTIZACIÓN</div>
+                                <div class="font-display font-extrabold text-[20px] tracking-[-0.025em]">Quotation</div>
+                                <div class="text-[10.5px] font-mono text-ink-500 mt-0.5">COT-2026-0042</div>
+                                <span class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-[0.1em]" style="background:#3b82f6;color:white">ENVIADA</span>
+                            </div>
+                        </div>
+
+                        <!-- meta -->
+                        <div class="grid grid-cols-3 gap-3 mt-4">
+                            <div class="col-span-2 border-l-2 pl-3" style="border-color:<?= $accent ?>">
+                                <div class="text-[8.5px] font-bold uppercase tracking-[0.16em]" style="color:<?= $accent ?>">CLIENTE</div>
+                                <div class="font-display font-bold text-[13.5px] mt-0.5">Globex Innovaciones SA</div>
+                                <div class="text-[10.5px] text-ink-500 mt-0.5">Atn: María Torres · maria@globex.com</div>
+                                <div class="text-[10.5px] text-ink-500">Av. Lope de Vega 35, Naco · Santo Domingo</div>
+                            </div>
+                            <div class="bg-[#fafafb] rounded-lg p-2.5">
+                                <div class="text-[8.5px] font-bold uppercase tracking-[0.12em] text-ink-400">Emitida</div>
+                                <div class="font-bold text-[10.5px]">02/05/2026</div>
+                                <div class="text-[8.5px] font-bold uppercase tracking-[0.12em] text-ink-400 mt-1.5">Válida hasta</div>
+                                <div class="font-bold text-[10.5px] text-emerald-700">17/05/2026</div>
+                            </div>
+                        </div>
+
+                        <!-- items -->
+                        <table class="w-full mt-4 text-[11px]">
+                            <thead>
+                                <tr class="bg-ink-900 text-white">
+                                    <th class="text-left px-2 py-1.5 font-bold uppercase tracking-[0.06em] text-[9px]">Descripción</th>
+                                    <th class="text-center px-1 py-1.5 font-bold uppercase tracking-[0.06em] text-[9px]" style="width:50px">Cant</th>
+                                    <th class="text-right px-1 py-1.5 font-bold uppercase tracking-[0.06em] text-[9px]" style="width:75px">Precio</th>
+                                    <th class="text-right px-1 py-1.5 font-bold uppercase tracking-[0.06em] text-[9px]" style="width:75px">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ([
+                                    ['Implementación CRM Kydesk Business', '1', 'RD$ 85,000.00', 'RD$ 85,000.00', false],
+                                    ['Capacitación al equipo (8 horas)', '8', 'RD$ 2,500.00', 'RD$ 20,000.00', true],
+                                    ['Migración de datos · 12k contactos', '1', 'RD$ 35,000.00', 'RD$ 35,000.00', false],
+                                    ['Licencia Business · 1 año (10 users)', '1', 'RD$ 60,000.00', 'RD$ 60,000.00', true],
+                                ] as [$t,$q,$p,$s,$alt]): ?>
+                                    <tr class="border-b border-[#ececef] <?= $alt ? 'bg-[#fafafb]' : '' ?>">
+                                        <td class="px-2 py-2 font-semibold"><?= $t ?></td>
+                                        <td class="px-1 py-2 text-center text-ink-500"><?= $q ?></td>
+                                        <td class="px-1 py-2 text-right font-mono text-ink-500"><?= $p ?></td>
+                                        <td class="px-1 py-2 text-right font-mono font-bold"><?= $s ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+
+                        <!-- totals -->
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div class="border border-[#ececef] rounded-xl p-3 text-[10.5px]" style="border-left:3px solid #16a34a">
+                                <div class="text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-700">DATOS DE PAGO</div>
+                                <div class="text-ink-500 mt-1 font-mono leading-tight">Banco Popular · Cta 849-693-106<br>A nombre de Acme Soluciones SRL<br>RNC: 1-30-12345-6</div>
+                            </div>
+                            <div>
+                                <div class="text-[10.5px] flex justify-between py-0.5"><span class="text-ink-500">Subtotal</span><span class="font-mono font-bold">RD$ 200,000.00</span></div>
+                                <div class="text-[10.5px] flex justify-between py-0.5 text-rose-600"><span>Descuento (5%)</span><span class="font-mono">− RD$ 10,000.00</span></div>
+                                <div class="text-[10.5px] flex justify-between py-0.5"><span class="text-ink-500">ITBIS (18%)</span><span class="font-mono font-bold">RD$ 32,400.00</span></div>
+                                <div class="rounded-lg p-2.5 mt-2 text-white" style="background:<?= $accent ?>">
+                                    <div class="text-[8px] font-bold uppercase tracking-[0.16em] opacity-90">TOTAL</div>
+                                    <div class="font-mono font-extrabold text-[18px]">RD$ 222,400.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 <?php elseif ($mockType === 'crm'): ?>
                     <div class="grid grid-cols-3 gap-3 mb-3">
                         <?php

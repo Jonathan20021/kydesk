@@ -7,8 +7,8 @@ class Plan
         'starter'    => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','custom_fields','csat','status_page','customer_portal'],
         'free'       => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','custom_fields','csat','status_page','customer_portal'],
         'pro'        => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking'],
-        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','reports_builder','itsm','meetings','crm'],
-        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','ai_assist','reports_builder','itsm','sso','custom_branding','meetings','crm'],
+        'business'   => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','reports_builder','itsm','meetings','crm','quotes'],
+        'enterprise' => ['tickets','kb','notes','todos','companies','assets','reports','users','roles','settings','automations','sla','audit','departments','integrations','retainers','custom_fields','csat','status_page','customer_portal','email_inbound','time_tracking','live_chat','ai_assist','reports_builder','itsm','sso','custom_branding','meetings','crm','quotes'],
     ];
 
     /** Catálogo de módulos que el super admin puede gestionar por tenant. */
@@ -43,6 +43,7 @@ class Plan
         'custom_branding'  => ['Branding propio',   'palette',         'Logos, colores y dominios personalizados.', 'enterprise'],
         'meetings'         => ['Agenda de reuniones','calendar-clock', 'Página pública estilo Calendly para que clientes reserven citas con tu equipo.', 'business'],
         'crm'              => ['CRM Leads / Clientes','contact-round',  'Gestión avanzada de leads, pipelines, oportunidades, actividades y conversión de clientes.', 'business'],
+        'quotes'           => ['Cotizaciones',          'file-text',     'Generador profesional de cotizaciones con plantillas, ITBIS configurable, descuentos y exportación PDF con branding propio.', 'business'],
     ];
 
     public const PLAN_RANK = ['starter'=>1,'free'=>1,'pro'=>2,'business'=>2,'enterprise'=>3];

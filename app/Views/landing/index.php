@@ -403,6 +403,7 @@
                 ['meetings',       __('module.meetings.name'),       __('module.meetings.desc'),       'calendar-clock','#f3f0ff','#7c5cff'],
                 ['retainers',      __('module.retainers.name'),      __('module.retainers.desc'),      'handshake','#ecfdf5','#047857'],
                 ['crm',            __('module.crm.name'),            __('module.crm.desc'),            'contact-round','#f3f0ff','#5a3aff'],
+                ['quotes',         __('module.quotes.name'),         __('module.quotes.desc'),         'file-text','#fff7ed','#c2410c'],
                 ['kanban',         __('module.kanban.name'),         __('module.kanban.desc'),         'kanban-square','#dbeafe','#1d4ed8'],
                 ['automations',    __('module.automations.name'),    __('module.automations.desc'),    'workflow','#f3e8ff','#7e22ce'],
             ];
@@ -562,6 +563,184 @@
                             <div class="font-display font-bold text-[12px]">Empresa + Portal en 1 click</div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== QUOTES SHOWCASE (Business / Enterprise) ========== -->
+<section id="quotes" class="py-28 relative overflow-hidden" style="background:linear-gradient(180deg,#fff7ed 0%,#fffbeb 100%)">
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="aurora-blob" style="width:500px;height:500px;background:radial-gradient(circle,rgba(245,158,11,.28),transparent 70%);top:-160px;left:-100px;mix-blend-mode:multiply;opacity:.55;animation:aurora-2 28s ease-in-out infinite"></div>
+        <div class="aurora-blob" style="width:560px;height:560px;background:radial-gradient(circle,rgba(124,92,255,.22),transparent 70%);bottom:-180px;right:-120px;mix-blend-mode:multiply;opacity:.5;animation:aurora-1 26s ease-in-out infinite"></div>
+    </div>
+
+    <div class="max-w-[1240px] mx-auto px-6 relative">
+        <div class="grid grid-cols-12 gap-8 items-center">
+
+            <!-- LEFT — mock PDF -->
+            <div class="col-span-12 lg:col-span-7 lg:order-1 reveal" data-reveal>
+                <div class="rounded-3xl p-2 relative" style="background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(245,158,11,.1));box-shadow:0 32px 80px -24px rgba(124,92,255,.35)">
+                    <div class="rounded-[20px] bg-white border border-[#ececef] overflow-hidden">
+                        <!-- chrome -->
+                        <div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-[#ececef]">
+                            <span class="w-3 h-3 rounded-full bg-[#ff5f57]"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#febc2e]"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#28c840]"></span>
+                            <div class="flex-1 text-center text-[11px] font-mono text-ink-400 flex items-center justify-center gap-1.5"><i class="lucide lucide-lock text-[10px]"></i> kydesk / acme / quotes / COT-2026-0042.pdf</div>
+                        </div>
+
+                        <!-- PDF mockup -->
+                        <div class="p-6 bg-[#fafafb]">
+                            <div class="bg-white rounded-xl border border-[#ececef] p-5 shadow-sm">
+                                <!-- header -->
+                                <div class="flex items-start justify-between pb-4 border-b-2" style="border-color:#7c5cff">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-lg grid place-items-center text-white font-display font-extrabold text-[20px]" style="background:linear-gradient(135deg,#7c5cff,#a78bfa)">A</div>
+                                        <div>
+                                            <div class="font-display font-extrabold text-[15px]">Acme Soluciones SRL</div>
+                                            <div class="text-[10px] text-ink-400">RNC: 1-30-12345-6 · Av. 27 de Febrero 100 · Santo Domingo</div>
+                                            <div class="text-[10px] text-ink-400">+1 809 555 0100 · ventas@acme.do</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[8.5px] font-bold uppercase tracking-[0.18em] text-brand-700">COTIZACIÓN</div>
+                                        <div class="font-display font-extrabold text-[18px] tracking-[-0.025em]">Quotation</div>
+                                        <div class="text-[10px] font-mono text-ink-500 mt-0.5">COT-2026-0042</div>
+                                        <span class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-[0.1em]" style="background:#3b82f6;color:white">ENVIADA</span>
+                                    </div>
+                                </div>
+
+                                <!-- client + meta -->
+                                <div class="grid grid-cols-3 gap-2 mt-4">
+                                    <div class="col-span-2 border-l-2 border-brand-500 pl-3">
+                                        <div class="text-[8px] font-bold uppercase tracking-[0.16em] text-brand-700">CLIENTE</div>
+                                        <div class="font-display font-bold text-[12.5px] mt-0.5">Globex Innovaciones SA</div>
+                                        <div class="text-[9.5px] text-ink-500 mt-0.5">Atn: María Torres · maria@globex.com</div>
+                                    </div>
+                                    <div class="bg-[#fafafb] rounded p-2">
+                                        <div class="flex items-center justify-between text-[8.5px]">
+                                            <div>
+                                                <div class="text-ink-400 font-bold uppercase tracking-[0.1em]">Emitida</div>
+                                                <div class="font-bold">02/05/2026</div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-ink-400 font-bold uppercase tracking-[0.1em]">Válida</div>
+                                                <div class="font-bold text-emerald-700">17/05/2026</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- items table -->
+                                <table class="w-full mt-3 text-[10.5px]">
+                                    <thead>
+                                        <tr class="bg-ink-900 text-white">
+                                            <th class="text-left px-2 py-1.5 font-bold uppercase tracking-[0.06em] text-[8.5px]">Descripción</th>
+                                            <th class="text-center px-1 py-1.5 font-bold uppercase tracking-[0.06em] text-[8.5px]" style="width:40px">Cant</th>
+                                            <th class="text-right px-1 py-1.5 font-bold uppercase tracking-[0.06em] text-[8.5px]" style="width:60px">Precio</th>
+                                            <th class="text-right px-1 py-1.5 font-bold uppercase tracking-[0.06em] text-[8.5px]" style="width:65px">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ([
+                                            ['Implementación CRM Kydesk Business', '1 servicio', 'RD$ 85,000.00', 'RD$ 85,000.00', false],
+                                            ['Capacitación equipo (8 horas)', '8 horas', 'RD$ 2,500.00', 'RD$ 20,000.00', true],
+                                            ['Migración de datos · 12k contactos', '1 proyecto', 'RD$ 35,000.00', 'RD$ 35,000.00', false],
+                                            ['Licencia Business · 1 año (10 users)', '1 licencia', 'RD$ 60,000.00', 'RD$ 60,000.00', false],
+                                        ] as [$t,$q,$p,$s,$alt]): ?>
+                                            <tr class="border-b border-[#ececef] <?= $alt ? 'bg-[#fafafb]' : '' ?>">
+                                                <td class="px-2 py-1.5 font-medium"><?= $t ?></td>
+                                                <td class="px-1 py-1.5 text-center text-ink-500"><?= $q ?></td>
+                                                <td class="px-1 py-1.5 text-right font-mono text-ink-500"><?= $p ?></td>
+                                                <td class="px-1 py-1.5 text-right font-mono font-bold"><?= $s ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+
+                                <!-- totals -->
+                                <div class="grid grid-cols-2 gap-3 mt-3">
+                                    <div class="border border-[#ececef] rounded p-2.5 text-[9.5px]" style="border-left:3px solid #16a34a">
+                                        <div class="text-[8px] font-bold uppercase tracking-[0.14em] text-emerald-700">DATOS DE PAGO</div>
+                                        <div class="text-ink-500 mt-1 font-mono text-[8.5px] leading-tight">Banco Popular · Cta 849-693-106<br>A nombre de Acme Soluciones SRL</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[9.5px] flex justify-between py-0.5"><span class="text-ink-500">Subtotal</span><span class="font-mono font-bold">RD$ 200,000.00</span></div>
+                                        <div class="text-[9.5px] flex justify-between py-0.5 text-rose-600"><span>Descuento (5%)</span><span class="font-mono">− RD$ 10,000.00</span></div>
+                                        <div class="text-[9.5px] flex justify-between py-0.5"><span class="text-ink-500">ITBIS (18%)</span><span class="font-mono font-bold">RD$ 32,400.00</span></div>
+                                        <div class="rounded-lg p-2 mt-1.5 text-white" style="background:#7c5cff">
+                                            <div class="text-[7.5px] font-bold uppercase tracking-[0.14em] opacity-90">TOTAL</div>
+                                            <div class="font-mono font-extrabold text-[14px]">RD$ 222,400.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- floating chips -->
+                            <div class="grid grid-cols-3 gap-2 mt-3">
+                                <?php foreach ([
+                                    ['logo + branding', 'palette', '#7c5cff'],
+                                    ['ITBIS configurable', 'percent', '#16a34a'],
+                                    ['Aceptar online', 'check-circle-2', '#3b82f6'],
+                                ] as [$lbl,$ic,$col]): ?>
+                                    <div class="bg-white border border-[#ececef] rounded-xl p-2 flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg grid place-items-center" style="background:<?= $col ?>1a;color:<?= $col ?>"><i class="lucide lucide-<?= $ic ?> text-[12px]"></i></div>
+                                        <div class="font-display font-bold text-[10.5px]"><?= $lbl ?></div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- floating "accepted" chip -->
+                    <div class="absolute -top-4 -right-4 hidden md:flex items-center gap-2.5 bg-white rounded-2xl pl-3 pr-4 py-2.5 border border-emerald-200" style="box-shadow:0 12px 30px -10px rgba(16,163,74,.3)">
+                        <div class="w-8 h-8 rounded-xl grid place-items-center" style="background:linear-gradient(135deg,#16a34a,#10b981);color:white"><i class="lucide lucide-check-circle-2 text-[14px]"></i></div>
+                        <div>
+                            <div class="text-[9.5px] font-bold uppercase tracking-[0.12em] text-emerald-700">Aceptada hoy</div>
+                            <div class="font-display font-bold text-[12px]">RD$ 222,400</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT — copy -->
+            <div class="col-span-12 lg:col-span-5 lg:order-2 reveal" data-reveal>
+                <div class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full mb-4" style="background:#ffedd5;color:#c2410c;border:1px solid #fdba74">
+                    <i class="lucide lucide-crown text-[11px]"></i> Business · Enterprise
+                </div>
+                <h2 class="display-xl" style="font-size:clamp(2rem,3.5vw + 1rem,3.4rem);text-wrap:balance">
+                    El mejor generador de <span class="gradient-shift">cotizaciones</span><br>conectado a todo.
+                </h2>
+                <p class="mt-5 text-[16px] text-ink-500 leading-relaxed max-w-md">
+                    Cotizaciones profesionales en segundos · PDF con tu logo y branding · ITBIS, IVA o VAT 100% configurable · descuentos por línea o globales · link público para que el cliente acepte online · todo conectado al CRM, empresas y catálogo de servicios.
+                </p>
+
+                <ul class="mt-7 space-y-3">
+                    <?php foreach ([
+                        ['file-text',     'PDF profesional con tu logo', 'mPDF con header en cada página · color brand · totales destacados · firma configurable · soporte UTF-8 completo.'],
+                        ['percent',       'ITBIS / IVA / VAT configurable', 'Seed con 5 impuestos pre-cargados (RD, ES, AR, MX) · creá los que necesites con tasa decimal · marcá uno como default.'],
+                        ['link',          'Portal cliente con link único', 'El cliente recibe un email con CTA · descarga el PDF, acepta o rechaza online · auto-tracking de "vista" y "aceptada".'],
+                        ['list-plus',     'Items + descuentos por línea', 'Cantidad decimal, unidad (hora/licencia/servicio/proyecto/mes) · descuento % por línea o global · items exentos individualmente.'],
+                        ['bookmark',      'Plantillas reutilizables', 'Items, intro, términos y validez prearmados · cargá una plantilla y la cotización queda lista para enviar.'],
+                        ['link-2',        'Conectado al CRM y catálogo', 'Desde un lead se prefijan datos · al elegir empresa registrada se autocompleta · items desde Service Catalog ITSM.'],
+                    ] as [$ic, $title, $desc]): ?>
+                        <li class="flex gap-3">
+                            <div class="w-9 h-9 rounded-xl grid place-items-center flex-shrink-0" style="background:white;color:#c2410c;box-shadow:0 4px 12px -4px rgba(245,158,11,.3)">
+                                <i class="lucide lucide-<?= $ic ?> text-[15px]"></i>
+                            </div>
+                            <div>
+                                <div class="font-display font-bold text-[14px] tracking-[-0.01em]"><?= $e($title) ?></div>
+                                <div class="text-[12.5px] text-ink-500 mt-0.5 leading-relaxed"><?= $e($desc) ?></div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                    <a href="<?= $url('/demo') ?>" class="btn glow-purple" style="background:linear-gradient(135deg,#f59e0b,#fb923c);color:white"><i class="lucide lucide-play"></i> Probar demo Business</a>
+                    <a href="<?= $url('/features/quotes') ?>" class="btn btn-outline">Ver detalles <i class="lucide lucide-arrow-right text-[12px]"></i></a>
                 </div>
             </div>
         </div>

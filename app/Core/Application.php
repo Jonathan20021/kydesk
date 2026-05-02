@@ -283,6 +283,31 @@ class Application
         $r->post('/t/{slug}/reports-builder/{id}', ['App\Controllers\ReportBuilderController', 'update']);
         $r->post('/t/{slug}/reports-builder/{id}/delete', ['App\Controllers\ReportBuilderController', 'delete']);
 
+        // ─────────── COTIZACIONES · público (sin auth) ───────────
+        $r->get('/q/{token}',          ['App\Controllers\QuoteController', 'publicShow']);
+        $r->get('/q/{token}/pdf',      ['App\Controllers\QuoteController', 'publicPdf']);
+        $r->post('/q/{token}/accept',  ['App\Controllers\QuoteController', 'publicAccept']);
+        $r->post('/q/{token}/reject',  ['App\Controllers\QuoteController', 'publicReject']);
+
+        // ─────────── COTIZACIONES (Business / Enterprise) ───────────
+        $r->get('/t/{slug}/quotes',                                  ['App\Controllers\QuoteController', 'index']);
+        $r->get('/t/{slug}/quotes/create',                           ['App\Controllers\QuoteController', 'create']);
+        $r->post('/t/{slug}/quotes',                                 ['App\Controllers\QuoteController', 'store']);
+        $r->get('/t/{slug}/quotes/settings',                         ['App\Controllers\QuoteController', 'settings']);
+        $r->post('/t/{slug}/quotes/settings',                        ['App\Controllers\QuoteController', 'settingsUpdate']);
+        $r->post('/t/{slug}/quotes/settings/taxes',                  ['App\Controllers\QuoteController', 'taxStore']);
+        $r->post('/t/{slug}/quotes/settings/taxes/{id}',             ['App\Controllers\QuoteController', 'taxUpdate']);
+        $r->post('/t/{slug}/quotes/settings/taxes/{id}/delete',      ['App\Controllers\QuoteController', 'taxDelete']);
+        $r->post('/t/{slug}/quotes/settings/templates',              ['App\Controllers\QuoteController', 'templateStore']);
+        $r->post('/t/{slug}/quotes/settings/templates/{id}/delete',  ['App\Controllers\QuoteController', 'templateDelete']);
+        $r->get('/t/{slug}/quotes/{id}',                             ['App\Controllers\QuoteController', 'show']);
+        $r->post('/t/{slug}/quotes/{id}',                            ['App\Controllers\QuoteController', 'update']);
+        $r->post('/t/{slug}/quotes/{id}/delete',                     ['App\Controllers\QuoteController', 'delete']);
+        $r->post('/t/{slug}/quotes/{id}/duplicate',                  ['App\Controllers\QuoteController', 'duplicate']);
+        $r->post('/t/{slug}/quotes/{id}/send',                       ['App\Controllers\QuoteController', 'send']);
+        $r->post('/t/{slug}/quotes/{id}/status',                     ['App\Controllers\QuoteController', 'markStatus']);
+        $r->get('/t/{slug}/quotes/{id}/pdf',                         ['App\Controllers\QuoteController', 'pdf']);
+
         // ─────────── CRM (Leads / Clientes · Business / Enterprise) ───────────
         $r->get('/t/{slug}/crm',                                   ['App\Controllers\CrmController', 'dashboard']);
         $r->get('/t/{slug}/crm/leads',                             ['App\Controllers\CrmController', 'leadsIndex']);
